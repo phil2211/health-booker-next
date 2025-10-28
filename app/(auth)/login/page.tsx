@@ -24,13 +24,21 @@ export default function LoginPage() {
         redirect: false,
       })
 
+      console.log('Login result:', result)
+
       if (result?.error) {
+        console.error('Login error:', result.error)
         setError('Invalid email or password')
+      } else if (result?.ok) {
+        // Success - redirect to dashboard
+        console.log('Login successful, redirecting...')
+        window.location.href = '/dashboard'
       } else {
-        router.push('/dashboard')
-        router.refresh()
+        console.error('Unexpected result:', result)
+        setError('An error occurred during login')
       }
     } catch (err) {
+      console.error('Login exception:', err)
       setError('An error occurred. Please try again.')
     } finally {
       setLoading(false)

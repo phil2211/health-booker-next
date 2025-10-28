@@ -41,33 +41,38 @@ export const authConfig: NextAuthConfig = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
-          throw new Error('Email and password are required')
+          return null
         }
 
         const email = String(credentials.email)
         const password = String(credentials.password)
 
-        // Find therapist by email
-        const therapist = await findTherapistByEmail(email)
-        
-        if (!therapist) {
-          throw new Error('Invalid email or password')
-        }
+        try {
+          // Find therapist by email
+          const therapist = await findTherapistByEmail(email)
+          
+          if (!therapist) {
+            return null
+          }
 
-        // Compare passwords
-        const passwordMatch = await comparePassword(password, therapist.password)
-        
-        if (!passwordMatch) {
-          throw new Error('Invalid email or password')
-        }
+          // Compare passwords
+          const passwordMatch = await comparePassword(password, therapist.password)
+          
+          if (!passwordMatch) {
+            return null
+          }
 
-        // Return therapist data (without password)
-        return {
-          id: therapist._id,
-          email: therapist.email,
-          name: therapist.name,
-          specialization: therapist.specialization,
-          bio: therapist.bio,
+          // Return therapist data (without password)
+          return {
+            id: therapist._id,
+            email: therapist.email,
+            name: therapist.name,
+            specialization: therapist.specialization,
+            bio: therapist.bio,
+          }
+        } catch (error) {
+          console.error('Auth error:', error)
+          return null
         }
       },
     }),
@@ -102,6 +107,7 @@ export const authConfig: NextAuthConfig = {
       return session
     },
   },
+  trustHost: true,
 }
 
 /**
