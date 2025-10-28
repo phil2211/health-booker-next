@@ -55,8 +55,13 @@ describe('Booking URL E2E', () => {
 
       requireAuth.mockResolvedValue(mockSession)
 
+      // Create mock request object
+      const mockRequest = {
+        url: 'http://localhost:3000/api/therapist/booking-url',
+      } as Request
+
       // Call the API route handler
-      const response = await GET()
+      const response = await GET(mockRequest)
       const jsonResponse = await response.json()
 
       // Verify the booking URL
@@ -82,8 +87,13 @@ describe('Booking URL E2E', () => {
 
       requireAuth.mockResolvedValue(mockSession)
 
+      // Create mock request object
+      const mockRequest = {
+        url: 'http://localhost:3000/api/therapist/booking-url',
+      } as Request
+
       // Call the API route handler
-      const response = await GET()
+      const response = await GET(mockRequest)
       const jsonResponse = await response.json()
 
       // Verify fallback to localhost
@@ -96,8 +106,13 @@ describe('Booking URL E2E', () => {
 
       requireAuth.mockRejectedValue(new Error('Unauthorized - Please login'))
 
+      // Create mock request object
+      const mockRequest = {
+        url: 'http://localhost:3000/api/therapist/booking-url',
+      } as Request
+
       // Call the API route handler
-      const response = await GET()
+      const response = await GET(mockRequest)
 
       expect(response.status).toBe(401)
     })

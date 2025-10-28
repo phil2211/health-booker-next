@@ -11,7 +11,7 @@ export const runtime = 'nodejs'
  * Requires: Authentication
  * Returns: Unique booking URL for the therapist
  */
-export async function GET() {
+export async function GET(request: Request) {
   try {
     // Require authentication
     const session = await requireAuth()
@@ -19,8 +19,21 @@ export async function GET() {
     // Extract therapist ID from session
     const therapistId = session.user.id
 
-    // Get base URL from environment variable
-    let baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+    // Get base URL dynamically from request headers (Vercel provides this automatically)
+    let baseUrl: string
+    
+    // Check for Vercel environment variables first
+    if (process.env.VERCEL_URL) {
+      // Vercel provides VERCEL_URL in the format: your-app.vercel.app
+      baseUrl = `https://${process.env.VERCEL_URL}`
+    } else if (process.env.NEXT_PUBLIC_BASE_URL) {
+      // Use explicitly set base URL
+      baseUrl = process.env.NEXT_PUBLIC_BASE_URL
+    } else {
+      // Fallback: try to get from request headers
+      const url = new URL(request.url)
+      baseUrl = `${url.protocol}//${url.host}`
+    }
     
     // Remove trailing slash if present to avoid double slashes
     baseUrl = baseUrl.replace(/\/+$/, '')
