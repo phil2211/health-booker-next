@@ -143,13 +143,16 @@ export default async function TherapistProfilePage({ params }: TherapistPageProp
   )
 }
 
-// Enable dynamic params for this route
-export const dynamicParams = false
+// Enable dynamic params for this route - allow unknown IDs
+export const dynamicParams = true
 
-// Generate static params for known therapists (optional)
+// Optional: generate static params for known therapists in production
 export async function generateStaticParams() {
-  // For now, return empty array - therapists will be fetched dynamically
-  // In production, you could pre-render popular therapists
+  // Return empty array to allow all dynamic routes
+  // Therapists will be fetched dynamically at request time
   return []
 }
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
 

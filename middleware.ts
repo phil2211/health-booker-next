@@ -10,9 +10,7 @@ export function middleware(request: NextRequest) {
     cookie => cookie.name.includes('session-token')
   )
 
-  // Only protect /dashboard routes
-  // /therapist/[id] should be public (for viewing therapist profiles)
-  // /book/[id] should be public (for booking appointments)
+  // Only protect /dashboard - /therapist routes are public
   if (!hasSessionToken && pathname.startsWith('/dashboard')) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
@@ -23,9 +21,7 @@ export function middleware(request: NextRequest) {
 }
 
 // Protect these paths
-// Note: matcher still includes /therapist to run middleware
-// but the actual protection logic only guards /dashboard
 export const config = {
-  matcher: ['/dashboard/:path*', '/therapist/:path*', '/book/:path*'],
+  matcher: ['/dashboard/:path*'],
 }
 
