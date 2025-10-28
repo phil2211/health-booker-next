@@ -135,7 +135,12 @@ describe('Booking URL E2E', () => {
 
       requireAuth.mockResolvedValue(mockSession)
 
-      const response = await GET()
+      // Create mock request
+      const mockRequest = {
+        url: 'https://example.com/api/therapist/booking-url',
+      } as Request
+
+      const response = await GET(mockRequest)
       const jsonResponse = await response.json()
 
       // Should handle trailing slash properly
@@ -161,7 +166,12 @@ describe('Booking URL E2E', () => {
 
       requireAuth.mockResolvedValue(mockSession)
 
-      const response = await GET()
+      // Create mock request
+      const mockRequest = {
+        url: 'https://production.com/api/therapist/booking-url',
+      } as Request
+
+      const response = await GET(mockRequest)
       const jsonResponse = await response.json()
 
       // Verify the URL structure is correct
