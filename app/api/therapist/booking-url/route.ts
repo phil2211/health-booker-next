@@ -20,7 +20,11 @@ export async function GET() {
     const therapistId = session.user.id
 
     // Get base URL from environment variable
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+    let baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+    
+    // Remove trailing slash if present to avoid double slashes
+    baseUrl = baseUrl.replace(/\/+$/, '')
+    
     const bookingUrl = `${baseUrl}/book/${therapistId}`
 
     return NextResponse.json({
