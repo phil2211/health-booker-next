@@ -1,0 +1,8 @@
+node_modules
+.next
+.vercel
+cypress
+coverage
+*.config.js
+*.config.ts
+
