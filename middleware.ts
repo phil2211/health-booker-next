@@ -2,12 +2,16 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 export function middleware(request: NextRequest) {
-  // Check for authentication token in cookies
-  const token = request.cookies.get('next-auth.session-token') || 
-                request.cookies.get('__Secure-next-auth.session-token')
+  const pathname = request.nextUrl.pathname
+  
+  // Check for any NextAuth session cookies
+  const allCookies = request.cookies.getAll()
+  const hasSessionToken = allCookies.some(
+    cookie => cookie.name.includes('session-token')
+  )
 
-  // If no token and accessing protected route, redirect to login
-  if (!token) {
+  // If no session token and trying to access protected route, redirect to login
+  if (!hasSessionToken && pathname.startsWith('/dashboard')) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)

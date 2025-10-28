@@ -30,9 +30,11 @@ export default function LoginPage() {
         console.error('Login error:', result.error)
         setError('Invalid email or password')
       } else if (result?.ok) {
-        // Success - redirect to dashboard
-        console.log('Login successful, redirecting...')
-        window.location.href = '/dashboard'
+        // Success - wait a moment for session to be set, then redirect
+        console.log('Login successful, waiting for session...')
+        setTimeout(() => {
+          window.location.href = '/dashboard'
+        }, 100)
       } else {
         console.error('Unexpected result:', result)
         setError('An error occurred during login')
