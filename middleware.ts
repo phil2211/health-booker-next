@@ -10,8 +10,8 @@ export function middleware(request: NextRequest) {
     cookie => cookie.name.includes('session-token')
   )
 
-  // Only protect /dashboard and /therapist routes
-  if (!hasSessionToken && (pathname.startsWith('/dashboard') || pathname.startsWith('/therapist'))) {
+  // Only protect /dashboard routes - therapist and book pages are public
+  if (!hasSessionToken && pathname.startsWith('/dashboard')) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
@@ -20,8 +20,8 @@ export function middleware(request: NextRequest) {
   return NextResponse.next()
 }
 
-// Protect these paths
+// Protect these paths - only dashboard needs authentication
 export const config = {
-  matcher: ['/dashboard/:path*', '/therapist/:path*'],
+  matcher: ['/dashboard/:path*'],
 }
 
