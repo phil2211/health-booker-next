@@ -12,6 +12,12 @@ jobs:
   quality-gates:
     name: Quality Gates
     runs-on: ubuntu-latest
+    env:
+      MONGODB_URI: ${{ secrets.MONGODB_URI }}
+      MONGODB_DB: ${{ secrets.MONGODB_DB || 'health-booker' }}
+      NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET || 'test-secret-key' }}
+      NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL || 'http://localhost:3000' }}
+      NEXT_PUBLIC_BASE_URL: 'http://localhost:3000'
 
     steps:
       - name: Checkout code
