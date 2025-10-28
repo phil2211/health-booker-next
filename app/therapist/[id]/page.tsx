@@ -1,4 +1,6 @@
 import { notFound } from 'next/navigation'
+import Link from 'next/link'
+import Image from 'next/image'
 
 interface TherapistPageProps {
   params: Promise<{ id: string }>
@@ -33,16 +35,16 @@ export default async function TherapistProfilePage({ params }: TherapistPageProp
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-4">
-              <a href="/" className="text-xl font-bold text-indigo-600 hover:text-indigo-700">
+              <Link href="/" className="text-xl font-bold text-indigo-600 hover:text-indigo-700">
                 HealthBooker
-              </a>
+              </Link>
               <span className="text-gray-400">|</span>
               <span className="text-sm text-gray-600">Therapist Profile</span>
             </div>
             <div className="flex items-center space-x-4">
-              <a href="/" className="text-sm text-gray-600 hover:text-gray-800">
+              <Link href="/" className="text-sm text-gray-600 hover:text-gray-800">
                 Home
-              </a>
+              </Link>
             </div>
           </div>
         </div>
@@ -61,9 +63,11 @@ export default async function TherapistProfilePage({ params }: TherapistPageProp
           {/* Profile Photo (if available) */}
           {therapist.photoUrl && (
             <div className="flex justify-center mb-8">
-              <img
+              <Image
                 src={therapist.photoUrl}
                 alt={therapist.name}
+                width={192}
+                height={192}
                 className="w-48 h-48 rounded-full object-cover border-4 border-indigo-200 shadow-lg"
               />
             </div>
@@ -92,19 +96,19 @@ export default async function TherapistProfilePage({ params }: TherapistPageProp
               <p className="text-indigo-700 mb-4">
                 Click below to view available time slots and schedule your appointment with {therapist.name}.
               </p>
-              <a
+              <Link
                 href={`/book/${therapist._id}`}
                 className="inline-block w-full sm:w-auto bg-indigo-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-indigo-700 transition-colors text-center"
               >
                 View Availability & Book →
-              </a>
+              </Link>
             </div>
           </div>
         </div>
 
         {/* Back to Home */}
         <div className="mt-8 text-center">
-          <a
+          <Link
             href="/"
             className="text-indigo-600 hover:text-indigo-700 font-medium inline-flex items-center gap-2"
           >
@@ -112,7 +116,7 @@ export default async function TherapistProfilePage({ params }: TherapistPageProp
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
             Back to Home
-          </a>
+          </Link>
         </div>
       </div>
     </div>
