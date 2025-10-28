@@ -8,6 +8,9 @@ import {
 } from '@/models/Therapist'
 import { isValidEmail } from '@/lib/utils/validation'
 
+// Ensure this route runs in Node.js runtime (not Edge) to support MongoDB
+export const runtime = 'nodejs'
+
 /**
  * POST /api/auth/register
  * Create a new therapist account

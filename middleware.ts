@@ -1,16 +1,20 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { auth } from '@/app/api/auth/[...nextauth]/route'
 
-export default auth((req: NextRequest & { auth: any }) => {
-  // If accessing a protected route without authentication
-  if (!req.auth) {
-    const url = req.nextUrl.clone()
+export function middleware(request: NextRequest) {
+  // Check for authentication token in cookies
+  const token = request.cookies.get('next-auth.session-token') || 
+                request.cookies.get('__Secure-next-auth.session-token')
+
+  // If no token and accessing protected route, redirect to login
+  if (!token) {
+    const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
   }
+
   return NextResponse.next()
-})
+}
 
 // Protect these paths
 export const config = {

@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server'
 import { getAuthSession } from '@/lib/auth'
 import { findTherapistById } from '@/models/Therapist'
 
+// Ensure this route runs in Node.js runtime (not Edge) to support MongoDB
+export const runtime = 'nodejs'
+
 /**
  * GET /api/auth/verify
  * Verify authentication token and return current therapist profile
