@@ -48,10 +48,13 @@ This project follows a cloud-native architecture designed for developer velocity
    cp .env.local.example .env.local
    ```
    
-   Edit `.env.local` and add your MongoDB connection string:
+   Edit `.env.local` and add your configuration:
    ```env
    MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/
    MONGODB_DB=health-booker
+   NEXT_PUBLIC_BASE_URL=http://localhost:3000
+   NEXTAUTH_URL=http://localhost:3000
+   NEXTAUTH_SECRET=your-secret-key-here
    ```
 
 5. **Run the development server**
@@ -189,12 +192,17 @@ E2E tests are located in `cypress/e2e/`.
 
 3. **Configure environment variables**
    - In Vercel dashboard, go to Project Settings > Environment Variables
-   - Add your MongoDB connection string:
+   - Add the following variables:
      - Key: `MONGODB_URI`
-     - Value: Your MongoDB Atlas connection string
-   - Add database name:
+       Value: Your MongoDB Atlas connection string
      - Key: `MONGODB_DB`
-     - Value: `health-booker`
+       Value: `health-booker`
+     - Key: `NEXT_PUBLIC_BASE_URL`
+       Value: Your production domain (e.g., `https://your-app.vercel.app`)
+     - Key: `NEXTAUTH_URL`
+       Value: Your production domain (e.g., `https://your-app.vercel.app`)
+     - Key: `NEXTAUTH_SECRET`
+       Value: A randomly generated secret key
 
 4. **Deploy**
    - Vercel will automatically deploy on push to main
