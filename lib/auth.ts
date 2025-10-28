@@ -41,7 +41,6 @@ export const authConfig: NextAuthConfig = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
-          console.log('Missing email or password')
           return null
         }
 
@@ -49,27 +48,20 @@ export const authConfig: NextAuthConfig = {
         const password = String(credentials.password)
 
         try {
-          console.log('Looking for therapist with email:', email)
           // Find therapist by email
           const therapist = await findTherapistByEmail(email)
           
           if (!therapist) {
-            console.log('Therapist not found')
             return null
           }
 
-          console.log('Therapist found:', therapist.name)
           // Compare passwords
           const passwordMatch = await comparePassword(password, therapist.password)
           
-          console.log('Password match:', passwordMatch)
-          
           if (!passwordMatch) {
-            console.log('Password does not match')
             return null
           }
 
-          console.log('Authentication successful')
           // Return therapist data (without password)
           return {
             id: therapist._id,
