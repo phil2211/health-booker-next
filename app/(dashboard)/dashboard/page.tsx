@@ -19,6 +19,11 @@ export default async function DashboardPage() {
   }
 
   const bookingUrl = `/book/${therapist._id}`
+  
+  // Get base URL - use Vercel's automatic VERCEL_URL for preview deployments
+  const baseUrl = process.env.VERCEL_URL 
+    ? `https://${process.env.VERCEL_URL}`
+    : process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -139,12 +144,11 @@ export default async function DashboardPage() {
             </p>
             <div className="bg-gray-50 border rounded-lg p-4 mb-4">
               <code className="text-xs break-all text-gray-800">
-                {process.env.AUTH_URL || 'http://localhost:3000'}
-                {bookingUrl}
+                {baseUrl}{bookingUrl}
               </code>
             </div>
             <CopyUrlButton 
-              url={`${process.env.AUTH_URL || 'http://localhost:3000'}${bookingUrl}`}
+              url={`${baseUrl}${bookingUrl}`}
             />
             <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
               <p className="text-sm text-blue-800">
