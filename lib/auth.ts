@@ -114,7 +114,7 @@ export const authConfig: NextAuthConfig = {
  * Helper to get server session
  */
 export async function getAuthSession() {
-  const { auth } = await import('@/app/api/auth/[...nextauth]/route')
+  const { auth } = await import('@/lib/utils/auth-client')
   return auth()
 }
 
