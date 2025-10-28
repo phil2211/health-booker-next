@@ -1,21 +1,40 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
+import { findTherapistById } from '@/models/Therapist'
+import { ObjectId } from 'mongodb'
 
 interface BookingPageProps {
   params: Promise<{ id: string }>
 }
 
 async function getTherapistProfile(id: string) {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
-  const res = await fetch(`${baseUrl}/api/therapist/${id}`, {
-    cache: 'no-store',
-  })
-
-  if (!res.ok) {
+  // Validate ID format (MongoDB ObjectId)
+  if (!ObjectId.isValid(id)) {
     return null
   }
 
-  return res.json()
+  // Call the model function directly
+  const therapist = await findTherapistById(id)
+
+  if (!therapist) {
+    return null
+  }
+
+  // Return in API format for consistency
+  return {
+    therapist: {
+      _id: therapist._id,
+      name: therapist.name,
+      specialization: therapist.specialization,
+      bio: therapist.bio,
+      photoUrl: therapist.photoUrl,
+      email: therapist.email,
+      weeklyAvailability: therapist.weeklyAvailability,
+      blockedSlots: therapist.blockedSlots,
+      createdAt: therapist.createdAt,
+      updatedAt: therapist.updatedAt,
+    },
+  }
 }
 
 export default async function BookingPage({ params }: BookingPageProps) {
