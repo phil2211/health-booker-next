@@ -1,35 +1,54 @@
 /// <reference types="cypress" />
-// ***********************************************
-// This example commands.ts shows you how to
-// create various custom commands and overwrite
-// existing commands.
-//
-// For more comprehensive examples of custom
-// commands please read more here:
-// https://on.cypress.io/custom-commands
-// ***********************************************
-//
-//
-// -- This is a parent command --
-// Cypress.Commands.add('login', (email, password) => { ... })
-//
-//
-// -- This is a child command --
-// Cypress.Commands.add('drag', { prevSubject: 'element'}, (subject, options) => { ... })
-//
-//
-// -- This is a dual command --
-// Cypress.Commands.add('dismiss', { prevSubject: 'optional'}, (subject, options) => { ... })
-//
-//
-// -- This will overwrite an existing command --
-// Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
-//
+
+/**
+ * Register a therapist via API
+ */
+Cypress.Commands.add('registerTherapist', (email, password, name, specialization, bio) => {
+  cy.request({
+    method: 'POST',
+    url: '/api/auth/register',
+    body: {
+      email,
+      password,
+      name,
+      specialization,
+      bio,
+    },
+    failOnStatusCode: false,
+  })
+})
+
+/**
+ * Login as a therapist
+ */
+Cypress.Commands.add('loginTherapist', (email, password) => {
+  cy.visit('/login')
+  cy.get('input[name="email"]').type(email)
+  cy.get('input[name="password"]').type(password)
+  cy.contains('Sign In').click()
+  cy.url().should('include', '/dashboard')
+})
+
+/**
+ * Logout from dashboard
+ */
+Cypress.Commands.add('logoutTherapist', () => {
+  cy.contains('Logout').click()
+  cy.url().should('eq', Cypress.config().baseUrl + '/')
+})
 
 declare global {
   namespace Cypress {
     interface Chainable {
-      // Add custom command types here if needed
+      registerTherapist(
+        email: string,
+        password: string,
+        name: string,
+        specialization: string,
+        bio: string
+      ): Chainable<void>
+      loginTherapist(email: string, password: string): Chainable<void>
+      logoutTherapist(): Chainable<void>
     }
   }
 }

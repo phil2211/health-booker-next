@@ -12,15 +12,19 @@ export type BookingDocument = Booking & {
 
 /**
  * Helper function to validate booking data
+ * Updated to match Requirements.md booking structure
  */
 export function validateBooking(booking: Partial<Booking>): boolean {
   return !!(
-    booking.providerId &&
-    booking.patientId &&
+    booking.therapistId &&
+    booking.patientName &&
+    booking.patientEmail &&
+    booking.patientPhone &&
     booking.appointmentDate &&
     booking.startTime &&
     booking.endTime &&
-    booking.status
+    booking.status &&
+    booking.cancellationToken
   )
 }
 
