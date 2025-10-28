@@ -1,6 +1,7 @@
 import { Therapist, AvailabilityEntry, BlockedSlot } from '@/lib/types'
 import bcrypt from 'bcryptjs'
 import { getDatabase } from '@/lib/mongodb'
+import { ObjectId } from 'mongodb'
 
 export type TherapistDocument = Therapist & {
   _id: string
@@ -128,7 +129,7 @@ export async function findTherapistByEmail(email: string): Promise<TherapistDocu
  */
 export async function findTherapistById(id: string): Promise<TherapistDocument | null> {
   const db = await getDatabase()
-  const therapist = await db.collection('therapists').findOne({ _id: id })
+  const therapist = await db.collection('therapists').findOne({ _id: new ObjectId(id) })
   
   if (!therapist) return null
   

@@ -1,7 +1,6 @@
-import { NextAuthOptions, Session } from 'next-auth'
-import { JWT } from 'next-auth/jwt'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import { findTherapistByEmail, comparePassword } from '@/models/Therapist'
+import type { NextAuthConfig } from 'next-auth'
 
 declare module 'next-auth' {
   interface Session {
@@ -21,9 +20,7 @@ declare module 'next-auth' {
     specialization: string
     bio: string
   }
-}
 
-declare module 'next-auth/jwt' {
   interface JWT {
     id: string
     specialization: string
@@ -34,7 +31,7 @@ declare module 'next-auth/jwt' {
 /**
  * NextAuth configuration for therapist authentication
  */
-export const authOptions: NextAuthOptions = {
+export const authConfig: NextAuthConfig = {
   providers: [
     CredentialsProvider({
       name: 'Credentials',
@@ -47,15 +44,18 @@ export const authOptions: NextAuthOptions = {
           throw new Error('Email and password are required')
         }
 
+        const email = String(credentials.email)
+        const password = String(credentials.password)
+
         // Find therapist by email
-        const therapist = await findTherapistByEmail(credentials.email)
+        const therapist = await findTherapistByEmail(email)
         
         if (!therapist) {
           throw new Error('Invalid email or password')
         }
 
         // Compare passwords
-        const passwordMatch = await comparePassword(credentials.password, therapist.password)
+        const passwordMatch = await comparePassword(password, therapist.password)
         
         if (!passwordMatch) {
           throw new Error('Invalid email or password')
@@ -81,7 +81,7 @@ export const authOptions: NextAuthOptions = {
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   callbacks: {
-    async jwt({ token, user }) {
+    jwt({ token, user }: any) {
       if (user) {
         token.id = user.id
         token.email = user.email
@@ -91,7 +91,7 @@ export const authOptions: NextAuthOptions = {
       }
       return token
     },
-    async session({ session, token }) {
+    session({ session, token }: any) {
       if (session.user && token) {
         session.user.id = token.id as string
         session.user.email = token.email as string
@@ -102,15 +102,14 @@ export const authOptions: NextAuthOptions = {
       return session
     },
   },
-  secret: process.env.AUTH_SECRET,
 }
 
 /**
  * Helper to get server session
  */
 export async function getAuthSession() {
-  const { getServerSession } = await import('next-auth')
-  return getServerSession(authOptions)
+  const { auth } = await import('@/app/api/auth/[...nextauth]/route')
+  return auth()
 }
 
 /**
