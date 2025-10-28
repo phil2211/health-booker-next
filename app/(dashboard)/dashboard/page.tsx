@@ -137,7 +137,10 @@ export default async function DashboardPage() {
           </div>
 
           {/* Booking URL Card */}
-          <BookingUrlSection fallbackUrl={`${baseUrl}${bookingUrl}`} />
+          <BookingUrlSection 
+            fallbackUrl={`${baseUrl}${bookingUrl}`} 
+            therapistId={therapist._id}
+          />
         </div>
 
         {/* Quick Actions */}
