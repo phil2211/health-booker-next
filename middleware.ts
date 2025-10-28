@@ -1,0 +1,27 @@
+import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
+
+export function middleware(request: NextRequest) {
+  const pathname = request.nextUrl.pathname
+  
+  // Check for any NextAuth session cookies
+  const allCookies = request.cookies.getAll()
+  const hasSessionToken = allCookies.some(
+    cookie => cookie.name.includes('session-token')
+  )
+
+  // Only protect /dashboard and /therapist routes
+  if (!hasSessionToken && (pathname.startsWith('/dashboard') || pathname.startsWith('/therapist'))) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/login'
+    return NextResponse.redirect(url)
+  }
+
+  return NextResponse.next()
+}
+
+// Protect these paths
+export const config = {
+  matcher: ['/dashboard/:path*', '/therapist/:path*'],
+}
+
