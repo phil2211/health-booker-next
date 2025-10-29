@@ -23,10 +23,33 @@ Cypress.Commands.add('registerTherapist', (email, password, name, specialization
  */
 Cypress.Commands.add('loginTherapist', (email, password) => {
   cy.visit('/login')
-  cy.get('input[name="email"]').type(email)
+  cy.url({ timeout: 5000 }).should('include', '/login')
+  
+  // Wait for form to be visible
+  cy.get('input[name="email"]', { timeout: 5000 }).should('be.visible').type(email)
   cy.get('input[name="password"]').type(password)
+  
+  // Click Sign In and wait for redirect
   cy.contains('Sign In').click()
-  cy.url().should('include', '/dashboard')
+  
+  // Wait for either success redirect or error message
+  cy.url({ timeout: 10000 }).should((url) => {
+    // Should be on dashboard or still on login with error
+    expect(url.includes('/dashboard') || url.includes('/login')).to.be.true
+  })
+  
+  // If we're still on login, there was an error
+  cy.url().then((url) => {
+    if (url.includes('/login')) {
+      // Wait for error message
+      cy.contains('Invalid email or password', { timeout: 3000 }).should('be.visible')
+      throw new Error('Login failed')
+    }
+  })
+  
+  // If we got to dashboard, verify it loaded
+  cy.url({ timeout: 10000 }).should('include', '/dashboard')
+  cy.contains('Welcome back', { timeout: 5000 }).should('be.visible')
 })
 
 /**
