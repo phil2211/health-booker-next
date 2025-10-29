@@ -31,11 +31,11 @@ describe('Authentication Flow', () => {
 
       // Should redirect to login page after successful registration
       // Handle both success and failure cases gracefully
-      cy.url({ timeout: 10000 }).should((url) => {
-        expect(url).to.satisfy((u: string) => 
-          u.includes('/login') || u.includes('/register')
-        )
-      }, { timeout: 10000 })
+      cy.url({ timeout: 10000 }).should((url: string) => {
+        const includesLogin = url.includes('/login')
+        const includesRegister = url.includes('/register')
+        expect(includesLogin || includesRegister).to.be.true
+      })
     })
 
     it('should show error for passwords that do not match', () => {
@@ -82,7 +82,8 @@ describe('Authentication Flow', () => {
           bio: therapistBio,
         },
       }).then((response) => {
-        expect(response.status).to.be.oneOf([201, 409]) // 201 = created, 409 = already exists
+        // 201 = created, 409 = already exists (acceptable in tests)
+        expect(response.status === 201 || response.status === 409).to.be.true
       })
 
       // Navigate to login page
@@ -144,7 +145,8 @@ describe('Authentication Flow', () => {
           bio: therapistBio,
         },
       }).then((response) => {
-        expect(response.status).to.be.oneOf([201, 409]) // 201 = created, 409 = already exists
+        // 201 = created, 409 = already exists (acceptable in tests)
+        expect(response.status === 201 || response.status === 409).to.be.true
       })
 
       // Navigate to login page
@@ -183,7 +185,8 @@ describe('Authentication Flow', () => {
           bio: therapistBio,
         },
       }).then((response) => {
-        expect(response.status).to.be.oneOf([201, 409]) // 201 = created, 409 = already exists
+        // 201 = created, 409 = already exists (acceptable in tests)
+        expect(response.status === 201 || response.status === 409).to.be.true
       })
 
       // Navigate to login page
