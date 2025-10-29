@@ -50,7 +50,7 @@ git checkout -b feature/your-feature-name
 
 ---
 
-### Step 2: Implement the Feature
+### Step 2: Implement the Feature for the backend and the frontend. Respect the existing application structure and try to implement new features into existing structures. 
 
 **Action**: Write code, tests, and documentation for the feature.
 
