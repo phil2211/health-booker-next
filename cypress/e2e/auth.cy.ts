@@ -89,6 +89,7 @@ describe('Authentication Flow', () => {
           specialization: therapistSpecialization,
           bio: therapistBio,
         },
+        failOnStatusCode: false, // Allow 409 (user already exists) to pass
       }).then((response) => {
         // 201 = created, 409 = already exists (acceptable in tests)
         expect(response.status === 201 || response.status === 409).to.be.true
@@ -152,6 +153,7 @@ describe('Authentication Flow', () => {
           specialization: therapistSpecialization,
           bio: therapistBio,
         },
+        failOnStatusCode: false, // Allow 409 (user already exists) to pass
       }).then((response) => {
         // 201 = created, 409 = already exists (acceptable in tests)
         expect(response.status === 201 || response.status === 409).to.be.true
@@ -192,6 +194,7 @@ describe('Authentication Flow', () => {
           specialization: therapistSpecialization,
           bio: therapistBio,
         },
+        failOnStatusCode: false, // Allow 409 (user already exists) to pass
       }).then((response) => {
         // 201 = created, 409 = already exists (acceptable in tests)
         expect(response.status === 201 || response.status === 409).to.be.true
