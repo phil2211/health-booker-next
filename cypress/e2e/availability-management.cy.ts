@@ -228,13 +228,15 @@ describe('Availability Management', () => {
       
       // Slot should be removed (wait a bit for UI update)
       cy.wait(500)
-      cy.contains('Current Blocked Slots', { timeout: 2000 }).then(($section) => {
-        // If the section still exists, check that 10:00 is not in it
-        if ($section.length > 0) {
-          cy.wrap($section).should('not.contain.text', '10:00')
-        } else {
-          // If section doesn't exist, that means no blocked slots, which is fine
+      
+      // Check if blocked slots section exists or empty state is shown
+      cy.get('body').then(($body) => {
+        if ($body.find('button[aria-label="Remove blocked slot"]').length === 0) {
+          // No more blocked slots - should show empty state
           cy.contains('No blocked slots').should('be.visible')
+        } else {
+          // Still has blocked slots but 10:00 should not be in the list
+          cy.contains('Current Blocked Slots').parent().parent().should('not.contain.text', '10:00')
         }
       })
     })
