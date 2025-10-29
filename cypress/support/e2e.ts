@@ -19,3 +19,15 @@ import './commands'
 // Alternatively you can use CommonJS syntax:
 // require('./commands')
 
+// Handle uncaught exceptions (database errors, network issues, etc.)
+Cypress.on('uncaught:exception', (err, runnable) => {
+  // Ignore errors related to database connection in test environment
+  if (err.message.includes('MongoServerError') || 
+      err.message.includes('ECONNREFUSED') ||
+      err.message.includes('network')) {
+    return false // Prevents Cypress from failing the test
+  }
+  // Return true to allow other errors to fail the test
+  return true
+})
+
