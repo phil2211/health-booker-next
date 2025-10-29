@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { findTherapistById } from '@/models/Therapist'
 import LogoutButton from '@/components/LogoutButton'
 import BookingUrlSection from '@/components/BookingUrlSection'
+import Link from 'next/link'
 
 export default async function DashboardPage() {
   const session = await getAuthSession()
@@ -154,9 +155,12 @@ export default async function DashboardPage() {
             <p className="text-sm text-gray-500 mb-4">
               Currently: {therapist.weeklyAvailability.length} weekly slots, {therapist.blockedSlots.length} blocked dates
             </p>
-            <button className="w-full bg-indigo-600 text-white px-4 py-3 rounded-lg font-medium hover:bg-indigo-700 transition-colors">
+            <Link
+              href="/dashboard/availability"
+              className="block w-full bg-indigo-600 text-white px-4 py-3 rounded-lg font-medium hover:bg-indigo-700 transition-colors text-center"
+            >
               Manage Availability →
-            </button>
+            </Link>
           </div>
 
           <div className="bg-white rounded-xl shadow-md border p-6">
