@@ -181,13 +181,18 @@ describe('Availability Management', () => {
       // Click Add Block button
       cy.contains('Add Block').click()
       
-      // Wait a moment for state update
-      cy.wait(500)
-      
-      // Wait for slot to appear - check for the time values in the blocked slots list
-      // Look in the "Current Blocked Slots" section
-      cy.contains('Current Blocked Slots', { timeout: 5000 }).parent().parent().should('contain.text', '10:00')
-      cy.contains('Current Blocked Slots', { timeout: 5000 }).parent().parent().should('contain.text', '12:00')
+      // Wait for slot to appear by checking for remove button or the time text
+      // This waits for React state update and DOM re-render
+      cy.get('button[aria-label="Remove blocked slot"]', { timeout: 3000 })
+        .should('exist')
+        .then(() => {
+          // Verify the times appear in the blocked slots list
+          cy.contains('Current Blocked Slots', { timeout: 2000 })
+            .parent()
+            .parent()
+            .should('contain.text', '10:00')
+            .and('contain.text', '12:00')
+        })
     })
 
     it('should display empty state when no blocked slots exist', () => {
@@ -220,38 +225,55 @@ describe('Availability Management', () => {
       cy.contains('Add Blocked Slot').parent().find('input[type="time"]').last().clear().type('12:00')
       cy.contains('Add Block').click()
       
-      // Wait for slot to appear
-      cy.contains('Current Blocked Slots', { timeout: 5000 }).parent().parent().should('contain.text', '10:00')
-      
-      // Remove the blocked slot
-      cy.get('button[aria-label="Remove blocked slot"]').first().click()
-      
-      // Slot should be removed (wait a bit for UI update)
-      cy.wait(500)
-      
-      // Check if blocked slots section exists or empty state is shown
-      cy.get('body').then(($body) => {
-        if ($body.find('button[aria-label="Remove blocked slot"]').length === 0) {
-          // No more blocked slots - should show empty state
-          cy.contains('No blocked slots').should('be.visible')
-        } else {
-          // Still has blocked slots but 10:00 should not be in the list
-          cy.contains('Current Blocked Slots').parent().parent().should('not.contain.text', '10:00')
-        }
-      })
+      // Wait for slot to appear - verify remove button exists
+      cy.get('button[aria-label="Remove blocked slot"]', { timeout: 3000 })
+        .should('exist')
+        .then(($buttons) => {
+          const initialCount = $buttons.length
+          
+          // Verify the time appears
+          cy.contains('Current Blocked Slots', { timeout: 2000 })
+            .parent()
+            .parent()
+            .should('contain.text', '10:00')
+          
+          // Remove the blocked slot
+          cy.wrap($buttons.first()).click()
+          
+          // Wait for DOM to update - either button count decreases or empty state appears
+          if (initialCount === 1) {
+            // This was the last slot - should show empty state
+            cy.contains('No blocked slots', { timeout: 2000 }).should('be.visible')
+          } else {
+            // Still has slots but 10:00 should be removed
+            cy.contains('Current Blocked Slots', { timeout: 2000 })
+              .parent()
+              .parent()
+              .should('not.contain.text', '10:00')
+          }
+        })
     })
   })
 
   describe('Saving Changes', () => {
     beforeEach(() => {
+      // Set up API intercepts for tests in this suite
+      cy.intercept('GET', '/api/therapist/availability').as('loadAvailability')
+      
       cy.visit('/dashboard/availability')
       cy.url().should('include', '/dashboard/availability')
       
-      // Wait for page to load
+      // Wait for page to load and initial API call
       cy.contains('Weekly Availability', { timeout: 5000 }).should('be.visible')
+      cy.wait('@loadAvailability', { timeout: 5000 }).then((interception) => {
+        expect(interception.response?.statusCode).to.eq(200)
+      })
     })
 
     it('should save weekly availability changes', () => {
+      // Intercept PUT request for this specific test
+      cy.intercept('PUT', '/api/therapist/availability').as('saveAvailability')
+      
       // Enable Monday and set times
       cy.contains('Monday').parent().find('input[type="checkbox"]').check()
       cy.contains('Monday').parent().parent().find('input[type="time"]').first().clear().type('09:00')
@@ -265,18 +287,24 @@ describe('Availability Management', () => {
       // Save changes
       cy.contains('Save Changes').click()
       
-      // Should show success message (case insensitive) - wait for API response
-      cy.wait(1000)
-      cy.get('body', { timeout: 5000 }).should(($body) => {
-        const text = $body.text().toLowerCase()
-        expect(text).to.include('success')
+      // Wait for API call to complete
+      cy.wait('@saveAvailability', { timeout: 5000 }).then((interception) => {
+        expect(interception.response?.statusCode).to.eq(200)
       })
       
-      // Save button should be disabled after save (no changes)
-      cy.contains('Save Changes', { timeout: 3000 }).should('be.disabled')
+      // Should show success message in the green banner (appears after API completes)
+      cy.get('.bg-green-50', { timeout: 2000 })
+        .should('be.visible')
+        .and('contain.text', 'successfully')
+      
+      // Save button should be disabled after save (no changes) - wait for state update
+      cy.contains('button', 'Save Changes', { timeout: 2000 }).should('be.disabled')
     })
 
     it('should save blocked slots changes', () => {
+      // Intercept PUT request for this specific test
+      cy.intercept('PUT', '/api/therapist/availability').as('saveAvailability')
+      
       // Scroll to blocked slots section
       cy.contains('Blocked Time Slots').scrollIntoView()
       
@@ -290,20 +318,35 @@ describe('Availability Management', () => {
       cy.contains('Add Blocked Slot').parent().find('input[type="time"]').last().clear().type('16:00')
       cy.contains('Add Block').click()
       
-      // Wait a moment for state update
-      cy.wait(500)
-      
-      // Wait for slot to appear - look for the time in the Current Blocked Slots section
-      cy.contains('Current Blocked Slots', { timeout: 5000 }).parent().parent().should('contain.text', '14:00')
+      // Wait for slot to appear by checking for remove button
+      cy.get('button[aria-label="Remove blocked slot"]', { timeout: 3000 })
+        .should('exist')
+        .then(() => {
+          // Verify the time appears in the list
+          cy.contains('Current Blocked Slots', { timeout: 2000 })
+            .parent()
+            .parent()
+            .should('contain.text', '14:00')
+        })
       
       // Save changes
       cy.contains('Save Changes').click()
       
-      // Should show success message (case insensitive)
-      cy.contains(/successfully/i, { timeout: 5000 }).should('be.visible')
+      // Wait for API call to complete
+      cy.wait('@saveAvailability', { timeout: 5000 }).then((interception) => {
+        expect(interception.response?.statusCode).to.eq(200)
+      })
+      
+      // Should show success message in the green banner (appears after API completes)
+      cy.get('.bg-green-50', { timeout: 2000 })
+        .should('be.visible')
+        .and('contain.text', 'successfully')
     })
 
     it('should persist changes after page reload', () => {
+      // Intercept PUT request for save
+      cy.intercept('PUT', '/api/therapist/availability').as('saveAvailability')
+      
       // Enable Tuesday and set times
       cy.contains('Tuesday').parent().find('input[type="checkbox"]').check()
       cy.contains('Tuesday').parent().parent().find('input[type="time"]').first().clear().type('08:00')
@@ -311,18 +354,56 @@ describe('Availability Management', () => {
       
       // Save changes
       cy.contains('Save Changes').click()
-      cy.contains('successfully', { timeout: 5000 }).should('be.visible')
       
-      // Reload page
+      // Wait for save to complete
+      cy.wait('@saveAvailability', { timeout: 5000 }).then((interception) => {
+        expect(interception.response?.statusCode).to.eq(200)
+      })
+      
+      // Verify success message
+      cy.get('.bg-green-50', { timeout: 2000 })
+        .should('be.visible')
+        .and('contain.text', 'successfully')
+      
+      // Reload page and intercept the load API call
+      cy.intercept('GET', '/api/therapist/availability').as('reloadAvailability')
       cy.reload()
       
-      // Wait for page to load
+      // Wait for page to load and availability API to complete
       cy.contains('Weekly Availability', { timeout: 5000 }).should('be.visible')
+      cy.wait('@reloadAvailability', { timeout: 5000 }).then((interception) => {
+        expect(interception.response?.statusCode).to.eq(200)
+        // Verify the response contains Tuesday availability
+        const data = interception.response?.body
+        expect(data).to.exist
+        if (data && data.weeklyAvailability) {
+          const tuesdayEntry = data.weeklyAvailability.find(
+            (entry: any) => entry.dayOfWeek === 2 // Tuesday is day 2
+          )
+          expect(tuesdayEntry).to.exist
+        }
+      })
       
       // Verify Tuesday is still enabled with correct times
-      cy.contains('Tuesday').parent().find('input[type="checkbox"]', { timeout: 5000 }).should('be.checked')
-      cy.contains('Tuesday').parent().parent().find('input[type="time"]').first({ timeout: 5000 }).should('have.value', '08:00')
-      cy.contains('Tuesday').parent().parent().find('input[type="time"]').last({ timeout: 5000 }).should('have.value', '18:00')
+      // Wait a bit more for React to render the loaded data
+      cy.contains('Tuesday', { timeout: 3000 })
+        .parent()
+        .find('input[type="checkbox"]', { timeout: 2000 })
+        .should('be.checked')
+      
+      cy.contains('Tuesday')
+        .parent()
+        .parent()
+        .find('input[type="time"]')
+        .first({ timeout: 2000 })
+        .should('have.value', '08:00')
+      
+      cy.contains('Tuesday')
+        .parent()
+        .parent()
+        .find('input[type="time"]')
+        .last({ timeout: 2000 })
+        .should('have.value', '18:00')
     })
 
     it('should disable save button when no changes are made', () => {
@@ -340,17 +421,14 @@ describe('Availability Management', () => {
       // Make a change
       cy.contains('Monday').parent().find('input[type="checkbox"]').check()
       
-      // Wait a moment for state to update
-      cy.wait(1000)
-      
-      // Should show unsaved changes message (case insensitive)
-      cy.get('body', { timeout: 3000 }).should(($body) => {
-        const text = $body.text().toLowerCase()
-        expect(text).to.include('unsaved changes')
-      })
-      
-      // Save button should be enabled
-      cy.contains('Save Changes').should('not.be.disabled')
+      // Wait for React state update - the save button should become enabled
+      // This is more reliable than checking for the text message which might be rendered differently
+      cy.contains('button', 'Save Changes', { timeout: 3000 })
+        .should('not.be.disabled')
+        .then(() => {
+          // Verify unsaved changes message appears
+          cy.contains('You have unsaved changes', { timeout: 2000 }).should('be.visible')
+        })
     })
   })
 
@@ -423,6 +501,9 @@ describe('Availability Management', () => {
 
   describe('Error Handling', () => {
     it('should handle save errors gracefully', () => {
+      // Intercept API call to check for errors
+      cy.intercept('PUT', '/api/therapist/availability').as('saveAvailability')
+      
       cy.visit('/dashboard/availability')
       cy.contains('Weekly Availability', { timeout: 5000 }).should('be.visible')
       
@@ -434,27 +515,27 @@ describe('Availability Management', () => {
       // Try to save
       cy.contains('Save Changes').click()
       
-      // Should show error or validation message - wait a moment for API response
-      cy.wait(1000)
-      
-      // Check if any error text appears (client or server side validation)
-      cy.get('body', { timeout: 5000 }).then(($body) => {
-        const bodyText = $body.text().toLowerCase()
-        const hasError = bodyText.includes('error') || 
-                        bodyText.includes('invalid') ||
-                        bodyText.includes('start time') ||
-                        bodyText.includes('end time')
-        
-        if (hasError) {
-          // If error is shown, verify it's visible
-          cy.get('body').should('satisfy', ($el) => {
-            const text = $el.text().toLowerCase()
-            return text.includes('error') || text.includes('invalid') || text.includes('start') || text.includes('time')
-          })
+      // Wait for API call to complete (might be error or validation)
+      cy.wait('@saveAvailability', { timeout: 5000 }).then((interception) => {
+        // Check if validation error occurred
+        if (interception.response?.statusCode === 400) {
+          // Server-side validation error - should show error message
+          cy.get('.bg-red-50', { timeout: 2000 })
+            .should('be.visible')
+            .and('contain.text', /error|invalid|start.*time|end.*time/i)
         } else {
-          // If no error, the save might have failed silently or validation prevented submission
-          // This is acceptable - the test just verifies we don't crash
-          cy.log('No error message found - validation may have prevented save')
+          // Client-side validation may have prevented the call
+          // Or the API might have accepted it (some servers don't validate)
+          // In any case, check if error message appears
+          cy.get('body', { timeout: 2000 }).then(($body) => {
+            const hasErrorBanner = $body.find('.bg-red-50').length > 0
+            if (hasErrorBanner) {
+              cy.get('.bg-red-50').should('be.visible')
+            } else {
+              // If no error banner, validation may have prevented save client-side
+              cy.log('No error banner found - client-side validation may have prevented save')
+            }
+          })
         }
       })
     })
