@@ -110,7 +110,6 @@ export default function RegisterPage() {
               value={formData.password}
               onChange={handleChange}
               required
-              minLength={8}
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
               placeholder="At least 8 characters"
             />

@@ -2,7 +2,7 @@ import { getAuthSession } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { findTherapistById } from '@/models/Therapist'
 import LogoutButton from '@/components/LogoutButton'
-import CopyUrlButton from '@/components/CopyUrlButton'
+import BookingUrlSection from '@/components/BookingUrlSection'
 
 export default async function DashboardPage() {
   const session = await getAuthSession()
@@ -21,9 +21,10 @@ export default async function DashboardPage() {
   const bookingUrl = `/book/${therapist._id}`
   
   // Get base URL - use Vercel's automatic VERCEL_URL for preview deployments
+  // Priority: VERCEL_URL > NEXT_PUBLIC_BASE_URL > NEXT_PUBLIC_APP_URL > localhost
   const baseUrl = process.env.VERCEL_URL 
     ? `https://${process.env.VERCEL_URL}`
-    : process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+    : process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -137,25 +138,10 @@ export default async function DashboardPage() {
           </div>
 
           {/* Booking URL Card */}
-          <div className="bg-white rounded-xl shadow-md border p-6">
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">Share Your Booking Link</h3>
-            <p className="text-sm text-gray-600 mb-4">
-              Copy and share this link with patients to allow them to book appointments with you:
-            </p>
-            <div className="bg-gray-50 border rounded-lg p-4 mb-4">
-              <code className="text-xs break-all text-gray-800">
-                {baseUrl}{bookingUrl}
-              </code>
-            </div>
-            <CopyUrlButton 
-              url={`${baseUrl}${bookingUrl}`}
-            />
-            <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-              <p className="text-sm text-blue-800">
-                <strong>💡 Tip:</strong> Share this link via email, social media, or add it to your website to start receiving bookings.
-              </p>
-            </div>
-          </div>
+          <BookingUrlSection 
+            fallbackUrl={`${baseUrl}${bookingUrl}`} 
+            therapistId={therapist._id}
+          />
         </div>
 
         {/* Quick Actions */}
