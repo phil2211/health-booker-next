@@ -57,14 +57,22 @@ describe('Authentication Flow', () => {
     it('should show error for password shorter than 8 characters', () => {
       cy.contains('Therapist Register').click()
 
+      // Fill all required fields so form can submit and trigger validation
       cy.get('input[name="email"]').type(therapistEmail)
       cy.get('input[name="password"]').type('short')
       cy.get('input[name="confirmPassword"]').type('short')
+      cy.get('input[name="name"]').type(therapistName)
+      cy.get('input[name="specialization"]').type(therapistSpecialization)
+      cy.get('textarea[name="bio"]').type(therapistBio)
 
       cy.contains('Create Account').click()
 
       // Check for the error message displayed by client-side validation
+      // The error should appear immediately after clicking submit
       cy.contains('Password must be at least 8 characters long', { timeout: 5000 }).should('be.visible')
+
+      // Verify we're still on the register page (didn't redirect)
+      cy.url().should('include', '/register')
     })
   })
 
