@@ -199,3 +199,100 @@ export async function ensureEmailIndex(): Promise<void> {
   await db.collection('therapists').createIndex({ email: 1 }, { unique: true })
 }
 
+/**
+ * Update therapist's weekly availability
+ */
+export async function updateTherapistWeeklyAvailability(
+  therapistId: string,
+  weeklyAvailability: AvailabilityEntry[]
+): Promise<TherapistDocument | null> {
+  const db = await getDatabase()
+  
+  const now = new Date()
+  const result = await db.collection('therapists').findOneAndUpdate(
+    { _id: new ObjectId(therapistId) },
+    {
+      $set: {
+        weeklyAvailability,
+        updatedAt: now,
+      },
+    },
+    { returnDocument: 'after' }
+  )
+  
+  if (!result || !result.value) return null
+  
+  return {
+    ...result.value,
+    _id: result.value._id.toString(),
+  } as TherapistDocument
+}
+
+/**
+ * Update therapist's blocked slots
+ */
+export async function updateTherapistBlockedSlots(
+  therapistId: string,
+  blockedSlots: BlockedSlot[]
+): Promise<TherapistDocument | null> {
+  const db = await getDatabase()
+  
+  const now = new Date()
+  const result = await db.collection('therapists').findOneAndUpdate(
+    { _id: new ObjectId(therapistId) },
+    {
+      $set: {
+        blockedSlots,
+        updatedAt: now,
+      },
+    },
+    { returnDocument: 'after' }
+  )
+  
+  if (!result || !result.value) return null
+  
+  return {
+    ...result.value,
+    _id: result.value._id.toString(),
+  } as TherapistDocument
+}
+
+/**
+ * Update therapist availability (weekly availability and/or blocked slots)
+ */
+export async function updateTherapistAvailability(
+  therapistId: string,
+  weeklyAvailability?: AvailabilityEntry[],
+  blockedSlots?: BlockedSlot[]
+): Promise<TherapistDocument | null> {
+  const db = await getDatabase()
+  
+  const now = new Date()
+  const updateFields: any = {
+    updatedAt: now,
+  }
+  
+  if (weeklyAvailability !== undefined) {
+    updateFields.weeklyAvailability = weeklyAvailability
+  }
+  
+  if (blockedSlots !== undefined) {
+    updateFields.blockedSlots = blockedSlots
+  }
+  
+  const result = await db.collection('therapists').findOneAndUpdate(
+    { _id: new ObjectId(therapistId) },
+    {
+      $set: updateFields,
+    },
+    { returnDocument: 'after' }
+  )
+  
+  if (!result || !result.value) return null
+  
+  return {
+    ...result.value,
+    _id: result.value._id.toString(),
+  } as TherapistDocument
+}
+
