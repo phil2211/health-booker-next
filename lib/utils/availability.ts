@@ -1,4 +1,6 @@
-import { TherapistDocument, AvailabilityEntry, BlockedSlot, BookingDocument } from '@/lib/types'
+import { AvailabilityEntry, BlockedSlot } from '@/lib/types'
+import { TherapistDocument } from '@/models/Therapist'
+import { BookingDocument } from '@/models/Booking'
 
 export interface TimeSlot {
   date: string // YYYY-MM-DD
