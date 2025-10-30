@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { AvailabilityEntry, BlockedSlot } from '@/lib/types'
 import WeeklyAvailabilityEditor from './WeeklyAvailabilityEditor'
@@ -8,6 +8,7 @@ import BlockedSlotsEditor from './BlockedSlotsEditor'
 
 export default function AvailabilityManagement() {
   const router = useRouter()
+  const successTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const [weeklyAvailability, setWeeklyAvailability] = useState<AvailabilityEntry[]>([])
   const [blockedSlots, setBlockedSlots] = useState<BlockedSlot[]>([])
   const [loading, setLoading] = useState(true)
@@ -55,18 +56,44 @@ export default function AvailabilityManagement() {
     loadAvailability()
   }, [router])
 
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (successTimeoutRef.current) {
+        clearTimeout(successTimeoutRef.current)
+        successTimeoutRef.current = null
+      }
+    }
+  }, [])
+
   // Track changes
   useEffect(() => {
     if (initialState) {
-      const hasWeeklyChanges = JSON.stringify(weeklyAvailability.sort((a, b) => {
+      // Create sorted copies to avoid mutating original arrays
+      const sortedWeekly = [...weeklyAvailability].sort((a, b) => {
         if (a.dayOfWeek !== b.dayOfWeek) return a.dayOfWeek - b.dayOfWeek
         return a.startTime.localeCompare(b.startTime)
-      })) !== JSON.stringify(initialState.weeklyAvailability.sort((a, b) => {
+      })
+      const sortedInitialWeekly = [...initialState.weeklyAvailability].sort((a, b) => {
         if (a.dayOfWeek !== b.dayOfWeek) return a.dayOfWeek - b.dayOfWeek
         return a.startTime.localeCompare(b.startTime)
-      }))
+      })
       
-      const hasBlockedChanges = JSON.stringify(blockedSlots) !== JSON.stringify(initialState.blockedSlots)
+      const hasWeeklyChanges = JSON.stringify(sortedWeekly) !== JSON.stringify(sortedInitialWeekly)
+      
+      // Sort blocked slots for comparison to handle order differences
+      const sortedBlocked = [...blockedSlots].sort((a, b) => {
+        if (a.date !== b.date) return a.date.localeCompare(b.date)
+        if (a.startTime !== b.startTime) return a.startTime.localeCompare(b.startTime)
+        return a.endTime.localeCompare(b.endTime)
+      })
+      const sortedInitialBlocked = [...initialState.blockedSlots].sort((a, b) => {
+        if (a.date !== b.date) return a.date.localeCompare(b.date)
+        if (a.startTime !== b.startTime) return a.startTime.localeCompare(b.startTime)
+        return a.endTime.localeCompare(b.endTime)
+      })
+      
+      const hasBlockedChanges = JSON.stringify(sortedBlocked) !== JSON.stringify(sortedInitialBlocked)
       
       setHasChanges(hasWeeklyChanges || hasBlockedChanges)
     }
@@ -112,8 +139,16 @@ export default function AvailabilityManagement() {
       setSuccess('Availability updated successfully!')
       setHasChanges(false)
 
+      // Clear any existing timeout
+      if (successTimeoutRef.current) {
+        clearTimeout(successTimeoutRef.current)
+      }
+      
       // Clear success message after 3 seconds
-      setTimeout(() => setSuccess(null), 3000)
+      successTimeoutRef.current = setTimeout(() => {
+        setSuccess(null)
+        successTimeoutRef.current = null
+      }, 3000)
     } catch (err) {
       console.error('Error saving availability:', err)
       setError(err instanceof Error ? err.message : 'Failed to save availability')
@@ -124,39 +159,63 @@ export default function AvailabilityManagement() {
 
   const validateAvailability = (): string | null => {
     // Validate weekly availability
-    for (const entry of weeklyAvailability) {
-      if (entry.dayOfWeek < 0 || entry.dayOfWeek > 6) {
-        return `Invalid day of week: ${entry.dayOfWeek}. Must be between 0-6.`
-      }
+    if (Array.isArray(weeklyAvailability)) {
+      for (const entry of weeklyAvailability) {
+        if (!entry || typeof entry !== 'object') {
+          return 'Invalid weekly availability entry.'
+        }
+        
+        if (typeof entry.dayOfWeek !== 'number' || entry.dayOfWeek < 0 || entry.dayOfWeek > 6) {
+          return `Invalid day of week: ${entry.dayOfWeek}. Must be between 0-6.`
+        }
 
-      const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/
-      if (!timeRegex.test(entry.startTime) || !timeRegex.test(entry.endTime)) {
-        return `Invalid time format for ${DAYS[entry.dayOfWeek]}. Use HH:MM format.`
-      }
+        if (!entry.startTime || !entry.endTime || typeof entry.startTime !== 'string' || typeof entry.endTime !== 'string') {
+          return `Invalid time format for ${DAYS[entry.dayOfWeek]}. Start and end times are required.`
+        }
 
-      const startMinutes = timeToMinutes(entry.startTime)
-      const endMinutes = timeToMinutes(entry.endTime)
-      if (startMinutes >= endMinutes) {
-        return `Start time must be before end time for ${DAYS[entry.dayOfWeek]}.`
+        const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/
+        if (!timeRegex.test(entry.startTime) || !timeRegex.test(entry.endTime)) {
+          return `Invalid time format for ${DAYS[entry.dayOfWeek]}. Use HH:MM format.`
+        }
+
+        const startMinutes = timeToMinutes(entry.startTime)
+        const endMinutes = timeToMinutes(entry.endTime)
+        if (isNaN(startMinutes) || isNaN(endMinutes) || startMinutes >= endMinutes) {
+          return `Start time must be before end time for ${DAYS[entry.dayOfWeek]}.`
+        }
       }
     }
 
     // Validate blocked slots
-    for (const slot of blockedSlots) {
-      const dateRegex = /^\d{4}-\d{2}-\d{2}$/
-      if (!dateRegex.test(slot.date)) {
-        return `Invalid date format: ${slot.date}. Use YYYY-MM-DD format.`
-      }
+    if (Array.isArray(blockedSlots)) {
+      for (const slot of blockedSlots) {
+        if (!slot || typeof slot !== 'object') {
+          return 'Invalid blocked slot entry.'
+        }
+        
+        if (!slot.date || typeof slot.date !== 'string') {
+          return 'Blocked slot date is required and must be a string.'
+        }
+        
+        const dateRegex = /^\d{4}-\d{2}-\d{2}$/
+        if (!dateRegex.test(slot.date)) {
+          return `Invalid date format: ${slot.date}. Use YYYY-MM-DD format.`
+        }
 
-      const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/
-      if (!timeRegex.test(slot.startTime) || !timeRegex.test(slot.endTime)) {
-        return `Invalid time format for blocked slot ${slot.date}. Use HH:MM format.`
-      }
+        if (!slot.startTime || !slot.endTime || typeof slot.startTime !== 'string' || typeof slot.endTime !== 'string') {
+          return `Invalid time format for blocked slot ${slot.date}. Start and end times are required.`
+        }
 
-      const startMinutes = timeToMinutes(slot.startTime)
-      const endMinutes = timeToMinutes(slot.endTime)
-      if (startMinutes >= endMinutes) {
-        return `Start time must be before end time for blocked slot ${slot.date}.`
+        const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/
+        if (!timeRegex.test(slot.startTime) || !timeRegex.test(slot.endTime)) {
+          return `Invalid time format for blocked slot ${slot.date}. Use HH:MM format.`
+        }
+
+        const startMinutes = timeToMinutes(slot.startTime)
+        const endMinutes = timeToMinutes(slot.endTime)
+        if (isNaN(startMinutes) || isNaN(endMinutes) || startMinutes >= endMinutes) {
+          return `Start time must be before end time for blocked slot ${slot.date}.`
+        }
       }
     }
 

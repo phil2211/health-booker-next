@@ -69,13 +69,24 @@ export default function BlockedSlotsEditor({
   }
 
   const formatDate = (dateString: string): string => {
-    const date = new Date(dateString + 'T00:00:00.000Z')
-    return date.toLocaleDateString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    })
+    try {
+      if (!dateString || typeof dateString !== 'string') {
+        return dateString || 'Invalid date'
+      }
+      const date = new Date(dateString + 'T00:00:00.000Z')
+      if (isNaN(date.getTime())) {
+        return dateString // Return original if invalid
+      }
+      return date.toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })
+    } catch (error) {
+      console.error('Error formatting date:', error)
+      return dateString || 'Invalid date'
+    }
   }
 
   // Get today's date in YYYY-MM-DD format
@@ -155,6 +166,7 @@ export default function BlockedSlotsEditor({
           </h4>
           {blockedSlots
             .map((slot, index) => ({ slot, originalIndex: index }))
+            .filter(({ slot }) => slot && typeof slot === 'object' && slot.date && slot.startTime && slot.endTime)
             .sort((a, b) => {
               // Sort by date, then by start time
               if (a.slot.date !== b.slot.date) {
@@ -164,7 +176,7 @@ export default function BlockedSlotsEditor({
             })
             .map(({ slot, originalIndex }) => (
               <div
-                key={`${slot.date}-${slot.startTime}-${originalIndex}`}
+                key={`${slot.date}-${slot.startTime}-${slot.endTime}-${originalIndex}`}
                 className="bg-white rounded-lg p-4 border border-gray-200 flex items-center justify-between"
               >
                 <div className="flex-1">

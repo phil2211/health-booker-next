@@ -89,7 +89,8 @@ function getDayOfWeek(dateString: string): number {
 function isPastDate(dateString: string): boolean {
   const date = new Date(dateString + 'T00:00:00.000Z')
   const now = new Date()
-  now.setHours(0, 0, 0, 0)
+  // Use UTC methods to ensure consistent timezone comparison
+  now.setUTCHours(0, 0, 0, 0)
   return date < now
 }
 
