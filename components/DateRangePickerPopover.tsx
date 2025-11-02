@@ -108,8 +108,12 @@ export default function DateRangePickerPopover({
 
   // Initialize times from props
   useEffect(() => {
-    if (startTime) setSelectedStartTime(startTime)
-    if (endTime) setSelectedEndTime(endTime)
+    // Use setTimeout to defer state update and avoid cascading renders
+    const timeoutId = setTimeout(() => {
+      if (startTime) setSelectedStartTime(startTime)
+      if (endTime) setSelectedEndTime(endTime)
+    }, 0)
+    return () => clearTimeout(timeoutId)
   }, [startTime, endTime])
 
   // Handle popover events
