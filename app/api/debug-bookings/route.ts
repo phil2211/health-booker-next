@@ -14,10 +14,7 @@ export async function GET() {
 
     // Check therapist document
     const therapist = await db.collection('therapists').findOne({
-      $or: [
-        { _id: therapistId },
-        { _id: new ObjectId(therapistId) }
-      ]
+      _id: new ObjectId(therapistId)
     })
 
     return NextResponse.json({
@@ -39,6 +36,6 @@ export async function GET() {
 
   } catch (error) {
     console.error('Debug error:', error)
-    return NextResponse.json({ error: 'Debug failed', details: error.message }, { status: 500 })
+    return NextResponse.json({ error: 'Debug failed', details: error instanceof Error ? error.message : 'Unknown error' }, { status: 500 })
   }
 }

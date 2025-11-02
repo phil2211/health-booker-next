@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { findTherapistById } from '@/models/Therapist'
 import { ObjectId } from 'mongodb'
-import PatientBookingScheduler from '@/components/PatientBookingScheduler'
+import BookingInterface from '@/components/BookingInterface'
 
 interface BookingPageProps {
   params: Promise<{ id: string }>
@@ -82,10 +82,7 @@ export default async function BookingPage({ params }: BookingPageProps) {
         </div>
 
         {/* Booking Interface */}
-        <div className="bg-white rounded-xl shadow-xl border p-8">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-6">Select Appointment Time</h2>
-          <PatientBookingScheduler therapistId={therapist._id} blockedSlots={therapist.blockedSlots} />
-        </div>
+        <BookingInterface therapistId={therapist._id} blockedSlots={therapist.blockedSlots} />
 
         {/* Back to Profile */}
         <div className="mt-8 text-center">

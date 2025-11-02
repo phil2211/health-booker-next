@@ -270,41 +270,23 @@ export async function createBooking(booking: Omit<Booking, '_id' | 'createdAt' |
       const today = new Date()
       today.setUTCHours(0, 0, 0, 0)
       
-      // First, clean up old bookings from therapist document
+      // Update therapist document
+      const updateOperation: any = {
+        $set: { updatedAt: now },
+      }
+
+      // Only add booking if it's in the future
+      if (appointmentDate >= today) {
+        updateOperation.$push = {
+          bookings: therapistBooking,
+        }
+      }
+
       await db.collection('therapists').updateOne(
         { _id: therapistIdObj },
-        {
-          $pull: {
-            bookings: {
-              appointmentDate: { $lt: cutoffDateStr },
-            },
-          },
-        },
+        updateOperation,
         { session }
       )
-
-      // Then add the new booking if it's in the future
-      if (appointmentDate >= today) {
-        await db.collection('therapists').updateOne(
-          { _id: therapistIdObj },
-          {
-            $set: { updatedAt: now },
-            $push: {
-              bookings: therapistBooking,
-            },
-          },
-          { session }
-        )
-      } else {
-        // Just update the timestamp
-        await db.collection('therapists').updateOne(
-          { _id: therapistIdObj },
-          {
-            $set: { updatedAt: now },
-          },
-          { session }
-        )
-      }
     })
     
     if (!bookingId) {
