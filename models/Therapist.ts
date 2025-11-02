@@ -115,13 +115,11 @@ export function validateBlockedSlot(slot: BlockedSlot): boolean {
     return false
   }
 
-  // Check that start time is before end time
-  const start = slot.startTime.split(':').map(Number)
-  const end = slot.endTime.split(':').map(Number)
-  const startMinutes = start[0] * 60 + start[1]
-  const endMinutes = end[0] * 60 + end[1]
-
-  return endMinutes > startMinutes
+  // Check that start datetime is before end datetime (considering both date and time)
+  const startDateTime = new Date(fromDate + 'T' + slot.startTime + ':00')
+  const endDateTime = new Date(toDate + 'T' + slot.endTime + ':00')
+  
+  return startDateTime < endDateTime
 }
 
 /**

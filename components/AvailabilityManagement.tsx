@@ -247,10 +247,15 @@ export default function AvailabilityManagement() {
           return `Invalid time format for blocked slot ${fromDate} - ${toDate}. Use HH:MM format.`
         }
 
-        const startMinutes = timeToMinutes(slot.startTime)
-        const endMinutes = timeToMinutes(slot.endTime)
-        if (isNaN(startMinutes) || isNaN(endMinutes) || startMinutes >= endMinutes) {
-          return `Start time must be before end time for blocked slot ${fromDate} - ${toDate}.`
+        // Check that start datetime is before end datetime (considering both date and time)
+        const startDateTime = new Date(fromDate + 'T' + slot.startTime + ':00')
+        const endDateTime = new Date(toDate + 'T' + slot.endTime + ':00')
+        if (startDateTime >= endDateTime) {
+          if (fromDate === toDate) {
+            return `Start time must be before end time for blocked slot ${fromDate} - ${toDate}.`
+          } else {
+            return `Start date and time must be before end date and time for blocked slot ${fromDate} - ${toDate}.`
+          }
         }
       }
     }

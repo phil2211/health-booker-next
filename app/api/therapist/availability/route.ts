@@ -94,7 +94,7 @@ export async function PUT(request: Request) {
           return NextResponse.json(
             {
               error: `Invalid blocked slot at index ${i}`,
-              details: 'Each slot must have valid fromDate and toDate (YYYY-MM-DD), startTime, and endTime (HH:MM format). From date must be before or equal to toDate. Start time must be before end time.',
+              details: 'Each slot must have valid fromDate and toDate (YYYY-MM-DD), startTime, and endTime (HH:MM format). From date must be before or equal to toDate. Start datetime (date + time) must be before end datetime.',
             },
             { status: 400 }
           )
