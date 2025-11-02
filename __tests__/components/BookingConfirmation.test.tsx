@@ -20,6 +20,7 @@ describe('BookingConfirmation', () => {
     startTime: '10:30',
     endTime: '11:30',
     therapistName: 'Dr. Smith',
+    cancellationToken: 'test-token-123',
   }
 
   it('renders booking confirmation details', () => {

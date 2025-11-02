@@ -9,6 +9,7 @@ interface BookingConfirmationProps {
   startTime: string
   endTime: string
   therapistName: string
+  cancellationToken?: string
   onClose?: () => void
 }
 
@@ -19,6 +20,7 @@ export default function BookingConfirmation({
   startTime,
   endTime,
   therapistName,
+  cancellationToken,
   onClose
 }: BookingConfirmationProps) {
   const [deviceType, setDeviceType] = useState<'ios' | 'android' | 'desktop'>('desktop')
@@ -40,10 +42,30 @@ export default function BookingConfirmation({
     const appointmentDateTime = new Date(`${appointmentDate}T${startTime}:00`)
     const endDateTime = new Date(`${appointmentDate}T${endTime}:00`)
 
+    // Calculate reminder times
+    const oneDayBefore = new Date(appointmentDateTime.getTime() - (24 * 60 * 60 * 1000))
+    const oneHourBefore = new Date(appointmentDateTime.getTime() - (60 * 60 * 1000))
+
     // Format dates for ICS
     const formatICSDate = (date: Date) => {
       return date.toISOString().replace(/[:-]/g, '').split('.')[0] + 'Z'
     }
+
+    // Create detailed description with cancellation link
+    const cancellationUrl = cancellationToken
+      ? `${window.location.origin}/cancel/${cancellationToken}`
+      : 'Contact us to cancel'
+
+    const description = `Appointment Details:
+• Therapist: ${therapistName}
+• Treatment: Cranio Sacral Session
+• Patient: ${patientName}
+• Email: ${patientEmail}
+• Duration: 1 hour
+
+To cancel this appointment, visit: ${cancellationUrl}
+
+This appointment was booked through HealthBooker.`
 
     const icsContent = `BEGIN:VCALENDAR
 VERSION:2.0
@@ -52,10 +74,22 @@ BEGIN:VEVENT
 UID:${Date.now()}@healthbooker.app
 DTSTART:${formatICSDate(appointmentDateTime)}
 DTEND:${formatICSDate(endDateTime)}
-SUMMARY:Cranio Sacral Session with ${therapistName}
-DESCRIPTION:Appointment with ${therapistName}\\nPatient: ${patientName}\\nEmail: ${patientEmail}
+SUMMARY:Cranio Sacral Session - ${therapistName}
+DESCRIPTION:${description.replace(/\n/g, '\\n')}
 LOCATION:Virtual/Remote Session
 STATUS:CONFIRMED
+ORGANIZER;CN=${therapistName}:mailto:appointments@healthbooker.app
+ATTENDEE;CN=${patientName}:mailto:${patientEmail}
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Reminder: Your Cranio Sacral Session with ${therapistName} is tomorrow
+TRIGGER:-P1D
+END:VALARM
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Reminder: Your Cranio Sacral Session with ${therapistName} starts in 1 hour
+TRIGGER:-PT1H
+END:VALARM
 END:VEVENT
 END:VCALENDAR`
 

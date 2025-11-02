@@ -45,6 +45,7 @@ export default function PatientBookingScheduler({ therapistId, blockedSlots = []
     startTime: string
     endTime: string
     therapistName: string
+    cancellationToken: string
   } | null>(null)
 
   // Fetch availability for full date range on mount to determine which dates have slots
@@ -214,7 +215,8 @@ export default function PatientBookingScheduler({ therapistId, blockedSlots = []
         appointmentDate: selectedDate,
         startTime: sessionStart,
         endTime: sessionEnd,
-        therapistName: therapistName || 'Your Therapist'
+        therapistName: therapistName || 'Your Therapist',
+        cancellationToken: data.booking.cancellationToken
       })
 
       setSubmitSuccess(true)
@@ -458,6 +460,7 @@ export default function PatientBookingScheduler({ therapistId, blockedSlots = []
           startTime={bookingDetails.startTime}
           endTime={bookingDetails.endTime}
           therapistName={bookingDetails.therapistName}
+          cancellationToken={bookingDetails.cancellationToken}
         />
       )}
     </div>
