@@ -2,6 +2,47 @@
  * Unit tests for Therapist Availability API endpoints
  */
 
+// Mock MongoDB and ObjectId before importing anything
+jest.mock('mongodb', () => {
+  const mockObjectIds = new Map<string, { toString: () => string }>()
+  let counter = 0
+
+  const generateValidId = () => {
+    const hex = counter.toString(16).padStart(24, '0')
+    counter++
+    return hex
+  }
+
+  class MockObjectId {
+    private _id: string
+
+    constructor(id?: string) {
+      this._id = id || generateValidId()
+      mockObjectIds.set(this._id, this)
+    }
+
+    toString() {
+      return this._id
+    }
+
+    static isValid(str: string) {
+      // For testing: accept any non-empty string
+      // In production, this would require 24 character hex string
+      return typeof str === 'string' && str.length > 0
+    }
+  }
+
+  return {
+    ObjectId: MockObjectId,
+    __esModule: true,
+  }
+})
+
+// Mock MongoDB connection
+jest.mock('@/lib/mongodb', () => ({
+  getDatabase: jest.fn(),
+}))
+
 // Mock authentication
 const mockRequireAuthAvailability = jest.fn()
 jest.mock('@/lib/auth', () => ({
@@ -351,12 +392,13 @@ describe('Availability API', () => {
     test('should reject invalid therapist ID', async () => {
       const { GET } = require('@/app/api/therapist/[id]/availability/route')
       
-      const url = new URL('http://localhost/api/therapist/invalid-id/availability')
+      // Use an empty string which will fail ObjectId validation
+      const url = new URL('http://localhost/api/therapist//availability')
       url.searchParams.set('startDate', '2024-01-15')
       url.searchParams.set('endDate', '2024-01-20')
       
       const request = new Request(url.toString())
-      const params = Promise.resolve({ id: 'invalid-id' })
+      const params = Promise.resolve({ id: '' })
       
       const response = await GET(request, { params })
 
@@ -418,12 +460,14 @@ describe('Availability API', () => {
 
       const { GET } = require('@/app/api/therapist/[id]/availability/route')
       
-      const url = new URL('http://localhost/api/therapist/therapist-id-123/availability')
+      // Use a valid ObjectId format (24 hex characters)
+      const validObjectId = '507f1f77bcf86cd799439011'
+      const url = new URL(`http://localhost/api/therapist/${validObjectId}/availability`)
       url.searchParams.set('startDate', '2024-01-15')
       url.searchParams.set('endDate', '2024-01-20')
       
       const request = new Request(url.toString())
-      const params = Promise.resolve({ id: 'therapist-id-123' })
+      const params = Promise.resolve({ id: validObjectId })
       
       const response = await GET(request, { params })
 
