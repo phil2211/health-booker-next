@@ -75,14 +75,10 @@ export default async function BookingPage({ params }: BookingPageProps) {
         {/* Therapist Info Card */}
         <div className="bg-white rounded-xl shadow-xl border p-8 mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Book with {therapist.name}</h1>
-          <p className="text-xl text-indigo-600 font-medium mb-6">{therapist.specialization}</p>
-          <div className="border-t pt-6">
-            <p className="text-gray-700 leading-relaxed">{therapist.bio}</p>
-          </div>
         </div>
 
         {/* Booking Interface */}
-        <BookingInterface therapistId={therapist._id} blockedSlots={therapist.blockedSlots} />
+        <BookingInterface therapistId={therapist._id} blockedSlots={therapist.blockedSlots} therapistName={therapist.name} />
 
         {/* Back to Profile */}
         <div className="mt-8 text-center">

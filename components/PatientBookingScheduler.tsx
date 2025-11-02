@@ -4,11 +4,13 @@ import { useState, useEffect } from 'react'
 import { TimeSlot } from '@/lib/utils/availability'
 import { BlockedSlot } from '@/lib/types'
 import DatePickerPopover from './DatePickerPopover'
+import BookingConfirmation from './BookingConfirmation'
 
 interface PatientBookingSchedulerProps {
   therapistId: string
   blockedSlots?: BlockedSlot[]
   onBookingConfirmed?: () => void
+  therapistName?: string
 }
 
 interface AvailabilityResponse {
@@ -18,7 +20,7 @@ interface AvailabilityResponse {
   endDate: string
 }
 
-export default function PatientBookingScheduler({ therapistId, blockedSlots = [], onBookingConfirmed }: PatientBookingSchedulerProps) {
+export default function PatientBookingScheduler({ therapistId, blockedSlots = [], onBookingConfirmed, therapistName }: PatientBookingSchedulerProps) {
   const [selectedDate, setSelectedDate] = useState<string>('')
 
   const [slots, setSlots] = useState<TimeSlot[]>([])
@@ -26,7 +28,7 @@ export default function PatientBookingScheduler({ therapistId, blockedSlots = []
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null)
-  
+
   // Patient form state
   const [patientName, setPatientName] = useState<string>('')
   const [patientEmail, setPatientEmail] = useState<string>('')
@@ -34,6 +36,16 @@ export default function PatientBookingScheduler({ therapistId, blockedSlots = []
   const [submitting, setSubmitting] = useState<boolean>(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [submitSuccess, setSubmitSuccess] = useState<boolean>(false)
+
+  // Booking confirmation details
+  const [bookingDetails, setBookingDetails] = useState<{
+    patientName: string
+    patientEmail: string
+    appointmentDate: string
+    startTime: string
+    endTime: string
+    therapistName: string
+  } | null>(null)
 
   // Fetch availability for full date range on mount to determine which dates have slots
   useEffect(() => {
@@ -194,6 +206,16 @@ export default function PatientBookingScheduler({ therapistId, blockedSlots = []
       if (!response.ok) {
         throw new Error(data.error || 'Failed to create booking')
       }
+
+      // Store booking details for confirmation
+      setBookingDetails({
+        patientName: patientName.trim(),
+        patientEmail: patientEmail.trim(),
+        appointmentDate: selectedDate,
+        startTime: sessionStart,
+        endTime: sessionEnd,
+        therapistName: therapistName || 'Your Therapist'
+      })
 
       setSubmitSuccess(true)
       // Call callback to notify parent component
@@ -427,31 +449,16 @@ export default function PatientBookingScheduler({ therapistId, blockedSlots = []
         </form>
       )}
 
-      {/* Success Message */}
-      {submitSuccess && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-          <div className="flex items-start">
-            <svg
-              className="w-6 h-6 text-green-600 mr-3 mt-0.5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            <div>
-              <h3 className="text-lg font-semibold text-green-900 mb-2">Booking Confirmed!</h3>
-              <p className="text-green-800">
-                Your appointment has been successfully booked. You will receive a confirmation email shortly.
-              </p>
-            </div>
-          </div>
-        </div>
+      {/* Booking Confirmation */}
+      {submitSuccess && bookingDetails && (
+        <BookingConfirmation
+          patientName={bookingDetails.patientName}
+          patientEmail={bookingDetails.patientEmail}
+          appointmentDate={bookingDetails.appointmentDate}
+          startTime={bookingDetails.startTime}
+          endTime={bookingDetails.endTime}
+          therapistName={bookingDetails.therapistName}
+        />
       )}
     </div>
   )

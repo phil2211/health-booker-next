@@ -7,9 +7,10 @@ import PatientBookingScheduler from './PatientBookingScheduler'
 interface BookingInterfaceProps {
   therapistId: string
   blockedSlots?: BlockedSlot[]
+  therapistName?: string
 }
 
-export default function BookingInterface({ therapistId, blockedSlots }: BookingInterfaceProps) {
+export default function BookingInterface({ therapistId, blockedSlots, therapistName }: BookingInterfaceProps) {
   const [bookingConfirmed, setBookingConfirmed] = useState(false)
 
   const handleBookingConfirmed = () => {
@@ -25,6 +26,7 @@ export default function BookingInterface({ therapistId, blockedSlots }: BookingI
         therapistId={therapistId}
         blockedSlots={blockedSlots}
         onBookingConfirmed={handleBookingConfirmed}
+        therapistName={therapistName}
       />
     </div>
   )
