@@ -25,6 +25,14 @@ export default function PatientBookingScheduler({ therapistId, blockedSlots = []
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null)
+  
+  // Patient form state
+  const [patientName, setPatientName] = useState<string>('')
+  const [patientEmail, setPatientEmail] = useState<string>('')
+  const [patientPhone, setPatientPhone] = useState<string>('')
+  const [submitting, setSubmitting] = useState<boolean>(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
+  const [submitSuccess, setSubmitSuccess] = useState<boolean>(false)
 
   // Fetch availability for full date range on mount to determine which dates have slots
   useEffect(() => {
@@ -127,6 +135,92 @@ export default function PatientBookingScheduler({ therapistId, blockedSlots = []
   const handleSlotSelect = (slot: TimeSlot) => {
     if (slot.status === 'available') {
       setSelectedSlot(`${slot.date}-${slot.startTime}`)
+      setSubmitError(null)
+      setSubmitSuccess(false)
+    }
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    if (!selectedSlot || !selectedDate) {
+      setSubmitError('Please select a date and time')
+      return
+    }
+
+    if (!patientName.trim() || !patientEmail.trim()) {
+      setSubmitError('Please fill in all required fields')
+      return
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(patientEmail)) {
+      setSubmitError('Please enter a valid email address')
+      return
+    }
+
+    setSubmitting(true)
+    setSubmitError(null)
+
+    try {
+      const slot = slots.find((s) => `${s.date}-${s.startTime}` === selectedSlot)
+      if (!slot) {
+        throw new Error('Selected slot not found')
+      }
+
+      const sessionStart = slot.sessionStart || slot.startTime
+      const sessionEnd = slot.sessionEnd || slot.endTime
+
+      const response = await fetch('/api/bookings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          therapistId,
+          patientName: patientName.trim(),
+          patientEmail: patientEmail.trim(),
+          patientPhone: patientPhone.trim() || undefined,
+          appointmentDate: selectedDate,
+          startTime: sessionStart,
+          endTime: sessionEnd,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create booking')
+      }
+
+      setSubmitSuccess(true)
+      // Store selected date before clearing
+      const bookedDate = selectedDate
+      // Reset form
+      setPatientName('')
+      setPatientEmail('')
+      setPatientPhone('')
+      setSelectedSlot(null)
+      setSelectedDate('')
+      
+      // Refresh availability to show updated slots
+      if (bookedDate) {
+        const refreshResponse = await fetch(
+          `/api/therapist/${therapistId}/availability?startDate=${bookedDate}&endDate=${bookedDate}`
+        )
+        if (refreshResponse.ok) {
+          const refreshData: AvailabilityResponse = await refreshResponse.json()
+          const availableSlots = refreshData.slots.filter(
+            (s) => s.date === bookedDate && s.status === 'available'
+          )
+          setSlots(availableSlots)
+        }
+      }
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : 'An error occurred while creating the booking')
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -209,7 +303,7 @@ export default function PatientBookingScheduler({ therapistId, blockedSlots = []
 
       {/* Selected Slot Info */}
       {selectedSlot && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
           <p className="text-sm text-green-800 font-medium">Selected Appointment</p>
           <p className="text-lg text-green-900 font-semibold">
             {new Date(selectedDate).toLocaleDateString('en-US', {
@@ -224,6 +318,128 @@ export default function PatientBookingScheduler({ therapistId, blockedSlots = []
                 '00:00'
             )}
           </p>
+        </div>
+      )}
+
+      {/* Patient Information Form */}
+      {selectedSlot && !submitSuccess && (
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="bg-white border border-gray-200 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Patient Information</h3>
+            
+            {submitError && (
+              <div className="mb-4 bg-red-50 border border-red-200 rounded-lg p-4 text-red-800 text-sm">
+                {submitError}
+              </div>
+            )}
+
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="patient-name" className="block text-sm font-medium text-gray-700 mb-1">
+                  Full Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  id="patient-name"
+                  type="text"
+                  required
+                  value={patientName}
+                  onChange={(e) => setPatientName(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-black"
+                  placeholder="Enter your full name"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="patient-email" className="block text-sm font-medium text-gray-700 mb-1">
+                  Email Address <span className="text-red-500">*</span>
+                </label>
+                <input
+                  id="patient-email"
+                  type="email"
+                  required
+                  value={patientEmail}
+                  onChange={(e) => setPatientEmail(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-black"
+                  placeholder="your.email@example.com"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="patient-phone" className="block text-sm font-medium text-gray-700 mb-1">
+                  Phone Number <span className="text-gray-500 text-xs">(optional)</span>
+                </label>
+                <input
+                  id="patient-phone"
+                  type="tel"
+                  value={patientPhone}
+                  onChange={(e) => setPatientPhone(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-black"
+                  placeholder="+1 (555) 123-4567"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={submitting}
+                className="w-full px-6 py-3 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {submitting ? (
+                  <>
+                    <svg
+                      className="animate-spin h-5 w-5"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                    Creating Booking...
+                  </>
+                ) : (
+                  'Confirm Booking'
+                )}
+              </button>
+            </div>
+          </div>
+        </form>
+      )}
+
+      {/* Success Message */}
+      {submitSuccess && (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+          <div className="flex items-start">
+            <svg
+              className="w-6 h-6 text-green-600 mr-3 mt-0.5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <div>
+              <h3 className="text-lg font-semibold text-green-900 mb-2">Booking Confirmed!</h3>
+              <p className="text-green-800">
+                Your appointment has been successfully booked. You will receive a confirmation email shortly.
+              </p>
+            </div>
+          </div>
         </div>
       )}
     </div>

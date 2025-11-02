@@ -1,0 +1,116 @@
+
+> health-booker-next@0.1.0 dev
+> next dev
+
+   ▲ Next.js 16.0.1 (Turbopack)
+   - Local:        http://localhost:3000
+   - Network:      http://127.0.2.2:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+Creating turbopack project {
+  dir: '/Users/philip.eschenbacher/Documents/Developer/HealthBookerNext',
+  testMode: true
+}
+ ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+ ✓ Ready in 416ms
+ GET /dashboard/availability 200 in 1376ms (compile: 1020ms, proxy.ts: 31ms, render: 326ms)
+ GET /api/therapist/availability 200 in 381ms (compile: 252ms, render: 129ms)
+ GET /book/6907709f3f12e8eac477dc0d 200 in 2.3s (compile: 1890ms, render: 436ms)
+ GET /dashboard 200 in 1962ms (compile: 1204ms, proxy.ts: 2ms, render: 756ms)
+ GET /book/6907709f3f12e8eac477dc0d 200 in 2.6s (compile: 1877ms, render: 711ms)
+ GET /therapist/6907709f3f12e8eac477dc0d 200 in 2.2s (compile: 1296ms, render: 940ms)
+ GET /api/therapist/booking-url 200 in 239ms (compile: 219ms, render: 20ms)
+ GET /api/auth/session 200 in 955ms (compile: 946ms, render: 10ms)
+ GET /api/auth/session 200 in 267ms (compile: 256ms, render: 11ms)
+ GET /api/auth/session 200 in 12ms (compile: 3ms, render: 10ms)
+ GET /api/auth/session 200 in 10ms (compile: 1604µs, render: 8ms)
+ GET /api/auth/session 200 in 7ms (compile: 1216µs, render: 6ms)
+ GET /api/auth/session 200 in 11ms (compile: 1363µs, render: 9ms)
+ GET /api/auth/session 200 in 7ms (compile: 1098µs, render: 6ms)
+ GET /api/auth/session 200 in 8ms (compile: 1114µs, render: 7ms)
+ GET /api/auth/session 200 in 5ms (compile: 1047µs, render: 4ms)
+ GET /api/auth/session 200 in 6ms (compile: 1668µs, render: 4ms)
+ GET /api/auth/session 200 in 5ms (compile: 958µs, render: 4ms)
+ GET /api/auth/session 200 in 5ms (compile: 1467µs, render: 4ms)
+ GET /api/auth/session 200 in 5ms (compile: 1025µs, render: 4ms)
+ GET /api/auth/session 200 in 6ms (compile: 1650µs, render: 4ms)
+ GET /api/auth/session 200 in 5ms (compile: 1167µs, render: 4ms)
+ GET /api/auth/session 200 in 4ms (compile: 847µs, render: 3ms)
+ GET /api/auth/session 200 in 11ms (compile: 7ms, render: 4ms)
+ GET /api/auth/session 200 in 4ms (compile: 925µs, render: 3ms)
+ GET /api/auth/session 200 in 4ms (compile: 807µs, render: 4ms)
+ GET /api/therapist/6907709f3f12e8eac477dc0d/availability?startDate=2025-11-02&endDate=2026-02-02 200 in 844ms (compile: 772ms, render: 72ms)
+ GET /api/therapist/6907709f3f12e8eac477dc0d/availability?startDate=2025-11-02&endDate=2026-02-02 200 in 593ms (compile: 519ms, render: 74ms)
+API: Checking for conflicts...
+=== CONFLICT CHECK ===
+Input: therapist=6907709f3f12e8eac477dc0d, date=2025-11-14, time=10:30-11:30
+Query: {
+  "$and": [
+    {
+      "$or": [
+        {
+          "therapistId": "6907709f3f12e8eac477dc0d"
+        },
+        {
+          "therapistId": "6907709f3f12e8eac477dc0d"
+        }
+      ]
+    },
+    {
+      "appointmentDate": "2025-11-14"
+    },
+    {
+      "status": {
+        "$ne": "cancelled"
+      }
+    }
+  ]
+}
+Found 0 existing bookings
+✅ No conflicts found
+API: Conflict check result: false
+=== CONFLICT CHECK ===
+Input: therapist=6907709f3f12e8eac477dc0d, date=2025-11-14, time=10:30-11:30
+Query: {
+  "$and": [
+    {
+      "$or": [
+        {
+          "therapistId": "6907709f3f12e8eac477dc0d"
+        },
+        {
+          "therapistId": "6907709f3f12e8eac477dc0d"
+        }
+      ]
+    },
+    {
+      "appointmentDate": "2025-11-14"
+    },
+    {
+      "status": {
+        "$ne": "cancelled"
+      }
+    }
+  ]
+}
+Found 0 existing bookings
+✅ No conflicts found
+Create booking error: MongoServerError: Updating the path 'bookings' would create a conflict at 'bookings'
+    at async (models/Booking.ts:306:7)
+    at async createBooking (models/Booking.ts:264:5)
+    at async POST (app/api/bookings/route.ts:116:21)
+  304 |       
+  305 |       // Update therapist document
+> 306 |       await db.collection('therapists').updateOne(
+      |       ^
+  307 |         { _id: therapistIdObj },
+  308 |         updateOperation,
+  309 |         { session } {
+  errorLabelSet: Set(0) {},
+  errorResponse: [Object],
+  index: 0,
+  code: 40
+}
+ POST /api/bookings 409 in 433ms (compile: 58ms, render: 374ms)
+[?25h
