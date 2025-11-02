@@ -176,10 +176,43 @@ describe('Availability Management', () => {
       cy.contains('Blocked Time Slots').scrollIntoView()
       
       // Fill in the form - find inputs within the "Add Blocked Slot" section
-      // Use .invoke('val') for date input as it's more reliable than .type()
-      cy.contains('Add Blocked Slot').parent().find('input[type="date"]').invoke('val', dateString).trigger('change')
-      cy.contains('Add Blocked Slot').parent().find('input[type="time"]').first().clear().type('10:00')
-      cy.contains('Add Blocked Slot').parent().find('input[type="time"]').last().clear().type('12:00')
+      // For date inputs in Cypress, we need to directly set the value and dispatch events
+      // React's onChange handler needs the event.target.value to be set
+      cy.contains('From Date').parent().find('input[type="date"]').first().then(($input) => {
+        const input = $input[0] as HTMLInputElement
+        const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value')?.set
+        if (nativeInputValueSetter) {
+          nativeInputValueSetter.call(input, dateString)
+          input.dispatchEvent(new Event('input', { bubbles: true }))
+        }
+      })
+      // Verify the value was set
+      cy.contains('From Date').parent().find('input[type="date"]').first().should('have.value', dateString)
+      
+      // Wait a bit for React state update (toDate should auto-set)
+      cy.wait(500)
+      
+      // Set To Date explicitly to ensure it's set
+      cy.contains('To Date').parent().find('input[type="date"]').first().then(($input) => {
+        const input = $input[0] as HTMLInputElement
+        const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value')?.set
+        if (nativeInputValueSetter) {
+          nativeInputValueSetter.call(input, dateString)
+          input.dispatchEvent(new Event('input', { bubbles: true }))
+        }
+      })
+      // Verify the value was set
+      cy.contains('To Date').parent().find('input[type="date"]').first().should('have.value', dateString)
+      
+      // Set time inputs (these work fine with .type())
+      cy.contains('Start Time').parent().find('input[type="time"]').first().clear().type('10:00')
+      cy.contains('End Time').parent().find('input[type="time"]').first().clear().type('12:00')
+      
+      // Wait a bit for state updates
+      cy.wait(500)
+      
+      // Verify Add Block button is enabled (all fields should be filled)
+      cy.contains('Add Block').should('not.be.disabled')
       
       // Click Add Block button
       cy.contains('Add Block').click()
@@ -222,11 +255,13 @@ describe('Availability Management', () => {
       // Scroll to blocked slots section
       cy.contains('Blocked Time Slots').scrollIntoView()
       
-      // Fill in the form - use .invoke('val') for date input
-      cy.contains('Add Blocked Slot').parent().find('input[type="date"]').invoke('val', dateString).trigger('change')
-      cy.contains('Add Blocked Slot').parent().find('input[type="time"]').first().clear().type('10:00')
-      cy.contains('Add Blocked Slot').parent().find('input[type="time"]').last().clear().type('12:00')
-      cy.contains('Add Block').click()
+      // Fill in the form - set both dates explicitly
+      cy.contains('From Date').parent().find('input[type="date"]').first().clear().type(dateString)
+      cy.wait(100)
+      cy.contains('To Date').parent().find('input[type="date"]').first().clear().type(dateString)
+      cy.contains('Start Time').parent().find('input[type="time"]').first().clear().type('10:00')
+      cy.contains('End Time').parent().find('input[type="time"]').first().clear().type('12:00')
+      cy.contains('Add Block').should('not.be.disabled').click()
       
       // Wait for slot to appear - verify remove button exists
       cy.get('button[aria-label="Remove blocked slot"]', { timeout: 5000 })
@@ -316,11 +351,28 @@ describe('Availability Management', () => {
       tomorrow.setDate(tomorrow.getDate() + 1)
       const dateString = tomorrow.toISOString().split('T')[0]
       
-      // Use .invoke('val') for date input as it's more reliable
-      cy.contains('Add Blocked Slot').parent().find('input[type="date"]').invoke('val', dateString).trigger('change')
-      cy.contains('Add Blocked Slot').parent().find('input[type="time"]').first().clear().type('14:00')
-      cy.contains('Add Blocked Slot').parent().find('input[type="time"]').last().clear().type('16:00')
-      cy.contains('Add Block').click()
+      // Set both dates explicitly using direct DOM manipulation with React compatibility
+      cy.contains('From Date').parent().find('input[type="date"]').first().then(($input) => {
+        const input = $input[0] as HTMLInputElement
+        const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value')?.set
+        if (nativeInputValueSetter) {
+          nativeInputValueSetter.call(input, dateString)
+          input.dispatchEvent(new Event('input', { bubbles: true }))
+        }
+      })
+      cy.wait(500)
+      cy.contains('To Date').parent().find('input[type="date"]').first().then(($input) => {
+        const input = $input[0] as HTMLInputElement
+        const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value')?.set
+        if (nativeInputValueSetter) {
+          nativeInputValueSetter.call(input, dateString)
+          input.dispatchEvent(new Event('input', { bubbles: true }))
+        }
+      })
+      cy.contains('Start Time').parent().find('input[type="time"]').first().clear().type('14:00')
+      cy.contains('End Time').parent().find('input[type="time"]').first().clear().type('16:00')
+      cy.wait(500)
+      cy.contains('Add Block').should('not.be.disabled').click()
       
       // Wait for slot to appear by checking for remove button
       cy.get('button[aria-label="Remove blocked slot"]', { timeout: 5000 })
@@ -332,6 +384,9 @@ describe('Availability Management', () => {
             .parent()
             .should('contain.text', '14:00')
         })
+      
+      // Wait for the save button to become enabled (change detection)
+      cy.contains('button', 'Save Changes', { timeout: 2000 }).should('not.be.disabled')
       
       // Save changes
       cy.contains('Save Changes').click()
@@ -422,14 +477,23 @@ describe('Availability Management', () => {
     })
 
     it('should enable save button when changes are made', () => {
-      // Wait a bit for React to fully initialize after the load
-      cy.wait(500)
+      // Wait for initial state to be set (save button should be disabled initially)
+      cy.contains('button', 'Save Changes', { timeout: 5000 }).should('be.disabled')
       
-      // Make a change
-      cy.contains('Monday').parent().find('input[type="checkbox"]').check()
+      // Make a change - first ensure Monday is unchecked, then check it
+      // This guarantees a state change
+      cy.contains('Monday').parent().find('input[type="checkbox"]').then(($checkbox) => {
+        if ($checkbox.is(':checked')) {
+          // If already checked, uncheck first
+          cy.wrap($checkbox).uncheck()
+          cy.wait(100)
+        }
+        // Then check it (this will always be a change)
+        cy.wrap($checkbox).check()
+      })
       
       // Wait for React state update - the save button should become enabled
-      // This is more reliable than checking for the text message which might be rendered differently
+      // The change detection useEffect runs after state updates
       cy.contains('button', 'Save Changes', { timeout: 5000 })
         .should('not.be.disabled')
         .then(() => {
