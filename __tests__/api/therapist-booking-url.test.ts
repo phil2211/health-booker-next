@@ -3,9 +3,9 @@
  */
 
 // Mock authentication
-const mockRequireAuth = jest.fn()
+const mockRequireAuthBookingUrl = jest.fn()
 jest.mock('@/lib/auth', () => ({
-  requireAuth: (...args: any[]) => mockRequireAuth(...args),
+  requireAuth: (...args: any[]) => mockRequireAuthBookingUrl(...args),
   getAuthSession: jest.fn(),
 }))
 
@@ -32,7 +32,7 @@ describe('Therapist Booking URL API', () => {
         },
       }
 
-      mockRequireAuth.mockResolvedValue(mockSession)
+      mockRequireAuthBookingUrl.mockResolvedValue(mockSession)
 
       const { requireAuth } = require('@/lib/auth')
       const session = await requireAuth()
@@ -43,7 +43,7 @@ describe('Therapist Booking URL API', () => {
     })
 
     test('should throw error for unauthenticated request', async () => {
-      mockRequireAuth.mockRejectedValue(new Error('Unauthorized - Please login'))
+      mockRequireAuthBookingUrl.mockRejectedValue(new Error('Unauthorized - Please login'))
 
       const { requireAuth } = require('@/lib/auth')
       await expect(requireAuth()).rejects.toThrow('Unauthorized - Please login')
