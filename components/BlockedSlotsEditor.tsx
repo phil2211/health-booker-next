@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { BlockedSlot } from '@/lib/types'
 
 interface BlockedSlotsEditorProps {
@@ -17,6 +17,9 @@ export default function BlockedSlotsEditor({
     startTime: '09:00',
     endTime: '17:00',
   })
+  
+  const startTimeInputRef = useRef<HTMLInputElement>(null)
+  const endTimeInputRef = useRef<HTMLInputElement>(null)
 
   const addBlockedSlot = () => {
     // Validate
@@ -112,7 +115,7 @@ export default function BlockedSlotsEditor({
               value={newSlot.date}
               onChange={(e) => setNewSlot({ ...newSlot, date: e.target.value })}
               min={today}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900"
               required
             />
           </div>
@@ -120,25 +123,71 @@ export default function BlockedSlotsEditor({
             <label className="block text-xs font-medium text-gray-700 mb-1">
               Start Time
             </label>
-            <input
-              type="time"
-              value={newSlot.startTime}
-              onChange={(e) => setNewSlot({ ...newSlot, startTime: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-              required
-            />
+            <div className="relative">
+              <input
+                ref={startTimeInputRef}
+                type="time"
+                value={newSlot.startTime}
+                onChange={(e) => setNewSlot({ ...newSlot, startTime: e.target.value })}
+                className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => startTimeInputRef.current?.showPicker?.() || startTimeInputRef.current?.focus()}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none focus:text-gray-600"
+                aria-label="Open time picker"
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </button>
+            </div>
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">
               End Time
             </label>
-            <input
-              type="time"
-              value={newSlot.endTime}
-              onChange={(e) => setNewSlot({ ...newSlot, endTime: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-              required
-            />
+            <div className="relative">
+              <input
+                ref={endTimeInputRef}
+                type="time"
+                value={newSlot.endTime}
+                onChange={(e) => setNewSlot({ ...newSlot, endTime: e.target.value })}
+                className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => endTimeInputRef.current?.showPicker?.() || endTimeInputRef.current?.focus()}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none focus:text-gray-600"
+                aria-label="Open time picker"
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </button>
+            </div>
           </div>
           <div className="flex items-end">
             <button

@@ -125,8 +125,15 @@ export default function AvailabilityManagement() {
       })
 
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to save availability')
+        let errorMessage = 'Failed to save availability'
+        try {
+          const errorData = await response.json()
+          errorMessage = errorData.error || errorMessage
+        } catch (parseError) {
+          // If response is not JSON, use status text
+          errorMessage = `Failed to save availability: ${response.status} ${response.statusText}`
+        }
+        throw new Error(errorMessage)
       }
 
       const data = await response.json()
@@ -151,7 +158,13 @@ export default function AvailabilityManagement() {
       }, 3000)
     } catch (err) {
       console.error('Error saving availability:', err)
-      setError(err instanceof Error ? err.message : 'Failed to save availability')
+      if (err instanceof TypeError && err.message.includes('fetch')) {
+        setError('Network error: Unable to connect to server. Please check your connection and try again.')
+      } else if (err instanceof Error) {
+        setError(err.message)
+      } else {
+        setError('Failed to save availability. Please try again.')
+      }
     } finally {
       setSaving(false)
     }

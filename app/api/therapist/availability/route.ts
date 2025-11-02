@@ -24,7 +24,16 @@ export async function PUT(request: Request) {
     const therapistId = session.user.id
 
     // Parse request body
-    const body = await request.json()
+    let body
+    try {
+      body = await request.json()
+    } catch (parseError) {
+      return NextResponse.json(
+        { error: 'Invalid JSON in request body' },
+        { status: 400 }
+      )
+    }
+    
     const { weeklyAvailability, blockedSlots } = body
 
     // Validate that at least one field is provided
@@ -123,8 +132,11 @@ export async function PUT(request: Request) {
       )
     }
 
+    // Provide more detailed error message if available
+    const errorMessage = error instanceof Error ? error.message : 'Internal server error'
+    
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: errorMessage },
       { status: 500 }
     )
   }
