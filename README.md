@@ -10,7 +10,7 @@ This project follows a cloud-native architecture designed for developer velocity
 - **Database**: MongoDB Atlas
 - **Deployment**: Vercel (framework-native platform)
 - **CI/CD**: GitHub Actions for quality gates, Vercel for deployment
-- **Testing**: Jest + React Testing Library (unit/component), Cypress (E2E)
+- **Testing**: Jest + React Testing Library (unit/component)
 
 ## Getting Started
 
@@ -75,7 +75,6 @@ This project follows a cloud-native architecture designed for developer velocity
 /types              # TypeScript type definitions
 /public             # Static assets
 /__tests__          # Jest unit and component tests
-/cypress            # Cypress E2E tests
 .github/workflows   # GitHub Actions CI/CD pipelines
 ```
 
@@ -89,8 +88,6 @@ This project follows a cloud-native architecture designed for developer velocity
 - `npm test` - Run Jest tests
 - `npm run test:watch` - Run tests in watch mode
 - `npm run test:coverage` - Generate test coverage report
-- `npm run cypress:open` - Open Cypress Test Runner
-- `npm run cypress:run` - Run Cypress tests headlessly
 
 ## Testing
 
@@ -102,20 +99,6 @@ npm test
 ```
 
 Tests are located in the `__tests__` directory and co-located with components.
-
-### E2E Tests (Cypress)
-
-**Run Cypress interactively:**
-```bash
-npm run cypress:open
-```
-
-**Run Cypress headlessly:**
-```bash
-npm run cypress:run
-```
-
-E2E tests are located in `cypress/e2e/`.
 
 ## Database Schema
 
@@ -216,7 +199,6 @@ The GitHub Actions workflow (`.github/workflows/ci.yml`) runs the following on e
    - ESLint code linting
    - TypeScript type checking
    - Jest unit tests with coverage
-   - Cypress E2E tests
 
 2. **Build Check**:
    - Production build verification
@@ -245,7 +227,7 @@ Only PRs passing all checks can be merged to main.
 - **Language**: [TypeScript](https://www.typescriptlang.org/)
 - **Styling**: [Tailwind CSS](https://tailwindcss.com/)
 - **Database**: [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
-- **Testing**: [Jest](https://jestjs.io/) + [React Testing Library](https://testing-library.com/react) + [Cypress](https://www.cypress.io/)
+- **Testing**: [Jest](https://jestjs.io/) + [React Testing Library](https://testing-library.com/react)
 - **Deployment**: [Vercel](https://vercel.com/)
 - **CI/CD**: [GitHub Actions](https://github.com/features/actions)
 

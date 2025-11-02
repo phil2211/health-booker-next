@@ -84,8 +84,7 @@ git checkout -b feature/your-feature-name
 
 5. **Write/update tests** as you develop:
    - Unit tests in `__tests__/` directory
-   - E2E tests in `cypress/e2e/` directory
-   - Run tests: `npm test` and `npm run cypress:open`
+   - Run tests: `npm test`
 
 6. **Follow code quality standards**:
    - TypeScript strict mode enabled
@@ -126,8 +125,7 @@ git push origin feature/your-feature-name
 1. **ESLint** - Code linting
 2. **TypeScript** - Type checking
 3. **Jest Tests** - Unit/component tests
-4. **Cypress E2E Tests** - End-to-end tests
-5. **Build Check** - Production build verification
+4. **Build Check** - Production build verification
 
 **Monitor CI Status:**
 - View in GitHub → Your PR → Checks tab
@@ -139,7 +137,6 @@ git push origin feature/your-feature-name
 npm run lint          # ESLint
 npm run type-check    # TypeScript
 npm test              # Jest tests
-npm run cypress:run   # E2E tests
 npm run build         # Build verification
 ```
 
@@ -358,7 +355,6 @@ git push origin feature/your-feature-name --force-with-lease
 - **Test Coverage**: Aim for >80% coverage for new code
 - **Test Naming**: Use descriptive test names: `should display error when email is invalid`
 - **Test Independence**: Tests should not depend on each other
-- **E2E Tests**: Test critical user flows in Cypress
 
 ### Git Commits
 
@@ -401,7 +397,6 @@ git push origin feature/your-feature
 npm run lint
 npm run type-check
 npm test
-npm run cypress:run
 
 # 4. Create PR on GitHub (manual step)
 
@@ -453,9 +448,6 @@ npm run lint && npm run type-check && npm test
 
 # Build for production
 npm run build && npm run start
-
-# Run E2E tests
-npm run cypress:open
 
 # Git operations
 git status                # Check current status

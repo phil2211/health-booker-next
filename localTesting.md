@@ -108,11 +108,6 @@ When running tests locally, they will also use the cloud database if configured:
 ```bash
 # Run unit tests
 npm test
-
-# Run E2E tests (requires dev server running)
-npm run cypress:open
-# or
-npm run cypress:run
 ```
 
 **Note:** Consider using a separate test database or mocking database calls for tests to avoid affecting your development data.

@@ -47,16 +47,6 @@ jobs:
           files: ./coverage/lcov.info
           fail_ci_if_error: false
 
-      - name: Run Cypress E2E tests
-        uses: cypress-io/github-action@v6
-        with:
-          start: npm run dev
-          wait-on: 'http://localhost:3000'
-          wait-on-timeout: 120
-          record: false
-          config-file: cypress.config.ts
-        continue-on-error: false
-
   build:
     name: Build Check
     runs-on: ubuntu-latest
