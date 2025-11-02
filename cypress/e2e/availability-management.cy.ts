@@ -1,3 +1,5 @@
+/// <reference types="cypress" />
+
 /**
  * E2E tests for Availability Management functionality
  */
