@@ -7,6 +7,7 @@ import {
   validateBlockedSlot,
 } from '@/models/Therapist'
 import { AvailabilityEntry, BlockedSlot } from '@/lib/types'
+import { ObjectId } from 'mongodb'
 
 export const runtime = 'nodejs'
 
@@ -22,6 +23,15 @@ export async function PUT(request: Request) {
     // Require authentication
     const session = await requireAuth()
     const therapistId = session.user.id
+
+    // Validate therapist ID format
+    if (!ObjectId.isValid(therapistId)) {
+      console.error('Invalid therapist ID format:', therapistId)
+      return NextResponse.json(
+        { error: 'Invalid therapist ID format' },
+        { status: 400 }
+      )
+    }
 
     // Parse request body
     let body
@@ -129,6 +139,15 @@ export async function PUT(request: Request) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
+      )
+    }
+
+    // Check if it's an ObjectId error
+    if (error instanceof Error && (error.message.includes('ObjectId') || error.message.includes('BSON'))) {
+      console.error('Invalid therapist ID format:', therapistId)
+      return NextResponse.json(
+        { error: 'Invalid therapist ID format' },
+        { status: 400 }
       )
     }
 

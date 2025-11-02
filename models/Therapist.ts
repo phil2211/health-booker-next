@@ -265,34 +265,59 @@ export async function updateTherapistAvailability(
   weeklyAvailability?: AvailabilityEntry[],
   blockedSlots?: BlockedSlot[]
 ): Promise<TherapistDocument | null> {
-  const db = await getDatabase()
-  
-  const now = new Date()
-  const updateFields: any = {
-    updatedAt: now,
+  try {
+    const db = await getDatabase()
+    
+    // Validate ObjectId format
+    if (!ObjectId.isValid(therapistId)) {
+      console.error('Invalid therapist ID format:', therapistId)
+      return null
+    }
+    
+    const now = new Date()
+    const updateFields: any = {
+      updatedAt: now,
+    }
+    
+    if (weeklyAvailability !== undefined) {
+      updateFields.weeklyAvailability = weeklyAvailability
+    }
+    
+    if (blockedSlots !== undefined) {
+      updateFields.blockedSlots = blockedSlots
+    }
+    
+    // Use updateOne instead of findOneAndUpdate for more reliable results
+    const updateResult = await db.collection('therapists').updateOne(
+      { _id: new ObjectId(therapistId) },
+      {
+        $set: updateFields,
+      }
+    )
+    
+    // Check if update was successful
+    if (updateResult.matchedCount === 0) {
+      console.error('Therapist not found for update:', therapistId)
+      return null
+    }
+    
+    // Fetch the updated document
+    const updatedTherapist = await db.collection('therapists').findOne(
+      { _id: new ObjectId(therapistId) }
+    )
+    
+    if (!updatedTherapist) {
+      console.error('Therapist not found after update:', therapistId)
+      return null
+    }
+    
+    return {
+      ...updatedTherapist,
+      _id: updatedTherapist._id.toString(),
+    } as TherapistDocument
+  } catch (error) {
+    console.error('Error updating therapist availability:', error)
+    throw error // Re-throw to be caught by API route
   }
-  
-  if (weeklyAvailability !== undefined) {
-    updateFields.weeklyAvailability = weeklyAvailability
-  }
-  
-  if (blockedSlots !== undefined) {
-    updateFields.blockedSlots = blockedSlots
-  }
-  
-  const result = await db.collection('therapists').findOneAndUpdate(
-    { _id: new ObjectId(therapistId) },
-    {
-      $set: updateFields,
-    },
-    { returnDocument: 'after' }
-  )
-  
-  if (!result || !result.value) return null
-  
-  return {
-    ...result.value,
-    _id: result.value._id.toString(),
-  } as TherapistDocument
 }
 
