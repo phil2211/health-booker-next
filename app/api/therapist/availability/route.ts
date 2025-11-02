@@ -94,7 +94,7 @@ export async function PUT(request: Request) {
           return NextResponse.json(
             {
               error: `Invalid blocked slot at index ${i}`,
-              details: 'Each slot must have valid date (YYYY-MM-DD), startTime, and endTime (HH:MM format). Start time must be before end time.',
+              details: 'Each slot must have valid fromDate and toDate (YYYY-MM-DD), startTime, and endTime (HH:MM format). From date must be before or equal to toDate. Start time must be before end time.',
             },
             { status: 400 }
           )
@@ -144,7 +144,6 @@ export async function PUT(request: Request) {
 
     // Check if it's an ObjectId error
     if (error instanceof Error && (error.message.includes('ObjectId') || error.message.includes('BSON'))) {
-      console.error('Invalid therapist ID format:', therapistId)
       return NextResponse.json(
         { error: 'Invalid therapist ID format' },
         { status: 400 }

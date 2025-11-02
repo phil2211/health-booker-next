@@ -104,7 +104,21 @@ function isBlocked(
   blockedSlots: BlockedSlot[]
 ): boolean {
   return blockedSlots.some((blocked) => {
-    if (blocked.date !== date) return false
+    // Support both new format (fromDate/toDate) and legacy format (date)
+    const blockedFromDate = blocked.fromDate || blocked.date || ''
+    const blockedToDate = blocked.toDate || blocked.date || ''
+    
+    // Check if the date falls within the blocked date range
+    const checkDate = new Date(date + 'T00:00:00.000Z')
+    const fromDate = new Date(blockedFromDate + 'T00:00:00.000Z')
+    const toDate = new Date(blockedToDate + 'T00:00:00.000Z')
+    
+    // Date must be within the range (inclusive)
+    if (checkDate < fromDate || checkDate > toDate) {
+      return false
+    }
+    
+    // Check if time ranges overlap
     return timeRangesOverlap(
       slotStart,
       slotEnd,

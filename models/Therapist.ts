@@ -89,12 +89,27 @@ export function validateAvailabilityEntry(entry: AvailabilityEntry): boolean {
 
 /**
  * Validate blocked slot
+ * Supports both new format (fromDate/toDate) and legacy format (date)
  */
 export function validateBlockedSlot(slot: BlockedSlot): boolean {
-  if (!slot.date || !/^\d{4}-\d{2}-\d{2}$/.test(slot.date)) {
+  // Support both new format (fromDate/toDate) and legacy format (date)
+  const fromDate = slot.fromDate || slot.date
+  const toDate = slot.toDate || slot.date
+
+  // Validate date format
+  const dateRegex = /^\d{4}-\d{2}-\d{2}$/
+  if (!fromDate || !toDate || !dateRegex.test(fromDate) || !dateRegex.test(toDate)) {
     return false
   }
 
+  // Check that fromDate <= toDate
+  const from = new Date(fromDate + 'T00:00:00.000Z')
+  const to = new Date(toDate + 'T00:00:00.000Z')
+  if (from > to) {
+    return false
+  }
+
+  // Validate time format
   const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/
   if (!timeRegex.test(slot.startTime) || !timeRegex.test(slot.endTime)) {
     return false

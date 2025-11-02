@@ -13,23 +13,33 @@ export default function BlockedSlotsEditor({
   onChange,
 }: BlockedSlotsEditorProps) {
   const [newSlot, setNewSlot] = useState<BlockedSlot>({
-    date: '',
+    fromDate: '',
+    toDate: '',
     startTime: '09:00',
     endTime: '17:00',
   })
   
+  const fromDateInputRef = useRef<HTMLInputElement>(null)
+  const toDateInputRef = useRef<HTMLInputElement>(null)
   const startTimeInputRef = useRef<HTMLInputElement>(null)
   const endTimeInputRef = useRef<HTMLInputElement>(null)
 
   const addBlockedSlot = () => {
     // Validate
-    if (!newSlot.date || !newSlot.startTime || !newSlot.endTime) {
+    if (!newSlot.fromDate || !newSlot.toDate || !newSlot.startTime || !newSlot.endTime) {
       return
     }
 
     // Check if date format is valid (YYYY-MM-DD)
     const dateRegex = /^\d{4}-\d{2}-\d{2}$/
-    if (!dateRegex.test(newSlot.date)) {
+    if (!dateRegex.test(newSlot.fromDate) || !dateRegex.test(newSlot.toDate)) {
+      return
+    }
+
+    // Check if fromDate <= toDate
+    const fromDate = new Date(newSlot.fromDate + 'T00:00:00.000Z')
+    const toDate = new Date(newSlot.toDate + 'T00:00:00.000Z')
+    if (fromDate > toDate) {
       return
     }
 
@@ -40,13 +50,19 @@ export default function BlockedSlotsEditor({
       return
     }
 
-    // Check for duplicates
-    const isDuplicate = blockedSlots.some(
-      (slot) =>
-        slot.date === newSlot.date &&
-        slot.startTime === newSlot.startTime &&
-        slot.endTime === newSlot.endTime
-    )
+    // Check for duplicates (overlapping ranges with same time)
+    const isDuplicate = blockedSlots.some((slot) => {
+      const slotFromDate = slot.fromDate || slot.date || ''
+      const slotToDate = slot.toDate || slot.date || ''
+      const slotStart = new Date(slotFromDate + 'T00:00:00.000Z')
+      const slotEnd = new Date(slotToDate + 'T00:00:00.000Z')
+      
+      // Check if ranges overlap and times match
+      const rangesOverlap = fromDate <= slotEnd && toDate >= slotStart
+      const timesMatch = slot.startTime === newSlot.startTime && slot.endTime === newSlot.endTime
+      
+      return rangesOverlap && timesMatch
+    })
 
     if (isDuplicate) {
       return
@@ -56,7 +72,8 @@ export default function BlockedSlotsEditor({
     
     // Reset form
     setNewSlot({
-      date: '',
+      fromDate: '',
+      toDate: '',
       startTime: '09:00',
       endTime: '17:00',
     })
@@ -92,6 +109,17 @@ export default function BlockedSlotsEditor({
     }
   }
 
+  const formatDateRange = (fromDate: string, toDate: string): string => {
+    const from = formatDate(fromDate)
+    const to = formatDate(toDate)
+    
+    if (fromDate === toDate) {
+      return from
+    }
+    
+    return `${from} - ${to}`
+  }
+
   // Get today's date in YYYY-MM-DD format
   const today = new Date().toISOString().split('T')[0]
 
@@ -105,19 +133,86 @@ export default function BlockedSlotsEditor({
       {/* Add New Blocked Slot Form */}
       <div className="bg-gray-50 rounded-lg p-4 border-2 border-gray-200">
         <h4 className="text-sm font-semibold text-gray-900 mb-4">Add Blocked Slot</h4>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">
-              Date
+              From Date
             </label>
-            <input
-              type="date"
-              value={newSlot.date}
-              onChange={(e) => setNewSlot({ ...newSlot, date: e.target.value })}
-              min={today}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900"
-              required
-            />
+            <div className="relative">
+              <input
+                ref={fromDateInputRef}
+                type="date"
+                value={newSlot.fromDate}
+                onChange={(e) => {
+                  const value = e.target.value
+                  // Auto-set toDate if it's empty or before fromDate
+                  if (!newSlot.toDate || newSlot.toDate < value) {
+                    setNewSlot({ ...newSlot, fromDate: value, toDate: value })
+                  } else {
+                    setNewSlot({ ...newSlot, fromDate: value })
+                  }
+                }}
+                min={today}
+                className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => fromDateInputRef.current?.showPicker?.() || fromDateInputRef.current?.focus()}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none focus:text-gray-600"
+                aria-label="Open date picker"
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              To Date
+            </label>
+            <div className="relative">
+              <input
+                ref={toDateInputRef}
+                type="date"
+                value={newSlot.toDate}
+                onChange={(e) => setNewSlot({ ...newSlot, toDate: e.target.value })}
+                min={newSlot.fromDate || today}
+                className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => toDateInputRef.current?.showPicker?.() || toDateInputRef.current?.focus()}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none focus:text-gray-600"
+                aria-label="Open date picker"
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
+              </button>
+            </div>
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">
@@ -189,10 +284,10 @@ export default function BlockedSlotsEditor({
               </button>
             </div>
           </div>
-          <div className="flex items-end">
+          <div className="flex items-end md:col-span-2">
             <button
               onClick={addBlockedSlot}
-              disabled={!newSlot.date || !newSlot.startTime || !newSlot.endTime}
+              disabled={!newSlot.fromDate || !newSlot.toDate || !newSlot.startTime || !newSlot.endTime}
               className="w-full bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-indigo-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
             >
               Add Block
@@ -215,52 +310,64 @@ export default function BlockedSlotsEditor({
           </h4>
           {blockedSlots
             .map((slot, index) => ({ slot, originalIndex: index }))
-            .filter(({ slot }) => slot && typeof slot === 'object' && slot.date && slot.startTime && slot.endTime)
+            .filter(({ slot }) => {
+              // Support both new format (fromDate/toDate) and legacy format (date)
+              const hasValidDates = (slot.fromDate && slot.toDate) || slot.date
+              return slot && typeof slot === 'object' && hasValidDates && slot.startTime && slot.endTime
+            })
             .sort((a, b) => {
-              // Sort by date, then by start time
-              if (a.slot.date !== b.slot.date) {
-                return a.slot.date.localeCompare(b.slot.date)
+              // Sort by fromDate (or date for legacy), then by start time
+              const aDate = a.slot.fromDate || a.slot.date || ''
+              const bDate = b.slot.fromDate || b.slot.date || ''
+              if (aDate !== bDate) {
+                return aDate.localeCompare(bDate)
               }
               return a.slot.startTime.localeCompare(b.slot.startTime)
             })
-            .map(({ slot, originalIndex }) => (
-              <div
-                key={`${slot.date}-${slot.startTime}-${slot.endTime}-${originalIndex}`}
-                className="bg-white rounded-lg p-4 border border-gray-200 flex items-center justify-between"
-              >
-                <div className="flex-1">
-                  <div className="flex items-center gap-4">
-                    <div>
-                      <p className="font-medium text-gray-900">
-                        {formatDate(slot.date)}
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        {slot.startTime} - {slot.endTime}
-                      </p>
+            .map(({ slot, originalIndex }) => {
+              // Support both new format (fromDate/toDate) and legacy format (date)
+              const fromDate = slot.fromDate || slot.date || ''
+              const toDate = slot.toDate || slot.date || ''
+              
+              return (
+                <div
+                  key={`${fromDate}-${toDate}-${slot.startTime}-${slot.endTime}-${originalIndex}`}
+                  className="bg-white rounded-lg p-4 border border-gray-200 flex items-center justify-between"
+                >
+                  <div className="flex-1">
+                    <div className="flex items-center gap-4">
+                      <div>
+                        <p className="font-medium text-gray-900">
+                          {formatDateRange(fromDate, toDate)}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          {slot.startTime} - {slot.endTime}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <button
-                  onClick={() => removeBlockedSlot(originalIndex)}
-                  className="px-3 py-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
-                  aria-label="Remove blocked slot"
-                >
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
+                  <button
+                    onClick={() => removeBlockedSlot(originalIndex)}
+                    className="px-3 py-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+                    aria-label="Remove blocked slot"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                </button>
-              </div>
-            ))}
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              )
+            })}
         </div>
       )}
     </div>

@@ -9,13 +9,13 @@ interface WeeklyAvailabilityEditorProps {
 }
 
 const DAYS_OF_WEEK = [
-  { value: 0, label: 'Sunday' },
   { value: 1, label: 'Monday' },
   { value: 2, label: 'Tuesday' },
   { value: 3, label: 'Wednesday' },
   { value: 4, label: 'Thursday' },
   { value: 5, label: 'Friday' },
   { value: 6, label: 'Saturday' },
+  { value: 0, label: 'Sunday' },
 ]
 
 function TimeInput({ value, onChange }: { value: string; onChange: (value: string) => void }) {
@@ -132,8 +132,12 @@ export default function WeeklyAvailabilityEditor({
   const addMinutesToTime = (time: string, minutes: number): string => {
     const [hours, mins] = time.split(':').map(Number)
     const totalMinutes = hours * 60 + mins + minutes
-    const newHours = Math.floor(totalMinutes / 60) % 24
-    const newMins = totalMinutes % 60
+    const maxMinutesInDay = 23 * 60 + 59 // 23:59
+    
+    // Clamp to 23:59 instead of wrapping around midnight
+    const clampedMinutes = Math.min(totalMinutes, maxMinutesInDay)
+    const newHours = Math.floor(clampedMinutes / 60)
+    const newMins = clampedMinutes % 60
     return `${String(newHours).padStart(2, '0')}:${String(newMins).padStart(2, '0')}`
   }
 

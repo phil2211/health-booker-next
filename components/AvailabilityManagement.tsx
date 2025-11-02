@@ -83,12 +83,24 @@ export default function AvailabilityManagement() {
       
       // Sort blocked slots for comparison to handle order differences
       const sortedBlocked = [...blockedSlots].sort((a, b) => {
-        if (a.date !== b.date) return a.date.localeCompare(b.date)
+        const aFromDate = a.fromDate || a.date || ''
+        const bFromDate = b.fromDate || b.date || ''
+        const aToDate = a.toDate || a.date || ''
+        const bToDate = b.toDate || b.date || ''
+        
+        if (aFromDate !== bFromDate) return aFromDate.localeCompare(bFromDate)
+        if (aToDate !== bToDate) return aToDate.localeCompare(bToDate)
         if (a.startTime !== b.startTime) return a.startTime.localeCompare(b.startTime)
         return a.endTime.localeCompare(b.endTime)
       })
       const sortedInitialBlocked = [...initialState.blockedSlots].sort((a, b) => {
-        if (a.date !== b.date) return a.date.localeCompare(b.date)
+        const aFromDate = a.fromDate || a.date || ''
+        const bFromDate = b.fromDate || b.date || ''
+        const aToDate = a.toDate || a.date || ''
+        const bToDate = b.toDate || b.date || ''
+        
+        if (aFromDate !== bFromDate) return aFromDate.localeCompare(bFromDate)
+        if (aToDate !== bToDate) return aToDate.localeCompare(bToDate)
         if (a.startTime !== b.startTime) return a.startTime.localeCompare(b.startTime)
         return a.endTime.localeCompare(b.endTime)
       })
@@ -206,28 +218,39 @@ export default function AvailabilityManagement() {
           return 'Invalid blocked slot entry.'
         }
         
-        if (!slot.date || typeof slot.date !== 'string') {
-          return 'Blocked slot date is required and must be a string.'
+        // Support both new format (fromDate/toDate) and legacy format (date)
+        const fromDate = slot.fromDate || slot.date
+        const toDate = slot.toDate || slot.date
+        
+        if (!fromDate || !toDate || typeof fromDate !== 'string' || typeof toDate !== 'string') {
+          return 'Blocked slot dates are required and must be strings.'
         }
         
         const dateRegex = /^\d{4}-\d{2}-\d{2}$/
-        if (!dateRegex.test(slot.date)) {
-          return `Invalid date format: ${slot.date}. Use YYYY-MM-DD format.`
+        if (!dateRegex.test(fromDate) || !dateRegex.test(toDate)) {
+          return `Invalid date format: ${fromDate} - ${toDate}. Use YYYY-MM-DD format.`
+        }
+
+        // Check that fromDate <= toDate
+        const from = new Date(fromDate + 'T00:00:00.000Z')
+        const to = new Date(toDate + 'T00:00:00.000Z')
+        if (from > to) {
+          return `From date must be before or equal to to date: ${fromDate} - ${toDate}.`
         }
 
         if (!slot.startTime || !slot.endTime || typeof slot.startTime !== 'string' || typeof slot.endTime !== 'string') {
-          return `Invalid time format for blocked slot ${slot.date}. Start and end times are required.`
+          return `Invalid time format for blocked slot ${fromDate} - ${toDate}. Start and end times are required.`
         }
 
         const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/
         if (!timeRegex.test(slot.startTime) || !timeRegex.test(slot.endTime)) {
-          return `Invalid time format for blocked slot ${slot.date}. Use HH:MM format.`
+          return `Invalid time format for blocked slot ${fromDate} - ${toDate}. Use HH:MM format.`
         }
 
         const startMinutes = timeToMinutes(slot.startTime)
         const endMinutes = timeToMinutes(slot.endTime)
         if (isNaN(startMinutes) || isNaN(endMinutes) || startMinutes >= endMinutes) {
-          return `Start time must be before end time for blocked slot ${slot.date}.`
+          return `Start time must be before end time for blocked slot ${fromDate} - ${toDate}.`
         }
       }
     }
@@ -345,7 +368,7 @@ export default function AvailabilityManagement() {
           onClick={handleCancel}
           className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
         >
-          Cancel
+          {hasChanges ? 'Cancel' : 'Return'}
         </button>
         <div className="flex items-center gap-3">
           {hasChanges && (
