@@ -71,7 +71,7 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center px-4 py-12">
+    <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 flex items-center justify-center px-4 py-12">
       <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Your Account</h1>
         <p className="text-gray-600 mb-6">Join HealthBooker as a therapist</p>

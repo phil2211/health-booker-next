@@ -7,7 +7,6 @@
 
 describe('/api/auth/register - Validation Logic', () => {
   // These tests verify the validation logic used by the API
-  // Full API route testing is done via Cypress E2E tests
   
   test('should validate therapist input correctly', () => {
     // Validation logic is tested in __tests__/auth/therapist.test.ts

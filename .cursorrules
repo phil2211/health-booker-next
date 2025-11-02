@@ -1,0 +1,289 @@
+# Tailwind CSS v4.0 Rules and Guidelines
+
+This project uses **Tailwind CSS v4.0+**. Agents must be aware of the following critical changes from v3.x to avoid confusion and errors.
+
+## Installation & Setup
+
+### ✅ CORRECT (v4.0):
+```css
+/* In your CSS file - single line import */
+@import "tailwindcss";
+```
+
+### ❌ OLD (v3.x - DO NOT USE):
+```css
+/* DO NOT use these directives */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+```
+
+### PostCSS Configuration (v4.0):
+```js
+export default {
+  plugins: {
+    '@tailwindcss/postcss': {},
+  },
+}
+```
+
+### Vite Plugin (Optional, v4.0):
+```js
+import tailwindcss from "@tailwindcss/vite";
+export default defineConfig({
+  plugins: [tailwindcss()],
+});
+```
+
+## Content Detection
+
+- **NO `content` array needed in config** - Tailwind v4.0 automatically detects template files
+- Automatically ignores `.gitignore` patterns and binary files
+- Use `@source` directive in CSS if you need to explicitly include files:
+  ```css
+  @import "tailwindcss";
+  @source "../node_modules/@my-company/ui-lib";
+  ```
+
+## CSS-First Configuration
+
+### Theme Customization (v4.0):
+```css
+@layer theme {
+  :root {
+    --spacing: 0.25rem;
+    --color-blue-500: oklch(0.623 0.214 259.815);
+    --font-sans: ui-sans-serif, system-ui, sans-serif;
+  }
+}
+```
+
+### ✅ Use CSS variables for customization
+### ❌ DO NOT use `tailwind.config.js` for theme customization (deprecated pattern)
+
+## Dynamic Utilities & Values
+
+### Grid Columns (v4.0):
+```html
+<!-- Works out of the box, no config needed -->
+<div class="grid grid-cols-15">
+```
+
+### Spacing Utilities (v4.0):
+```html
+<!-- Dynamic spacing - works with any number -->
+<div class="mt-8 w-17 pr-29">
+```
+
+### Data Attributes (v4.0):
+```html
+<!-- No need to configure in config -->
+<div data-current class="opacity-75 data-current:opacity-100">
+```
+
+### ✅ Utilities accept arbitrary values dynamically
+### ❌ DO NOT extend config for basic variants like data attributes
+
+## Color System
+
+### Color Format:
+- **v4.0 uses OKLCH color space** (more vivid, wider gamut)
+- Colors are available as CSS variables: `var(--color-blue-500)`
+- Use `color-mix()` for opacity adjustments
+
+### Opacity with Color Mix (v4.0):
+```css
+.bg-blue-500\/50 {
+  background-color: color-mix(in oklab, var(--color-blue-500) 50%, transparent);
+}
+```
+
+## Gradients
+
+### Linear Gradients:
+```html
+<!-- Use bg-linear-* (NOT bg-gradient-*) -->
+<div class="bg-linear-45 from-indigo-500 via-purple-500 to-pink-500"></div>
+<div class="bg-linear-to-r from-blue-500 to-teal-400"></div>
+```
+
+### Radial Gradients:
+```html
+<div class="bg-radial-[at_25%_25%] from-white to-zinc-900 to-75%"></div>
+```
+
+### Conic Gradients:
+```html
+<div class="bg-conic/[in_hsl_longer_hue] from-red-600 to-red-600"></div>
+```
+
+### Gradient Interpolation:
+```html
+<div class="bg-linear-to-r/srgb from-indigo-500 to-teal-400"></div>
+<div class="bg-linear-to-r/oklch from-indigo-500 to-teal-400"></div>
+```
+
+### ❌ DO NOT use `bg-gradient-*` - use `bg-linear-*` instead
+
+## Container Queries
+
+### Built-in Support (No Plugin Needed):
+```html
+<div class="@container">
+  <div class="grid grid-cols-1 @sm:grid-cols-3 @lg:grid-cols-4">
+  </div>
+</div>
+```
+
+### Max-Width Container Queries:
+```html
+<div class="@container">
+  <div class="grid grid-cols-3 @max-md:grid-cols-1">
+  </div>
+</div>
+```
+
+### Range Queries:
+```html
+<div class="@container">
+  <div class="flex @min-md:@max-xl:hidden">
+  </div>
+</div>
+```
+
+### ✅ Use `@container` and `@sm:`, `@lg:`, `@max-*` variants
+### ❌ DO NOT install `@tailwindcss/container-queries` plugin
+
+## 3D Transforms
+
+### New Utilities Available:
+```html
+<div class="perspective-distant">
+  <article class="rotate-x-51 rotate-z-43 transform-3d">
+  </article>
+</div>
+```
+
+Available utilities:
+- `rotate-x-*`, `rotate-y-*`, `rotate-z-*`
+- `scale-z-*`
+- `translate-z-*`
+- `perspective-*`, `perspective-origin-*`
+- `transform-3d`
+
+## Variants
+
+### Starting Variant (for @starting-style):
+```html
+<div popover class="transition-discrete starting:open:opacity-0">
+```
+
+### Not Variant:
+```html
+<div class="not-hover:opacity-75">
+<div class="not-supports-hanging-punctuation:px-4">
+```
+
+### New Variants Available:
+- `starting:*` - for CSS @starting-style
+- `not-*` - for CSS :not() pseudo-class
+- `nth-*` - for nth-child selectors
+- `in-*` - like `group-*` but without needing `group` class
+- `inert` - for elements with `inert` attribute
+- `open` - also targets open popovers (not just details/summary)
+
+## New Utilities
+
+### Inset Shadows:
+```html
+<div class="inset-shadow-sm inset-shadow-md">
+```
+
+### Inset Rings:
+```html
+<div class="inset-ring-2 inset-ring-blue-500">
+```
+
+### Field Sizing:
+```html
+<textarea class="field-sizing-content"></textarea>
+```
+
+### Color Scheme:
+```html
+<div class="color-scheme-dark">
+```
+
+### Font Stretch:
+```html
+<div class="font-stretch-75">
+```
+
+## CSS Import Support
+
+### Built-in @import (v4.0):
+```css
+@import "tailwindcss";
+@import "./custom-styles.css";
+```
+
+### ✅ No need for `postcss-import` plugin - built-in
+### ✅ Multiple CSS files can be imported directly
+
+## Modern CSS Features
+
+### Cascade Layers:
+- Tailwind uses native CSS cascade layers
+- Order: `theme`, `base`, `components`, `utilities`
+
+### Registered Custom Properties:
+- Uses `@property` for better performance and animation support
+
+### Logical Properties:
+- Uses logical properties (e.g., `margin-inline` instead of `margin-left/right`)
+- Better RTL support
+
+## Performance
+
+- **5x faster full builds**
+- **100x faster incremental builds** (when no new CSS needed)
+- Uses Lightning CSS under the hood
+
+## Migration Notes
+
+When suggesting code changes or fixes:
+
+1. **Always use v4.0 syntax** - single `@import "tailwindcss"` in CSS
+2. **No tailwind.config.js needed** for basic setup
+3. **Use CSS variables** for theme customization in `@layer theme`
+4. **Use `bg-linear-*`** not `bg-gradient-*`
+5. **Container queries are built-in** - no plugin needed
+6. **Utilities are dynamic** - don't suggest extending config for common cases
+7. **Colors use OKLCH** - more vivid, wider gamut
+8. **Use modern CSS features** - cascade layers, color-mix(), logical properties
+
+## Common Mistakes to Avoid
+
+❌ **DO NOT suggest:**
+- `@tailwind` directives (use `@import "tailwindcss"`)
+- `content` array in config
+- Extending config for data attributes
+- Installing container queries plugin
+- Using `bg-gradient-*` classes
+- JavaScript config for theme values
+- `postcss-import` plugin (built-in)
+
+✅ **DO suggest:**
+- CSS-first configuration with `@layer theme`
+- Dynamic utilities (grid-cols-15, mt-8, etc.)
+- Built-in container queries
+- New gradient APIs (bg-linear-*, bg-radial-*, bg-conic-*)
+- New variants (not-*, starting:*, nth-*, in-*)
+- 3D transform utilities
+- Modern CSS features (color-mix(), logical properties)
+
+## Documentation References
+
+- Tailwind CSS v4.0 Blog: https://tailwindcss.com/blog/tailwindcss-v4
+- When in doubt, reference v4.0 documentation, not v3.x
+

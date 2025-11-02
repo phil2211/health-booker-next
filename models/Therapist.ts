@@ -89,24 +89,37 @@ export function validateAvailabilityEntry(entry: AvailabilityEntry): boolean {
 
 /**
  * Validate blocked slot
+ * Supports both new format (fromDate/toDate) and legacy format (date)
  */
 export function validateBlockedSlot(slot: BlockedSlot): boolean {
-  if (!slot.date || !/^\d{4}-\d{2}-\d{2}$/.test(slot.date)) {
+  // Support both new format (fromDate/toDate) and legacy format (date)
+  const fromDate = slot.fromDate || slot.date
+  const toDate = slot.toDate || slot.date
+
+  // Validate date format
+  const dateRegex = /^\d{4}-\d{2}-\d{2}$/
+  if (!fromDate || !toDate || !dateRegex.test(fromDate) || !dateRegex.test(toDate)) {
     return false
   }
 
+  // Check that fromDate <= toDate
+  const from = new Date(fromDate + 'T00:00:00.000Z')
+  const to = new Date(toDate + 'T00:00:00.000Z')
+  if (from > to) {
+    return false
+  }
+
+  // Validate time format
   const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/
   if (!timeRegex.test(slot.startTime) || !timeRegex.test(slot.endTime)) {
     return false
   }
 
-  // Check that start time is before end time
-  const start = slot.startTime.split(':').map(Number)
-  const end = slot.endTime.split(':').map(Number)
-  const startMinutes = start[0] * 60 + start[1]
-  const endMinutes = end[0] * 60 + end[1]
-
-  return endMinutes > startMinutes
+  // Check that start datetime is before end datetime (considering both date and time)
+  const startDateTime = new Date(fromDate + 'T' + slot.startTime + ':00')
+  const endDateTime = new Date(toDate + 'T' + slot.endTime + ':00')
+  
+  return startDateTime < endDateTime
 }
 
 /**
@@ -197,5 +210,127 @@ export async function getAllTherapists(): Promise<TherapistDocument[]> {
 export async function ensureEmailIndex(): Promise<void> {
   const db = await getDatabase()
   await db.collection('therapists').createIndex({ email: 1 }, { unique: true })
+}
+
+/**
+ * Update therapist's weekly availability
+ */
+export async function updateTherapistWeeklyAvailability(
+  therapistId: string,
+  weeklyAvailability: AvailabilityEntry[]
+): Promise<TherapistDocument | null> {
+  const db = await getDatabase()
+  
+  const now = new Date()
+  const result = await db.collection('therapists').findOneAndUpdate(
+    { _id: new ObjectId(therapistId) },
+    {
+      $set: {
+        weeklyAvailability,
+        updatedAt: now,
+      },
+    },
+    { returnDocument: 'after' }
+  )
+  
+  if (!result || !result.value) return null
+  
+  return {
+    ...result.value,
+    _id: result.value._id.toString(),
+  } as TherapistDocument
+}
+
+/**
+ * Update therapist's blocked slots
+ */
+export async function updateTherapistBlockedSlots(
+  therapistId: string,
+  blockedSlots: BlockedSlot[]
+): Promise<TherapistDocument | null> {
+  const db = await getDatabase()
+  
+  const now = new Date()
+  const result = await db.collection('therapists').findOneAndUpdate(
+    { _id: new ObjectId(therapistId) },
+    {
+      $set: {
+        blockedSlots,
+        updatedAt: now,
+      },
+    },
+    { returnDocument: 'after' }
+  )
+  
+  if (!result || !result.value) return null
+  
+  return {
+    ...result.value,
+    _id: result.value._id.toString(),
+  } as TherapistDocument
+}
+
+/**
+ * Update therapist availability (weekly availability and/or blocked slots)
+ */
+export async function updateTherapistAvailability(
+  therapistId: string,
+  weeklyAvailability?: AvailabilityEntry[],
+  blockedSlots?: BlockedSlot[]
+): Promise<TherapistDocument | null> {
+  try {
+    const db = await getDatabase()
+    
+    // Validate ObjectId format
+    if (!ObjectId.isValid(therapistId)) {
+      console.error('Invalid therapist ID format:', therapistId)
+      return null
+    }
+    
+    const now = new Date()
+    const updateFields: any = {
+      updatedAt: now,
+    }
+    
+    if (weeklyAvailability !== undefined) {
+      updateFields.weeklyAvailability = weeklyAvailability
+    }
+    
+    if (blockedSlots !== undefined) {
+      updateFields.blockedSlots = blockedSlots
+    }
+    
+    // Use updateOne instead of findOneAndUpdate for more reliable results
+    const updateResult = await db.collection('therapists').updateOne(
+      { _id: new ObjectId(therapistId) },
+      {
+        $set: updateFields,
+      }
+    )
+    
+    // Check if update was successful
+    if (updateResult.matchedCount === 0) {
+      console.error('Therapist not found for update:', therapistId)
+      return null
+    }
+    
+    // Fetch the updated document
+    const updatedTherapist = await db.collection('therapists').findOne(
+      { _id: new ObjectId(therapistId) }
+    )
+    
+    if (!updatedTherapist) {
+      console.error('Therapist not found after update:', therapistId)
+      return null
+    }
+    
+    return {
+      ...updatedTherapist,
+      _id: updatedTherapist._id.toString(),
+    } as TherapistDocument
+  } catch (error) {
+    console.error('Error updating therapist availability:', error)
+    throw error // Re-throw to be caught by API route
+  }
 }
 

@@ -52,12 +52,15 @@ export interface AvailabilityEntry {
 }
 
 /**
- * Blocked time slot for specific dates
+ * Blocked time slot for specific dates or date ranges
  */
 export interface BlockedSlot {
-  date: string // YYYY-MM-DD format
+  fromDate: string // YYYY-MM-DD format (start of range)
+  toDate: string // YYYY-MM-DD format (end of range, can be same as fromDate for single day)
   startTime: string // HH:MM format
   endTime: string // HH:MM format
+  // Legacy support: date field for backward compatibility
+  date?: string // YYYY-MM-DD format (deprecated, use fromDate/toDate instead)
 }
 
 export interface Booking {
