@@ -1,5 +1,7 @@
 import CredentialsProvider from 'next-auth/providers/credentials'
-import { findTherapistByEmail, comparePassword } from '@/models/Therapist'
+import { findTherapistByEmail, findTherapistById, comparePassword } from '@/models/Therapist'
+import { getDatabase } from '@/lib/mongodb'
+import { randomBytes } from 'crypto'
 import type { NextAuthConfig } from 'next-auth'
 
 declare module 'next-auth' {
@@ -31,7 +33,56 @@ declare module 'next-auth' {
 /**
  * NextAuth configuration for therapist authentication
  */
+// Check if MongoDB is available for database sessions
+const isMongoDBAvailable = () => {
+  try {
+    const uri = process.env.MONGODB_URI
+    return !!uri
+  } catch {
+    return false
+  }
+}
+
+// Custom database session management functions
+async function createSession(userId: string, sessionToken: string) {
+  const db = await getDatabase()
+  const now = new Date()
+  const expires = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000) // 90 days
+
+  await db.collection('sessions').insertOne({
+    sessionToken,
+    userId,
+    expires,
+    createdAt: now,
+    updatedAt: now,
+  })
+}
+
+async function findSession(sessionToken: string) {
+  const db = await getDatabase()
+  return await db.collection('sessions').findOne({
+    sessionToken,
+    expires: { $gt: new Date() }, // Not expired
+  })
+}
+
+async function updateSession(sessionToken: string) {
+  const db = await getDatabase()
+  const now = new Date()
+
+  await db.collection('sessions').updateOne(
+    { sessionToken },
+    { $set: { updatedAt: now } }
+  )
+}
+
+async function deleteSession(sessionToken: string) {
+  const db = await getDatabase()
+  await db.collection('sessions').deleteOne({ sessionToken })
+}
+
 export const authConfig: NextAuthConfig = {
+  // adapter: MongoDBAdapter(clientPromise), // Temporarily disable adapter
   providers: [
     CredentialsProvider({
       name: 'Credentials',
@@ -82,30 +133,54 @@ export const authConfig: NextAuthConfig = {
     error: '/login',
   },
   session: {
-    strategy: 'jwt',
+    strategy: 'jwt', // Temporarily back to JWT
     maxAge: 90 * 24 * 60 * 60, // 90 days
     updateAge: 24 * 60 * 60, // 1 day rolling refresh
   },
   callbacks: {
-    jwt({ token, user }: any) {
+    async jwt({ token, user, account }: any) {
       if (user) {
         token.id = user.id
         token.email = user.email
         token.name = user.name
         token.specialization = user.specialization
         token.bio = user.bio
+
+        // Create database session on sign in
+        if (account) {
+          const sessionToken = randomBytes(32).toString('hex')
+          token.sessionToken = sessionToken
+          await createSession(user.id, sessionToken)
+        }
       }
       return token
     },
-    session({ session, token }: any) {
+    async session({ session, token }: any) {
       if (session.user && token) {
         session.user.id = token.id as string
         session.user.email = token.email as string
         session.user.name = token.name as string
         session.user.specialization = token.specialization as string
         session.user.bio = token.bio as string
+
+        // Verify session exists in database and update last seen
+        if (token.sessionToken) {
+          const dbSession = await findSession(token.sessionToken)
+          if (dbSession) {
+            await updateSession(token.sessionToken)
+          } else {
+            // Session doesn't exist or expired, return null to sign out
+            return null
+          }
+        }
       }
       return session
+    },
+    async signOut({ token }: any) {
+      // Delete session from database on sign out
+      if (token?.sessionToken) {
+        await deleteSession(token.sessionToken)
+      }
     },
   },
   trustHost: true,

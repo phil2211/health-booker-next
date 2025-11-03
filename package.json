@@ -13,6 +13,7 @@
     "test:coverage": "jest --coverage"
   },
   "dependencies": {
+    "@auth/mongodb-adapter": "^3.11.1",
     "@types/bcryptjs": "^2.4.6",
     "@types/uuid": "^10.0.0",
     "@types/validator": "^13.15.4",
