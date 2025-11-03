@@ -34,6 +34,7 @@ export default function DateRangePickerPopover({
   const [selectedStartTime, setSelectedStartTime] = useState<string>(startTime)
   const [selectedEndTime, setSelectedEndTime] = useState<string>(endTime)
   const [isOpen, setIsOpen] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
   const popoverRef = useRef<HTMLDivElement>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
   const startTimeInputRef = useRef<HTMLInputElement>(null)
@@ -123,6 +124,19 @@ export default function DateRangePickerPopover({
 
     const handleToggle = (e: ToggleEvent) => {
       setIsOpen(e.newState === 'open')
+      // Center the popover when it's opened
+      if (e.newState === 'open') {
+        // Use setTimeout to ensure the popover is rendered before repositioning
+        setTimeout(() => {
+          if (popover) {
+            popover.style.position = 'fixed'
+            popover.style.top = '50%'
+            popover.style.left = '50%'
+            popover.style.transform = 'translate(-50%, -50%)'
+            popover.style.zIndex = '50'
+          }
+        }, 0)
+      }
     }
 
     popover.addEventListener('toggle', handleToggle)
@@ -147,6 +161,20 @@ export default function DateRangePickerPopover({
       document.removeEventListener('keydown', handleKeyDown)
     }
   }, [isOpen])
+
+  // Detect mobile screen size
+  useEffect(() => {
+    const checkIsMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+
+    checkIsMobile()
+    window.addEventListener('resize', checkIsMobile)
+
+    return () => {
+      window.removeEventListener('resize', checkIsMobile)
+    }
+  }, [])
 
   // Format display text
   const getDisplayText = () => {
@@ -246,12 +274,12 @@ export default function DateRangePickerPopover({
         ref={popoverRef}
         id="date-range-popover"
         popover="auto"
-        className="bg-white rounded-lg shadow-lg border border-gray-200 p-4 z-50"
+        className="bg-white rounded-lg shadow-lg border border-gray-200 p-4"
         style={{ width: 'max-content', maxWidth: '90vw' }}
       >
         <DayPicker
           mode="range"
-          numberOfMonths={2}
+          numberOfMonths={isMobile ? 1 : 2}
           selected={selected}
           onSelect={setSelected}
           disabled={disabledDays}

@@ -186,7 +186,7 @@ export default function WeeklyAvailabilityEditor({
                     key={`${day.value}-${index}`}
                     className="flex items-center gap-3 bg-white p-3 rounded border"
                   >
-                    <div className="flex-1 grid grid-cols-2 gap-3">
+                    <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
                         <label className="block text-xs font-medium text-gray-700 mb-1">
                           Start Time
