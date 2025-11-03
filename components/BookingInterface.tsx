@@ -18,7 +18,7 @@ export default function BookingInterface({ therapistId, blockedSlots, therapistN
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-xl border p-8">
+    <>
       {!bookingConfirmed && (
         <h2 className="text-2xl font-semibold text-gray-900 mb-6">Select Appointment Time</h2>
       )}
@@ -28,6 +28,6 @@ export default function BookingInterface({ therapistId, blockedSlots, therapistN
         onBookingConfirmed={handleBookingConfirmed}
         therapistName={therapistName}
       />
-    </div>
+    </>
   )
 }

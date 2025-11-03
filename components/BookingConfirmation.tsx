@@ -173,10 +173,10 @@ END:VCALENDAR`
   }
 
   return (
-    <div className="bg-green-50 border border-green-200 rounded-lg p-8">
+    <div className="bg-green-50 border border-green-200 rounded-xl shadow-lg p-2 sm:p-3 lg:p-4">
       <div className="flex items-start">
         <svg
-          className="w-8 h-8 text-green-600 mr-4 mt-1"
+          className="w-5 h-5 sm:w-6 sm:h-6 text-green-600 mr-2 sm:mr-3 mt-0.5 flex-shrink-0"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -188,63 +188,63 @@ END:VCALENDAR`
             d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
           />
         </svg>
-        <div className="flex-1">
-          <h3 className="text-2xl font-bold text-green-900 mb-2">Booking Confirmed!</h3>
-          <p className="text-green-800 mb-6">
+        <div className="flex-1 min-w-0">
+          <h3 className="text-lg sm:text-xl font-bold text-green-900 mb-1 sm:mb-2">Booking Confirmed!</h3>
+          <p className="text-green-800 mb-3 sm:mb-4 text-sm">
             Your appointment has been successfully booked. A confirmation email has been sent to <strong>{patientEmail}</strong>.
           </p>
 
           {/* Appointment Details */}
-          <div className="bg-white rounded-lg border p-6 mb-6">
-            <h4 className="text-lg font-semibold text-gray-900 mb-4">Appointment Details</h4>
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-gray-600">Therapist:</span>
-                <span className="font-medium">{therapistName}</span>
+          <div className="bg-white rounded-lg border p-2 sm:p-3 mb-3 sm:mb-4">
+            <h4 className="text-sm sm:text-base font-semibold text-gray-900 mb-2 sm:mb-3">Appointment Details</h4>
+            <div className="space-y-1.5 sm:space-y-2">
+              <div className="flex flex-col sm:flex-row sm:justify-between gap-0.5 sm:gap-0">
+                <span className="text-gray-600 text-xs sm:text-sm">Therapist:</span>
+                <span className="font-medium text-xs sm:text-sm break-words">{therapistName}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Treatment:</span>
-                <span className="font-medium">Cranio Sacral Session</span>
+              <div className="flex flex-col sm:flex-row sm:justify-between gap-0.5 sm:gap-0">
+                <span className="text-gray-600 text-xs sm:text-sm">Treatment:</span>
+                <span className="font-medium text-xs sm:text-sm">Cranio Sacral Session</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Date & Time:</span>
-                <span className="font-medium">{formatAppointmentDateTime()}</span>
+              <div className="flex flex-col sm:flex-row sm:justify-between gap-0.5 sm:gap-0">
+                <span className="text-gray-600 text-xs sm:text-sm">Date & Time:</span>
+                <span className="font-medium text-xs sm:text-sm break-words">{formatAppointmentDateTime()}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Duration:</span>
-                <span className="font-medium">1 hour</span>
+              <div className="flex flex-col sm:flex-row sm:justify-between gap-0.5 sm:gap-0">
+                <span className="text-gray-600 text-xs sm:text-sm">Duration:</span>
+                <span className="font-medium text-xs sm:text-sm">1 hour</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Patient:</span>
-                <span className="font-medium">{patientName}</span>
+              <div className="flex flex-col sm:flex-row sm:justify-between gap-0.5 sm:gap-0">
+                <span className="text-gray-600 text-xs sm:text-sm">Patient:</span>
+                <span className="font-medium text-xs sm:text-sm break-words">{patientName}</span>
               </div>
             </div>
           </div>
 
           {/* Calendar Integration */}
-          <div className="bg-white rounded-lg border p-6 mb-6">
-            <h4 className="text-lg font-semibold text-gray-900 mb-4">Add to Calendar</h4>
-            <p className="text-gray-600 mb-4">
+          <div className="bg-white rounded-lg border p-2 sm:p-3 mb-3 sm:mb-4">
+            <h4 className="text-sm sm:text-base font-semibold text-gray-900 mb-2 sm:mb-3">Add to Calendar</h4>
+            <p className="text-gray-600 mb-2 sm:mb-3 text-xs sm:text-sm">
               Save this appointment to your calendar so you don't forget!
             </p>
 
             {calendarAdded ? (
-              <div className="text-center py-4">
-                <div className="inline-flex items-center text-green-600">
-                  <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+              <div className="text-center py-2 sm:py-3">
+                <div className="inline-flex items-center text-green-600 text-xs sm:text-sm">
+                  <svg className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                   </svg>
                   Appointment added to your calendar!
                 </div>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-1.5 sm:space-y-2">
                 {deviceType === 'ios' && (
                   <button
                     onClick={addToIOSCalendar}
-                    className="w-full flex items-center justify-center px-4 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                    className="w-full flex items-center justify-center px-2 sm:px-3 py-1.5 sm:py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors text-xs sm:text-sm"
                   >
-                    <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24" fill="currentColor">
+                    <svg className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" viewBox="0 0 24 24" fill="currentColor">
                       <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
                     </svg>
                     Add to iPhone Calendar
@@ -254,9 +254,9 @@ END:VCALENDAR`
                 {deviceType === 'android' && (
                   <button
                     onClick={addToAndroidCalendar}
-                    className="w-full flex items-center justify-center px-4 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"
+                    className="w-full flex items-center justify-center px-2 sm:px-3 py-1.5 sm:py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors text-xs sm:text-sm"
                   >
-                    <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24" fill="currentColor">
+                    <svg className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" viewBox="0 0 24 24" fill="currentColor">
                       <path d="M17.523 15.3414c-.5511 0-.9993-.4482-.9993-.9993s.4482-.9993.9993-.9993.9993.4482.9993.9993-.4482.9993-.9993.9993zm-11.046 0c-.5511 0-.9993-.4482-.9993-.9993s.4482-.9993.9993-.9993.9993.4482.9993.9993-.4482.9993-.9993.9993zm11.046-5.732c0-.5511-.4482-.9993-.9993-.9993H7.476c-.5511 0-.9993.4482-.9993.9993v3.732c0 .5511.4482.9993.9993.9993h8.9993c.5511 0 .9993-.4482.9993-.9993V9.6094zM6.4766 9.6094H5.4773c-.5511 0-.9993.4482-.9993.9993v3.732c0 .5511.4482.9993.9993.9993h.9993V9.6094zm12.0461 0h-8.9993c-.5511 0-.9993.4482-.9993.9993v3.732c0 .5511.4482.9993.9993.9993h8.9993c.5511 0 .9993-.4482.9993-.9993V9.6094z"/>
                     </svg>
                     Add to Android Calendar
@@ -266,9 +266,9 @@ END:VCALENDAR`
                 {deviceType === 'desktop' && (
                   <button
                     onClick={addToDesktopCalendar}
-                    className="w-full flex items-center justify-center px-4 py-3 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition-colors"
+                    className="w-full flex items-center justify-center px-2 sm:px-3 py-1.5 sm:py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition-colors text-xs sm:text-sm"
                   >
-                    <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                     {navigator.platform.toLowerCase().includes('mac')
@@ -277,7 +277,7 @@ END:VCALENDAR`
                   </button>
                 )}
 
-                <div className="text-center text-sm text-gray-500 mt-3">
+                <div className="text-center text-xs text-gray-500 mt-1.5 sm:mt-2">
                   {deviceType === 'ios' && "This will download an .ics file that you can open with the Calendar app"}
                   {deviceType === 'android' && "This will open your device's calendar app to add the event"}
                   {deviceType === 'desktop' && (
@@ -291,17 +291,17 @@ END:VCALENDAR`
           </div>
 
           {/* Additional Actions */}
-          <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex flex-col sm:flex-row gap-1.5 sm:gap-2">
             <button
               onClick={() => window.location.href = '/'}
-              className="flex-1 px-6 py-3 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors"
+              className="flex-1 px-3 sm:px-4 py-1.5 sm:py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors text-xs sm:text-sm"
             >
               Book Another Appointment
             </button>
             {onClose && (
               <button
                 onClick={onClose}
-                className="flex-1 px-6 py-3 bg-gray-200 text-gray-800 rounded-lg font-medium hover:bg-gray-300 transition-colors"
+                className="flex-1 px-3 sm:px-4 py-1.5 sm:py-2 bg-gray-200 text-gray-800 rounded-lg font-medium hover:bg-gray-300 transition-colors text-xs sm:text-sm"
               >
                 Close
               </button>
