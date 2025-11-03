@@ -176,12 +176,6 @@ export const authConfig: NextAuthConfig = {
       }
       return session
     },
-    async signOut({ token }: any) {
-      // Delete session from database on sign out
-      if (token?.sessionToken) {
-        await deleteSession(token.sessionToken)
-      }
-    },
   },
   trustHost: true,
 }
