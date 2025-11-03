@@ -83,7 +83,8 @@ export const authConfig: NextAuthConfig = {
   },
   session: {
     strategy: 'jwt',
-    maxAge: 30 * 24 * 60 * 60, // 30 days
+    maxAge: 90 * 24 * 60 * 60, // 90 days
+    updateAge: 24 * 60 * 60, // 1 day rolling refresh
   },
   callbacks: {
     jwt({ token, user }: any) {
