@@ -22,19 +22,19 @@ function TimeInput({ value, onChange }: { value: string; onChange: (value: strin
   const inputRef = useRef<HTMLInputElement>(null)
 
   return (
-    <div className="relative w-full">
+    <div className="relative w-full min-w-0 overflow-hidden">
       <input
         ref={inputRef}
         type="time"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full px-3 py-2 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900"
+        className="w-full min-w-0 px-3 py-2 pr-14 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900"
         required
       />
       <button
         type="button"
         onClick={() => inputRef.current?.showPicker?.() || inputRef.current?.focus()}
-        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none focus:text-gray-600"
+        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none focus:text-gray-600 pointer-events-auto"
         aria-label="Open time picker"
       >
         <svg
@@ -186,8 +186,8 @@ export default function WeeklyAvailabilityEditor({
                     key={`${day.value}-${index}`}
                     className="flex flex-col sm:flex-row sm:items-center gap-3 bg-white p-3 rounded border"
                   >
-                    <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div>
+                    <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3 min-w-0">
+                      <div className="min-w-0">
                         <label className="block text-xs font-medium text-gray-700 mb-1">
                           Start Time
                         </label>
@@ -203,7 +203,7 @@ export default function WeeklyAvailabilityEditor({
                           }
                         />
                       </div>
-                      <div>
+                      <div className="min-w-0">
                         <label className="block text-xs font-medium text-gray-700 mb-1">
                           End Time
                         </label>
