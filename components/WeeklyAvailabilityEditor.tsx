@@ -180,11 +180,11 @@ export default function WeeklyAvailabilityEditor({
             </div>
 
             {isEnabled && dayEntries.length > 0 && (
-              <div className="space-y-3 mt-3 pl-8">
+              <div className="space-y-3 mt-3">
                 {dayEntries.map((entry, index) => (
                   <div
                     key={`${day.value}-${index}`}
-                    className="flex flex-col sm:flex-row sm:items-center gap-3 bg-white p-3 rounded border"
+                    className="flex flex-col sm:flex-row sm:items-center gap-3 bg-white p-3 rounded border w-full"
                   >
                     <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3 min-w-0">
                       <div className="min-w-0">
