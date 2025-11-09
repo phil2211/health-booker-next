@@ -2,19 +2,6 @@ import { Booking, BookingStatus } from '@/lib/types'
 import { getDatabase, getClient } from '@/lib/mongodb'
 import { ObjectId } from 'mongodb'
 
-/**
- * Simplified booking structure for storing in therapist document
- */
-interface TherapistBooking {
-  _id: ObjectId
-  patientName: string
-  patientEmail: string
-  appointmentDate: string // YYYY-MM-DD format
-  startTime: string // HH:MM format
-  endTime: string // HH:MM format
-  status: BookingStatus
-  createdAt: Date
-}
 
 /**
  * MongoDB model for Booking collection
@@ -183,35 +170,33 @@ export async function checkBookingConflict(
 }
 
 /**
- * Create a new booking using a transaction
- * Also updates the therapist's bookings array (only future bookings)
- * Removes bookings more than 3 days old from therapist document
+ * Create a new booking
+ * Stores booking only in the bookings collection
  */
 export async function createBooking(booking: Omit<Booking, '_id' | 'createdAt' | 'updatedAt'>): Promise<BookingDocument> {
-  const client = await getClient()
   const db = await getDatabase()
-  
+
   // Validate booking data
   if (!validateBooking(booking)) {
     throw new Error('Invalid booking data')
   }
-  
+
   // Check for conflicts
   const appointmentDateStr = booking.appointmentDate instanceof Date
     ? booking.appointmentDate.toISOString().split('T')[0]
     : booking.appointmentDate
-  
+
   const hasConflict = await checkBookingConflict(
     booking.therapistId,
     appointmentDateStr,
     booking.startTime,
     booking.endTime
   )
-  
+
   if (hasConflict) {
     throw new Error('Booking conflict: Time slot is already booked')
   }
-  
+
   // Prepare booking document
   const now = new Date()
   const therapistIdObj = ObjectId.isValid(booking.therapistId)
@@ -219,7 +204,7 @@ export async function createBooking(booking: Omit<Booking, '_id' | 'createdAt' |
     : (() => {
         throw new Error('Invalid therapist ID format')
       })()
-  
+
   const bookingDoc: any = {
     therapistId: therapistIdObj,
     patientName: booking.patientName,
@@ -235,82 +220,26 @@ export async function createBooking(booking: Omit<Booking, '_id' | 'createdAt' |
     createdAt: now,
     updatedAt: now,
   }
-  
-  // Calculate cutoff date (3 days ago)
-  const cutoffDate = new Date()
-  cutoffDate.setDate(cutoffDate.getDate() - 3)
-  const cutoffDateStr = cutoffDate.toISOString().split('T')[0]
-  
-  // Use a transaction
-  const session = client.startSession()
-  let bookingId: ObjectId | null = null
-  
-  try {
-    await session.withTransaction(async () => {
-      // 1. Insert booking into bookings collection
-      const insertResult = await db.collection('bookings').insertOne(bookingDoc, { session })
-      bookingId = insertResult.insertedId
-      
-      // 2. Prepare booking for therapist document (simplified version)
-      const therapistBooking: TherapistBooking = {
-        _id: bookingId,
-        patientName: booking.patientName,
-        patientEmail: booking.patientEmail,
-        appointmentDate: appointmentDateStr,
-        startTime: booking.startTime,
-        endTime: booking.endTime,
-        status: booking.status,
-        createdAt: now,
-      }
-      
-      // 3. Update therapist document:
-      //    - Add new booking to bookings array (only if it's in the future)
-      //    - Remove bookings more than 3 days old
-      const appointmentDate = new Date(appointmentDateStr + 'T00:00:00.000Z')
-      const today = new Date()
-      today.setUTCHours(0, 0, 0, 0)
-      
-      // Update therapist document
-      const updateOperation: any = {
-        $set: { updatedAt: now },
-      }
 
-      // Only add booking if it's in the future
-      if (appointmentDate >= today) {
-        updateOperation.$push = {
-          bookings: therapistBooking,
-        }
-      }
+  // Insert booking into bookings collection
+  const insertResult = await db.collection('bookings').insertOne(bookingDoc)
+  const bookingId = insertResult.insertedId
 
-      await db.collection('therapists').updateOne(
-        { _id: therapistIdObj },
-        updateOperation,
-        { session }
-      )
-    })
-    
-    if (!bookingId) {
-      throw new Error('Failed to create booking')
-    }
-    
-    // Return the created booking document
-    const createdBooking = await db.collection('bookings').findOne({ _id: bookingId })
-    
-    if (!createdBooking) {
-      throw new Error('Failed to retrieve created booking')
-    }
-    
-    return {
-      ...booking,
-      _id: createdBooking._id.toString(),
-      therapistId: booking.therapistId,
-      appointmentDate: appointmentDateStr,
-      createdAt: now,
-      updatedAt: now,
-    } as BookingDocument
-  } finally {
-    await session.endSession()
+  // Return the created booking document
+  const createdBooking = await db.collection('bookings').findOne({ _id: bookingId })
+
+  if (!createdBooking) {
+    throw new Error('Failed to retrieve created booking')
   }
+
+  return {
+    ...booking,
+    _id: createdBooking._id.toString(),
+    therapistId: booking.therapistId,
+    appointmentDate: appointmentDateStr,
+    createdAt: now,
+    updatedAt: now,
+  } as BookingDocument
 }
 
 /**
@@ -383,7 +312,6 @@ export async function updateBookingById(
     status?: BookingStatus
   }
 ): Promise<BookingDocument | null> {
-  const client = await getClient()
   const db = await getDatabase()
 
   if (!ObjectId.isValid(bookingId)) {
@@ -398,93 +326,59 @@ export async function updateBookingById(
     }
   }
 
-  const session = client.startSession()
+  // First verify the booking exists and belongs to the therapist
+  const existingBooking = await db.collection('bookings').findOne({
+    _id: new ObjectId(bookingId),
+    therapistId: ObjectId.isValid(therapistId)
+      ? { $or: [{ therapistId: new ObjectId(therapistId) }, { therapistId: therapistId }] }
+      : { therapistId: therapistId }
+  })
 
-  try {
-    let updatedBooking: BookingDocument | null = null
-
-    await session.withTransaction(async () => {
-      // First verify the booking exists and belongs to the therapist
-      const existingBooking = await db.collection('bookings').findOne({
-        _id: new ObjectId(bookingId),
-        therapistId: ObjectId.isValid(therapistId)
-          ? { $or: [{ therapistId: new ObjectId(therapistId) }, { therapistId: therapistId }] }
-          : { therapistId: therapistId }
-      }, { session })
-
-      if (!existingBooking) {
-        throw new Error('Booking not found or access denied')
-      }
-
-      // Update the booking
-      const updateData: any = {
-        updatedAt: new Date()
-      }
-
-      if (updates.notes !== undefined) {
-        updateData.notes = updates.notes
-      }
-
-      if (updates.status) {
-        updateData.status = updates.status
-
-        // If marking as completed/no-show, also update therapist's bookings array
-        if (updates.status === BookingStatus.COMPLETED || updates.status === BookingStatus.NO_SHOW) {
-          const therapistObjectId = ObjectId.isValid(therapistId) ? new ObjectId(therapistId) : null
-          if (!therapistObjectId) {
-            throw new Error('Invalid therapist ID format')
-          }
-
-          await db.collection('therapists').updateOne(
-            {
-              _id: therapistObjectId
-            },
-            {
-              $set: { updatedAt: new Date() },
-              $pull: {
-                bookings: { _id: new ObjectId(bookingId) }
-              }
-            } as any,
-            { session }
-          )
-        }
-      }
-
-      const result = await db.collection('bookings').updateOne(
-        { _id: new ObjectId(bookingId) },
-        { $set: updateData },
-        { session }
-      )
-
-      if (result.modifiedCount === 0) {
-        throw new Error('Failed to update booking')
-      }
-
-      // Fetch and return updated booking
-      const updated = await db.collection('bookings').findOne(
-        { _id: new ObjectId(bookingId) },
-        { session }
-      )
-
-      if (updated) {
-        updatedBooking = {
-          ...updated,
-          _id: updated._id.toString(),
-          therapistId: updated.therapistId instanceof ObjectId
-            ? updated.therapistId.toString()
-            : String(updated.therapistId),
-          appointmentDate: updated.appointmentDate instanceof Date
-            ? updated.appointmentDate.toISOString().split('T')[0]
-            : updated.appointmentDate,
-        } as BookingDocument
-      }
-    })
-
-    return updatedBooking
-
-  } finally {
-    await session.endSession()
+  if (!existingBooking) {
+    throw new Error('Booking not found or access denied')
   }
+
+  // Update the booking
+  const updateData: any = {
+    updatedAt: new Date()
+  }
+
+  if (updates.notes !== undefined) {
+    updateData.notes = updates.notes
+  }
+
+  if (updates.status) {
+    updateData.status = updates.status
+  }
+
+  const result = await db.collection('bookings').updateOne(
+    { _id: new ObjectId(bookingId) },
+    { $set: updateData }
+  )
+
+  if (result.modifiedCount === 0) {
+    throw new Error('Failed to update booking')
+  }
+
+  // Fetch and return updated booking
+  const updated = await db.collection('bookings').findOne(
+    { _id: new ObjectId(bookingId) }
+  )
+
+  if (updated) {
+    return {
+      ...updated,
+      _id: updated._id.toString(),
+      therapistId: updated.therapistId instanceof ObjectId
+        ? updated.therapistId.toString()
+        : String(updated.therapistId),
+      appointmentDate: updated.appointmentDate instanceof Date
+        ? updated.appointmentDate.toISOString().split('T')[0]
+        : updated.appointmentDate,
+    } as BookingDocument
+  }
+
+  return null
 }
 
 /**
@@ -495,94 +389,61 @@ export async function cancelBookingById(
   bookingId: string,
   therapistId: string
 ): Promise<BookingDocument | null> {
-  const client = await getClient()
   const db = await getDatabase()
 
   if (!ObjectId.isValid(bookingId)) {
     throw new Error('Invalid booking ID format')
   }
 
-  const session = client.startSession()
+  // First verify the booking exists and belongs to the therapist
+  const existingBooking = await db.collection('bookings').findOne({
+    _id: new ObjectId(bookingId),
+    therapistId: ObjectId.isValid(therapistId)
+      ? { $or: [{ therapistId: new ObjectId(therapistId) }, { therapistId: therapistId }] }
+      : { therapistId: therapistId },
+    status: { $ne: BookingStatus.CANCELLED } // Don't cancel already cancelled bookings
+  })
 
-  try {
-    let cancelledBooking: BookingDocument | null = null
-
-    await session.withTransaction(async () => {
-      // First verify the booking exists and belongs to the therapist
-      const existingBooking = await db.collection('bookings').findOne({
-        _id: new ObjectId(bookingId),
-        therapistId: ObjectId.isValid(therapistId)
-          ? { $or: [{ therapistId: new ObjectId(therapistId) }, { therapistId: therapistId }] }
-          : { therapistId: therapistId },
-        status: { $ne: BookingStatus.CANCELLED } // Don't cancel already cancelled bookings
-      }, { session })
-
-      if (!existingBooking) {
-        throw new Error('Booking not found, access denied, or already cancelled')
-      }
-
-      const now = new Date()
-
-      // Update booking status to cancelled
-      const result = await db.collection('bookings').updateOne(
-        { _id: new ObjectId(bookingId) },
-        {
-          $set: {
-            status: BookingStatus.CANCELLED,
-            updatedAt: now
-          }
-        },
-        { session }
-      )
-
-      if (result.modifiedCount === 0) {
-        throw new Error('Failed to cancel booking')
-      }
-
-      // Remove from therapist's bookings array
-      const therapistObjectId = ObjectId.isValid(therapistId) ? new ObjectId(therapistId) : null
-      if (!therapistObjectId) {
-        throw new Error('Invalid therapist ID format')
-      }
-
-      await db.collection('therapists').updateOne(
-        {
-          _id: therapistObjectId
-        },
-        {
-          $set: { updatedAt: now },
-          $pull: {
-            bookings: { _id: new ObjectId(bookingId) }
-          }
-        } as any,
-        { session }
-      )
-
-      // Fetch and return cancelled booking
-      const cancelled = await db.collection('bookings').findOne(
-        { _id: new ObjectId(bookingId) },
-        { session }
-      )
-
-      if (cancelled) {
-        cancelledBooking = {
-          ...cancelled,
-          _id: cancelled._id.toString(),
-          therapistId: cancelled.therapistId instanceof ObjectId
-            ? cancelled.therapistId.toString()
-            : String(cancelled.therapistId),
-          appointmentDate: cancelled.appointmentDate instanceof Date
-            ? cancelled.appointmentDate.toISOString().split('T')[0]
-            : cancelled.appointmentDate,
-        } as BookingDocument
-      }
-    })
-
-    return cancelledBooking
-
-  } finally {
-    await session.endSession()
+  if (!existingBooking) {
+    throw new Error('Booking not found, access denied, or already cancelled')
   }
+
+  const now = new Date()
+
+  // Update booking status to cancelled
+  const result = await db.collection('bookings').updateOne(
+    { _id: new ObjectId(bookingId) },
+    {
+      $set: {
+        status: BookingStatus.CANCELLED,
+        updatedAt: now
+      }
+    }
+  )
+
+  if (result.modifiedCount === 0) {
+    throw new Error('Failed to cancel booking')
+  }
+
+  // Fetch and return cancelled booking
+  const cancelled = await db.collection('bookings').findOne(
+    { _id: new ObjectId(bookingId) }
+  )
+
+  if (cancelled) {
+    return {
+      ...cancelled,
+      _id: cancelled._id.toString(),
+      therapistId: cancelled.therapistId instanceof ObjectId
+        ? cancelled.therapistId.toString()
+        : String(cancelled.therapistId),
+      appointmentDate: cancelled.appointmentDate instanceof Date
+        ? cancelled.appointmentDate.toISOString().split('T')[0]
+        : cancelled.appointmentDate,
+    } as BookingDocument
+  }
+
+  return null
 }
 
 /**
@@ -596,7 +457,6 @@ export async function rescheduleBooking(
   newStartTime: string,
   newEndTime: string
 ): Promise<BookingDocument | null> {
-  const client = await getClient()
   const db = await getDatabase()
 
   if (!ObjectId.isValid(bookingId)) {
@@ -624,134 +484,99 @@ export async function rescheduleBooking(
     throw new Error('Cannot reschedule to a past date')
   }
 
-  const session = client.startSession()
+  // First verify the booking exists and belongs to the therapist
+  const existingBooking = await db.collection('bookings').findOne({
+    _id: new ObjectId(bookingId),
+    therapistId: ObjectId.isValid(therapistId)
+      ? { $or: [{ therapistId: new ObjectId(therapistId) }, { therapistId: therapistId }] }
+      : { therapistId: therapistId },
+    status: BookingStatus.CONFIRMED // Only confirmed bookings can be rescheduled
+  })
 
-  try {
-    let rescheduledBooking: BookingDocument | null = null
+  if (!existingBooking) {
+    throw new Error('Booking not found, access denied, or not in confirmed status')
+  }
 
-    await session.withTransaction(async () => {
-      // First verify the booking exists and belongs to the therapist
-      const existingBooking = await db.collection('bookings').findOne({
-        _id: new ObjectId(bookingId),
-        therapistId: ObjectId.isValid(therapistId)
-          ? { $or: [{ therapistId: new ObjectId(therapistId) }, { therapistId: therapistId }] }
-          : { therapistId: therapistId },
-        status: BookingStatus.CONFIRMED // Only confirmed bookings can be rescheduled
-      }, { session })
+  // Check for conflicts at the new time slot (excluding this booking)
+  const hasConflict = await checkBookingConflict(
+    therapistId,
+    newAppointmentDate,
+    newStartTime,
+    newEndTime
+  )
 
-      if (!existingBooking) {
-        throw new Error('Booking not found, access denied, or not in confirmed status')
+  // If there's a conflict, we need to check if it's with a different booking
+  // (same booking at same time is not a conflict)
+  if (hasConflict) {
+    // Get all conflicting bookings to see if any are different from this one
+    const allBookings = await db.collection('bookings').find({
+      therapistId: ObjectId.isValid(therapistId)
+        ? { $or: [{ therapistId: new ObjectId(therapistId) }, { therapistId: therapistId }] }
+        : { therapistId: therapistId },
+      appointmentDate: newAppointmentDate,
+      status: { $ne: BookingStatus.CANCELLED }
+    }).toArray()
+
+    // Check for time overlaps with other bookings
+    const hasRealConflict = allBookings.some(booking => {
+      if (booking._id.toString() === bookingId) return false // Skip this booking
+
+      const toMinutes = (time: string): number => {
+        const [hours, minutes] = time.split(':').map(Number)
+        return hours * 60 + minutes
       }
 
-      // Check for conflicts at the new time slot (excluding this booking)
-      const hasConflict = await checkBookingConflict(
-        therapistId,
-        newAppointmentDate,
-        newStartTime,
-        newEndTime
-      )
+      const start1Min = toMinutes(newStartTime)
+      const end1Min = toMinutes(newEndTime)
+      const start2Min = toMinutes(booking.startTime)
+      const end2Min = toMinutes(booking.endTime)
 
-      // If there's a conflict, we need to check if it's with a different booking
-      // (same booking at same time is not a conflict)
-      if (hasConflict) {
-        // Get all conflicting bookings to see if any are different from this one
-        const allBookings = await db.collection('bookings').find({
-          therapistId: ObjectId.isValid(therapistId)
-            ? { $or: [{ therapistId: new ObjectId(therapistId) }, { therapistId: therapistId }] }
-            : { therapistId: therapistId },
-          appointmentDate: newAppointmentDate,
-          status: { $ne: BookingStatus.CANCELLED }
-        }).toArray()
-
-        // Check for time overlaps with other bookings
-        const hasRealConflict = allBookings.some(booking => {
-          if (booking._id.toString() === bookingId) return false // Skip this booking
-
-          const toMinutes = (time: string): number => {
-            const [hours, minutes] = time.split(':').map(Number)
-            return hours * 60 + minutes
-          }
-
-          const start1Min = toMinutes(newStartTime)
-          const end1Min = toMinutes(newEndTime)
-          const start2Min = toMinutes(booking.startTime)
-          const end2Min = toMinutes(booking.endTime)
-
-          return start1Min < end2Min && start2Min < end1Min
-        })
-
-        if (hasRealConflict) {
-          throw new Error('Time slot conflict: New appointment time conflicts with existing booking')
-        }
-      }
-
-      const now = new Date()
-
-      // Update the booking with new date/time
-      const result = await db.collection('bookings').updateOne(
-        { _id: new ObjectId(bookingId) },
-        {
-          $set: {
-            appointmentDate: newAppointmentDate,
-            startTime: newStartTime,
-            endTime: newEndTime,
-            updatedAt: now
-          }
-        },
-        { session }
-      )
-
-      if (result.modifiedCount === 0) {
-        throw new Error('Failed to reschedule booking')
-      }
-
-      // Update therapist's bookings array
-      const therapistObjectId = ObjectId.isValid(therapistId) ? new ObjectId(therapistId) : null
-      if (!therapistObjectId) {
-        throw new Error('Invalid therapist ID format')
-      }
-
-      await db.collection('therapists').updateOne(
-        {
-          _id: therapistObjectId,
-          'bookings._id': new ObjectId(bookingId)
-        },
-        {
-          $set: {
-            'bookings.$.appointmentDate': newAppointmentDate,
-            'bookings.$.startTime': newStartTime,
-            'bookings.$.endTime': newEndTime,
-            updatedAt: now
-          }
-        },
-        { session }
-      )
-
-      // Fetch and return rescheduled booking
-      const rescheduled = await db.collection('bookings').findOne(
-        { _id: new ObjectId(bookingId) },
-        { session }
-      )
-
-      if (rescheduled) {
-        rescheduledBooking = {
-          ...rescheduled,
-          _id: rescheduled._id.toString(),
-          therapistId: rescheduled.therapistId instanceof ObjectId
-            ? rescheduled.therapistId.toString()
-            : String(rescheduled.therapistId),
-          appointmentDate: rescheduled.appointmentDate instanceof Date
-            ? rescheduled.appointmentDate.toISOString().split('T')[0]
-            : rescheduled.appointmentDate,
-        } as BookingDocument
-      }
+      return start1Min < end2Min && start2Min < end1Min
     })
 
-    return rescheduledBooking
-
-  } finally {
-    await session.endSession()
+    if (hasRealConflict) {
+      throw new Error('Time slot conflict: New appointment time conflicts with existing booking')
+    }
   }
+
+  const now = new Date()
+
+  // Update the booking with new date/time
+  const result = await db.collection('bookings').updateOne(
+    { _id: new ObjectId(bookingId) },
+    {
+      $set: {
+        appointmentDate: newAppointmentDate,
+        startTime: newStartTime,
+        endTime: newEndTime,
+        updatedAt: now
+      }
+    }
+  )
+
+  if (result.modifiedCount === 0) {
+    throw new Error('Failed to reschedule booking')
+  }
+
+  // Fetch and return rescheduled booking
+  const rescheduled = await db.collection('bookings').findOne(
+    { _id: new ObjectId(bookingId) }
+  )
+
+  if (rescheduled) {
+    return {
+      ...rescheduled,
+      _id: rescheduled._id.toString(),
+      therapistId: rescheduled.therapistId instanceof ObjectId
+        ? rescheduled.therapistId.toString()
+        : String(rescheduled.therapistId),
+      appointmentDate: rescheduled.appointmentDate instanceof Date
+        ? rescheduled.appointmentDate.toISOString().split('T')[0]
+        : rescheduled.appointmentDate,
+    } as BookingDocument
+  }
+
+  return null
 }
 
 
