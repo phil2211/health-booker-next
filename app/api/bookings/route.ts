@@ -48,6 +48,7 @@ interface CreateBookingRequest {
   patientName: string
   patientEmail: string
   patientPhone?: string
+  patientComment?: string
   appointmentDate: string // YYYY-MM-DD format
   startTime: string // HH:MM format
   endTime: string // HH:MM format
@@ -156,6 +157,7 @@ export async function POST(request: Request) {
       endTime: body.endTime,
       status: BookingStatus.CONFIRMED,
       cancellationToken,
+      notes: body.patientComment,
     })
 
     return NextResponse.json({

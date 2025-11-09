@@ -168,8 +168,8 @@ export default function AppointmentDetailModal({
                 </div>
               </div>
             ) : (
-              <div className="bg-gray-50 px-3 py-2 rounded-lg min-h-[60px]">
-                {notes || <span className="text-gray-500 italic">No notes added yet</span>}
+              <div className="bg-gray-50 px-3 py-2 rounded-lg min-h-[60px] text-black">
+                {notes || <span className="text-black italic">No notes added yet</span>}
               </div>
             )}
           </div>

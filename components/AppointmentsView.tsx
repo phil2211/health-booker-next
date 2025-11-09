@@ -93,7 +93,8 @@ export default function AppointmentsView({ therapistId }: AppointmentsViewProps)
       filtered = filtered.filter(booking =>
         booking.patientName.toLowerCase().includes(query) ||
         booking.patientEmail.toLowerCase().includes(query) ||
-        (booking.patientPhone && booking.patientPhone.includes(query))
+        (booking.patientPhone && booking.patientPhone.includes(query)) ||
+        (booking.notes && booking.notes.toLowerCase().includes(query))
       )
     }
 
@@ -340,7 +341,7 @@ export default function AppointmentsView({ therapistId }: AppointmentsViewProps)
               <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
               <input
                 type="text"
-                placeholder="Search by patient name, email..."
+                placeholder="Search by patient name, email, phone, or notes..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-black"

@@ -33,6 +33,7 @@ export default function PatientBookingScheduler({ therapistId, blockedSlots = []
   const [patientName, setPatientName] = useState<string>('')
   const [patientEmail, setPatientEmail] = useState<string>('')
   const [patientPhone, setPatientPhone] = useState<string>('')
+  const [patientComment, setPatientComment] = useState<string>('')
   const [submitting, setSubmitting] = useState<boolean>(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [submitSuccess, setSubmitSuccess] = useState<boolean>(false)
@@ -196,6 +197,7 @@ export default function PatientBookingScheduler({ therapistId, blockedSlots = []
           patientName: patientName.trim(),
           patientEmail: patientEmail.trim(),
           patientPhone: patientPhone.trim() || undefined,
+          patientComment: patientComment.trim() || undefined,
           appointmentDate: selectedDate,
           startTime: sessionStart,
           endTime: sessionEnd,
@@ -230,6 +232,7 @@ export default function PatientBookingScheduler({ therapistId, blockedSlots = []
       setPatientName('')
       setPatientEmail('')
       setPatientPhone('')
+      setPatientComment('')
       setSelectedSlot(null)
       setSelectedDate('')
       
@@ -410,6 +413,20 @@ export default function PatientBookingScheduler({ therapistId, blockedSlots = []
                   onChange={(e) => setPatientPhone(e.target.value)}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-black"
                   placeholder="+1 (555) 123-4567"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="patient-comment" className="block text-sm font-medium text-gray-700 mb-1">
+                  Special Requirements or Comments <span className="text-gray-500 text-xs">(optional)</span>
+                </label>
+                <textarea
+                  id="patient-comment"
+                  value={patientComment}
+                  onChange={(e) => setPatientComment(e.target.value)}
+                  rows={3}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-black resize-none"
+                  placeholder="Please let us know about any special requirements, accessibility needs, or other important information for your appointment..."
                 />
               </div>
 
