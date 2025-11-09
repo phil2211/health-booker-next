@@ -4,6 +4,20 @@ import { ObjectId } from 'mongodb'
 
 
 /**
+ * Helper function to create therapist ID query that handles both ObjectId and string formats
+ */
+function createTherapistIdQuery(therapistId: string): any {
+  return ObjectId.isValid(therapistId)
+    ? {
+        $or: [
+          { therapistId: new ObjectId(therapistId) },
+          { therapistId: therapistId }
+        ]
+      }
+    : { therapistId: therapistId }
+}
+
+/**
  * MongoDB model for Booking collection
  * This serves as a type-safe interface for booking documents
  */
@@ -257,10 +271,10 @@ export async function getBookingsByTherapistId(
 ): Promise<BookingDocument[]> {
   const db = await getDatabase()
 
+  const therapistIdQuery = createTherapistIdQuery(therapistId)
+
   const query: any = {
-    therapistId: ObjectId.isValid(therapistId)
-      ? { $or: [{ therapistId: new ObjectId(therapistId) }, { therapistId: therapistId }] }
-      : { therapistId: therapistId }
+    ...therapistIdQuery
   }
 
   // Add status filter if provided
@@ -327,11 +341,11 @@ export async function updateBookingById(
   }
 
   // First verify the booking exists and belongs to the therapist
+  const therapistIdQuery = createTherapistIdQuery(therapistId)
+
   const existingBooking = await db.collection('bookings').findOne({
     _id: new ObjectId(bookingId),
-    therapistId: ObjectId.isValid(therapistId)
-      ? { $or: [{ therapistId: new ObjectId(therapistId) }, { therapistId: therapistId }] }
-      : { therapistId: therapistId }
+    ...therapistIdQuery
   })
 
   if (!existingBooking) {
@@ -396,11 +410,11 @@ export async function cancelBookingById(
   }
 
   // First verify the booking exists and belongs to the therapist
+  const therapistIdQuery = createTherapistIdQuery(therapistId)
+
   const existingBooking = await db.collection('bookings').findOne({
     _id: new ObjectId(bookingId),
-    therapistId: ObjectId.isValid(therapistId)
-      ? { $or: [{ therapistId: new ObjectId(therapistId) }, { therapistId: therapistId }] }
-      : { therapistId: therapistId },
+    ...therapistIdQuery,
     status: { $ne: BookingStatus.CANCELLED } // Don't cancel already cancelled bookings
   })
 
@@ -461,11 +475,11 @@ export async function getBookingById(
   }
 
   // Find booking and verify therapist owns it
+  const therapistIdQuery = createTherapistIdQuery(therapistId)
+
   const booking = await db.collection('bookings').findOne({
     _id: new ObjectId(bookingId),
-    therapistId: ObjectId.isValid(therapistId)
-      ? { $or: [{ therapistId: new ObjectId(therapistId) }, { therapistId: therapistId }] }
-      : { therapistId: therapistId }
+    ...therapistIdQuery
   })
 
   if (!booking) {
@@ -523,11 +537,11 @@ export async function rescheduleBooking(
   }
 
   // First verify the booking exists and belongs to the therapist
+  const therapistIdQuery = createTherapistIdQuery(therapistId)
+
   const existingBooking = await db.collection('bookings').findOne({
     _id: new ObjectId(bookingId),
-    therapistId: ObjectId.isValid(therapistId)
-      ? { $or: [{ therapistId: new ObjectId(therapistId) }, { therapistId: therapistId }] }
-      : { therapistId: therapistId },
+    ...therapistIdQuery,
     status: BookingStatus.CONFIRMED // Only confirmed bookings can be rescheduled
   })
 
@@ -548,9 +562,7 @@ export async function rescheduleBooking(
   if (hasConflict) {
     // Get all conflicting bookings to see if any are different from this one
     const allBookings = await db.collection('bookings').find({
-      therapistId: ObjectId.isValid(therapistId)
-        ? { $or: [{ therapistId: new ObjectId(therapistId) }, { therapistId: therapistId }] }
-        : { therapistId: therapistId },
+      ...therapistIdQuery,
       appointmentDate: newAppointmentDate,
       status: { $ne: BookingStatus.CANCELLED }
     }).toArray()
