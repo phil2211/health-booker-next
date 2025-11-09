@@ -5,7 +5,7 @@ import { BookingStatus } from '@/lib/types'
 /**
  * Helper function to create detailed error responses
  */
-function createErrorResponse(error: unknown, functionName: string, statusCode: number = 500): { error: string; details?: { function: string; message: string; stack?: string } } {
+function createErrorResponse(error: unknown, functionName: string, statusCode: number = 500): { error: string; details?: { function: string; message?: string; stack?: string } } {
   let errorMessage: string
   if (statusCode === 500) {
     errorMessage = 'Internal server error'
@@ -27,12 +27,12 @@ function createErrorResponse(error: unknown, functionName: string, statusCode: n
   }
 
   if (error instanceof Error) {
-    baseResponse.details.message = error.message
+    (baseResponse.details as any).message = error.message
     if (process.env.NODE_ENV === 'development') {
-      baseResponse.details.stack = error.stack
+      (baseResponse.details as any).stack = error.stack
     }
   } else {
-    baseResponse.details.message = String(error)
+    (baseResponse.details as any).message = String(error)
   }
 
   return baseResponse

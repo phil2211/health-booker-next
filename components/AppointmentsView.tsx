@@ -74,6 +74,10 @@ export default function AppointmentsView({ therapistId }: AppointmentsViewProps)
 
       const data = await response.json()
       setBookings(data.bookings)
+      // Use server-calculated statistics
+      if (data.stats) {
+        setStats(data.stats)
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch bookings')
     } finally {
@@ -98,26 +102,7 @@ export default function AppointmentsView({ therapistId }: AppointmentsViewProps)
     setFilteredBookings(filtered)
   }, [bookings, searchQuery])
 
-  // Calculate stats
-  useEffect(() => {
-    const now = new Date()
-    const today = now.toISOString().split('T')[0]
-    const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-
-    const newStats: AppointmentsStats = {
-      total: bookings.length,
-      upcoming: bookings.filter(b =>
-        b.status === BookingStatus.CONFIRMED && b.appointmentDate >= today
-      ).length,
-      today: bookings.filter(b =>
-        b.status === BookingStatus.CONFIRMED && b.appointmentDate === today
-      ).length,
-      completed: bookings.filter(b => b.status === BookingStatus.COMPLETED).length,
-      cancelled: bookings.filter(b => b.status === BookingStatus.CANCELLED).length
-    }
-
-    setStats(newStats)
-  }, [bookings])
+  // Stats are now calculated server-side and included in the API response
 
   // Initial fetch and refetch when filters change
   useEffect(() => {

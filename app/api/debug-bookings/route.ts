@@ -27,12 +27,12 @@ function createErrorResponse(error: unknown, functionName: string, statusCode: n
   }
 
   if (error instanceof Error) {
-    baseResponse.details.message = error.message
+    (baseResponse.details as any).message = error.message
     if (process.env.NODE_ENV === 'development') {
-      baseResponse.details.stack = error.stack
+      (baseResponse.details as any).stack = error.stack
     }
   } else {
-    baseResponse.details.message = String(error)
+    (baseResponse.details as any).message = String(error)
   }
 
   return baseResponse

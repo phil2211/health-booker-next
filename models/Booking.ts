@@ -512,6 +512,110 @@ export async function getBookingById(
 }
 
 /**
+ * Get appointment statistics for a therapist using MongoDB aggregation
+ * Returns counts for total, upcoming, today, completed, and cancelled bookings
+ */
+export async function getAppointmentStats(therapistId: string): Promise<{
+  total: number
+  upcoming: number
+  today: number
+  completed: number
+  cancelled: number
+}> {
+  const db = await getDatabase()
+
+  const therapistIdQuery = createTherapistIdQuery(therapistId)
+  const today = new Date().toISOString().split('T')[0] // YYYY-MM-DD format
+
+  const pipeline = [
+    // Match bookings for this therapist
+    {
+      $match: therapistIdQuery
+    },
+    // Use $facet to calculate multiple statistics in one query
+    {
+      $facet: {
+        total: [
+          { $count: "count" }
+        ],
+        upcoming: [
+          {
+            $match: {
+              status: BookingStatus.CONFIRMED,
+              $or: [
+                // Handle appointmentDate as Date object
+                { appointmentDate: { $gte: new Date(today + 'T00:00:00.000Z') } },
+                // Handle appointmentDate as string
+                { appointmentDate: { $gte: today } }
+              ]
+            }
+          },
+          { $count: "count" }
+        ],
+        today: [
+          {
+            $match: {
+              status: BookingStatus.CONFIRMED,
+              $or: [
+                // Handle appointmentDate as Date object
+                {
+                  appointmentDate: {
+                    $gte: new Date(today + 'T00:00:00.000Z'),
+                    $lt: new Date(today + 'T23:59:59.999Z')
+                  }
+                },
+                // Handle appointmentDate as string
+                { appointmentDate: today }
+              ]
+            }
+          },
+          { $count: "count" }
+        ],
+        completed: [
+          { $match: { status: BookingStatus.COMPLETED } },
+          { $count: "count" }
+        ],
+        cancelled: [
+          { $match: { status: BookingStatus.CANCELLED } },
+          { $count: "count" }
+        ]
+      }
+    },
+    // Transform the results to extract counts
+    {
+      $project: {
+        total: { $ifNull: [{ $arrayElemAt: ["$total.count", 0] }, 0] },
+        upcoming: { $ifNull: [{ $arrayElemAt: ["$upcoming.count", 0] }, 0] },
+        today: { $ifNull: [{ $arrayElemAt: ["$today.count", 0] }, 0] },
+        completed: { $ifNull: [{ $arrayElemAt: ["$completed.count", 0] }, 0] },
+        cancelled: { $ifNull: [{ $arrayElemAt: ["$cancelled.count", 0] }, 0] }
+      }
+    }
+  ]
+
+  const result = await db.collection('bookings').aggregate(pipeline).toArray()
+
+  // Return default values if no results
+  if (result.length === 0) {
+    return {
+      total: 0,
+      upcoming: 0,
+      today: 0,
+      completed: 0,
+      cancelled: 0
+    }
+  }
+
+  return result[0] as {
+    total: number
+    upcoming: number
+    today: number
+    completed: number
+    cancelled: number
+  }
+}
+
+/**
  * Reschedule a booking to a new date/time
  * Validates no conflicts and therapist owns the booking
  */
