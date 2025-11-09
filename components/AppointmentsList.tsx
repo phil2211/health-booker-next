@@ -90,25 +90,25 @@ export default function AppointmentsList({
 
         return (
           <div key={key} className="bg-white rounded-xl shadow-md overflow-hidden">
-            <div className={`px-6 py-4 border-b border-gray-200 bg-${color}-50`}>
-              <h3 className={`text-lg font-semibold text-${color}-900`}>
+            <div className={`px-4 md:px-6 py-3 md:py-4 border-b border-gray-200 bg-${color}-50`}>
+              <h3 className={`text-base md:text-lg font-semibold text-${color}-900`}>
                 {title} ({sectionBookings.length})
               </h3>
             </div>
 
             <div className="divide-y divide-gray-200">
               {sectionBookings.map((booking) => (
-                <div key={booking._id} className="p-6 hover:bg-gray-50 transition-colors">
-                  <div className="flex items-center justify-between">
+                <div key={booking._id} className="p-4 md:p-6 hover:bg-gray-50 transition-colors">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div className="flex-1">
-                      <div className="flex items-center space-x-4 mb-2">
+                      <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 mb-3">
                         <h4 className="text-lg font-semibold text-gray-900">
                           {booking.patientName}
                         </h4>
                         <AppointmentStatusBadge status={booking.status} />
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
+                      <div className="flex flex-col space-y-2 text-sm text-gray-600">
                         <div>
                           <span className="font-medium">Date:</span> {formatDate(booking.appointmentDate instanceof Date ? booking.appointmentDate.toISOString().split('T')[0] : booking.appointmentDate)}
                         </div>
@@ -118,22 +118,22 @@ export default function AppointmentsList({
                         <div>
                           <span className="font-medium">Contact:</span> {booking.patientEmail}
                           {booking.patientPhone && (
-                            <span className="ml-2">• {booking.patientPhone}</span>
+                            <span className="block sm:inline sm:ml-2">• {booking.patientPhone}</span>
                           )}
                         </div>
                       </div>
 
                       {booking.notes && (
-                        <div className="mt-2 text-sm text-gray-600">
+                        <div className="mt-3 text-sm text-gray-600">
                           <span className="font-medium">Notes:</span> {booking.notes}
                         </div>
                       )}
                     </div>
 
-                    <div className="flex items-center space-x-2 ml-4">
+                    <div className="flex flex-col sm:flex-row gap-2 min-w-0">
                       <button
                         onClick={() => onViewBooking(booking)}
-                        className="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
+                        className="px-4 py-2 text-sm bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors font-medium"
                       >
                         View Details
                       </button>
@@ -142,14 +142,14 @@ export default function AppointmentsList({
                         <>
                           <button
                             onClick={() => onRescheduleBooking(booking)}
-                            className="px-3 py-1 text-sm bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 transition-colors"
+                            className="px-4 py-2 text-sm bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 transition-colors font-medium"
                           >
                             Reschedule
                           </button>
 
                           <button
                             onClick={() => onCancelBooking(booking._id!)}
-                            className="px-3 py-1 text-sm bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
+                            className="px-4 py-2 text-sm bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors font-medium"
                           >
                             Cancel
                           </button>

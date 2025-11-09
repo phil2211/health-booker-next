@@ -1,10 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { format, addWeeks, startOfToday } from 'date-fns'
 import { Booking, BookingStatus } from '@/lib/types'
 import AppointmentsList from './AppointmentsList'
-import AppointmentsCalendar from './AppointmentsCalendar'
 import AppointmentDetailModal from './AppointmentDetailModal'
 import RescheduleModal from './RescheduleModal'
 import CancellationModal from './CancellationModal'
@@ -15,8 +14,6 @@ interface AppointmentsViewProps {
   therapistId: string
 }
 
-type ViewMode = 'calendar' | 'list'
-
 interface AppointmentsStats {
   total: number
   upcoming: number
@@ -26,7 +23,6 @@ interface AppointmentsStats {
 }
 
 export default function AppointmentsView({ therapistId }: AppointmentsViewProps) {
-  const [viewMode, setViewMode] = useState<ViewMode>('list')
   const [bookings, setBookings] = useState<Booking[]>([])
   const [filteredBookings, setFilteredBookings] = useState<Booking[]>([])
   const [loading, setLoading] = useState(true)
@@ -59,7 +55,7 @@ export default function AppointmentsView({ therapistId }: AppointmentsViewProps)
   })
 
   // Fetch bookings
-  const fetchBookings = async () => {
+  const fetchBookings = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
@@ -85,7 +81,7 @@ export default function AppointmentsView({ therapistId }: AppointmentsViewProps)
     } finally {
       setLoading(false)
     }
-  }
+  }, [statusFilter, dateRange])
 
   // Filter bookings based on search query
   useEffect(() => {
@@ -109,7 +105,7 @@ export default function AppointmentsView({ therapistId }: AppointmentsViewProps)
   // Initial fetch and refetch when filters change
   useEffect(() => {
     fetchBookings()
-  }, [statusFilter, dateRange])
+  }, [fetchBookings])
 
   // Handle booking actions
   const handleViewBooking = (booking: Booking) => {
@@ -222,7 +218,7 @@ export default function AppointmentsView({ therapistId }: AppointmentsViewProps)
   return (
     <div className="space-y-6">
       {/* Stats Cards */}
-      <div className="grid md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
         <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-blue-500">
           <div className="flex items-center justify-between">
             <div>
@@ -294,11 +290,11 @@ export default function AppointmentsView({ therapistId }: AppointmentsViewProps)
         </div>
       </div>
 
-      {/* Filters and View Toggle */}
-      <div className="bg-white rounded-xl shadow-md p-6">
-        <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
+      {/* Filters */}
+      <div className="bg-white rounded-xl shadow-md p-4 md:p-6">
+        <div className="flex flex-col gap-4">
           {/* Filters */}
-          <div className="flex flex-col sm:flex-row gap-4 flex-1">
+          <div className="flex flex-col sm:flex-row gap-4">
             {/* Status Filter */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
@@ -316,8 +312,8 @@ export default function AppointmentsView({ therapistId }: AppointmentsViewProps)
             </div>
 
             {/* Date Range */}
-            <div className="flex gap-2">
-              <div>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <div className="flex-1">
                 <label className="block text-sm font-medium text-gray-700 mb-1">From</label>
                 <DatePickerPopover
                   key="date-from"
@@ -327,7 +323,7 @@ export default function AppointmentsView({ therapistId }: AppointmentsViewProps)
                   popoverId="date-from-popover"
                 />
               </div>
-              <div>
+              <div className="flex-1">
                 <label className="block text-sm font-medium text-gray-700 mb-1">To</label>
                 <DatePickerPopover
                   key="date-to"
@@ -352,29 +348,6 @@ export default function AppointmentsView({ therapistId }: AppointmentsViewProps)
             </div>
           </div>
 
-          {/* View Toggle */}
-          <div className="flex bg-gray-100 rounded-lg p-1">
-            <button
-              onClick={() => setViewMode('list')}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                viewMode === 'list'
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              List View
-            </button>
-            <button
-              onClick={() => setViewMode('calendar')}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                viewMode === 'calendar'
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              Calendar View
-            </button>
-          </div>
         </div>
       </div>
 
@@ -384,15 +357,8 @@ export default function AppointmentsView({ therapistId }: AppointmentsViewProps)
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading appointments...</p>
         </div>
-      ) : viewMode === 'list' ? (
-        <AppointmentsList
-          bookings={filteredBookings}
-          onViewBooking={handleViewBooking}
-          onCancelBooking={handleCancelBooking}
-          onRescheduleBooking={handleRescheduleBooking}
-        />
       ) : (
-        <AppointmentsCalendar
+        <AppointmentsList
           bookings={filteredBookings}
           onViewBooking={handleViewBooking}
           onCancelBooking={handleCancelBooking}
