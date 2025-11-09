@@ -24,13 +24,14 @@ function createErrorResponse(error: unknown, functionName: string, statusCode: n
     error: errorMessage,
     details: {
       function: functionName,
+      message: ''
     }
   }
 
   if (error instanceof Error) {
     baseResponse.details.message = error.message
-    if (process.env.NODE_ENV === 'development') {
-      baseResponse.details.stack = error.stack
+    if (process.env.NODE_ENV === 'development' && error.stack) {
+      (baseResponse.details as any).stack = error.stack
     }
   } else {
     baseResponse.details.message = String(error)
@@ -44,6 +45,10 @@ export const runtime = 'nodejs'
 interface UpdateBookingRequest {
   notes?: string
   status?: BookingStatus
+}
+
+interface CancelBookingRequest {
+  cancellationNote?: string
 }
 
 interface BookingParams {
@@ -234,8 +239,20 @@ export async function DELETE(request: NextRequest, { params }: BookingParams) {
       )
     }
 
+    // Parse optional request body for cancellation note
+    let cancellationNote: string | undefined
+    try {
+      const contentType = request.headers.get('content-type')
+      if (contentType && contentType.includes('application/json')) {
+        const body: CancelBookingRequest = await request.json()
+        cancellationNote = body.cancellationNote
+      }
+    } catch (error) {
+      // Ignore parsing errors - body is optional
+    }
+
     // Cancel the booking
-    const cancelledBooking = await cancelBookingById(id, therapistId)
+    const cancelledBooking = await cancelBookingById(id, therapistId, cancellationNote)
 
     if (!cancelledBooking) {
       return NextResponse.json(

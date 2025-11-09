@@ -401,7 +401,8 @@ export async function updateBookingById(
  */
 export async function cancelBookingById(
   bookingId: string,
-  therapistId: string
+  therapistId: string,
+  cancellationNote?: string
 ): Promise<BookingDocument | null> {
   const db = await getDatabase()
 
@@ -424,14 +425,26 @@ export async function cancelBookingById(
 
   const now = new Date()
 
+  // Prepare update data
+  const updateData: any = {
+    status: BookingStatus.CANCELLED,
+    reason: 'cancelled by therapist',
+    updatedAt: now
+  }
+
+  // Add cancellation note to notes field if provided
+  if (cancellationNote) {
+    // Get existing notes and append the cancellation note
+    const existingNotes = existingBooking.notes || ''
+    const separator = existingNotes ? '\n\n' : ''
+    updateData.notes = existingNotes + separator + `Cancellation Note: ${cancellationNote}`
+  }
+
   // Update booking status to cancelled
   const result = await db.collection('bookings').updateOne(
     { _id: new ObjectId(bookingId) },
     {
-      $set: {
-        status: BookingStatus.CANCELLED,
-        updatedAt: now
-      }
+      $set: updateData
     }
   )
 

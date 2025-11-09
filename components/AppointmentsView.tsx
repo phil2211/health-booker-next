@@ -6,6 +6,7 @@ import AppointmentsList from './AppointmentsList'
 import AppointmentsCalendar from './AppointmentsCalendar'
 import AppointmentDetailModal from './AppointmentDetailModal'
 import RescheduleModal from './RescheduleModal'
+import CancellationModal from './CancellationModal'
 import AppointmentStatusBadge from './AppointmentStatusBadge'
 
 interface AppointmentsViewProps {
@@ -44,6 +45,7 @@ export default function AppointmentsView({ therapistId }: AppointmentsViewProps)
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null)
   const [showDetailModal, setShowDetailModal] = useState(false)
   const [showRescheduleModal, setShowRescheduleModal] = useState(false)
+  const [showCancellationModal, setShowCancellationModal] = useState(false)
 
   // Stats
   const [stats, setStats] = useState<AppointmentsStats>({
@@ -133,14 +135,24 @@ export default function AppointmentsView({ therapistId }: AppointmentsViewProps)
     setShowRescheduleModal(true)
   }
 
-  const handleCancelBooking = async (bookingId: string) => {
-    if (!confirm('Are you sure you want to cancel this appointment?')) {
-      return
+  const handleCancelBooking = (bookingId: string) => {
+    const booking = bookings.find(b => b._id === bookingId)
+    if (booking) {
+      setSelectedBooking(booking)
+      setShowCancellationModal(true)
     }
+  }
 
+  const handleConfirmCancellation = async (bookingId: string, cancellationNote?: string) => {
     try {
       const response = await fetch(`/api/therapist/bookings/${bookingId}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          cancellationNote: cancellationNote || undefined
+        })
       })
 
       if (!response.ok) {
@@ -149,6 +161,8 @@ export default function AppointmentsView({ therapistId }: AppointmentsViewProps)
 
       // Refresh bookings
       await fetchBookings()
+      setShowCancellationModal(false)
+      setSelectedBooking(null)
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Failed to cancel booking')
     }
@@ -426,6 +440,17 @@ export default function AppointmentsView({ therapistId }: AppointmentsViewProps)
             setSelectedBooking(null)
           }}
           onReschedule={handleReschedule}
+        />
+      )}
+
+      {showCancellationModal && selectedBooking && (
+        <CancellationModal
+          booking={selectedBooking}
+          onClose={() => {
+            setShowCancellationModal(false)
+            setSelectedBooking(null)
+          }}
+          onCancel={handleConfirmCancellation}
         />
       )}
     </div>

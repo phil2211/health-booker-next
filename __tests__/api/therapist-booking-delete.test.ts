@@ -134,7 +134,7 @@ describe('DELETE /api/therapist/bookings/[id] (Cancel Booking)', () => {
       const jsonResponse = await response.json()
       expect(jsonResponse.message).toBe('Booking cancelled successfully')
       expect(jsonResponse.booking).toEqual(mockCancelledBooking)
-      expect(cancelBookingById).toHaveBeenCalledWith('6907b83e29b8d58dfc6839cf', 'therapist-123')
+      expect(cancelBookingById).toHaveBeenCalledWith('6907b83e29b8d58dfc6839cf', 'therapist-123', undefined)
     })
 
     test('should return 404 when booking not found', async () => {
@@ -294,7 +294,56 @@ describe('DELETE /api/therapist/bookings/[id] (Cancel Booking)', () => {
 
       await DELETE(mockRequest, mockParams)
 
-      expect(cancelBookingById).toHaveBeenCalledWith('6907b83e29b8d58dfc6839cf', 'therapist-123')
+      expect(cancelBookingById).toHaveBeenCalledWith('6907b83e29b8d58dfc6839cf', 'therapist-123', undefined)
+    })
+
+    test('should cancel booking with cancellation note', async () => {
+      const { getAuthSession } = require('@/lib/auth')
+      const { cancelBookingById } = require('@/models/Booking')
+
+      const cancellationNote = 'Patient requested cancellation due to illness'
+
+      const mockSession = {
+        user: {
+          id: 'therapist-123',
+          email: 'therapist@example.com',
+        },
+      }
+
+      const mockCancelledBooking = {
+        _id: '6907b83e29b8d58dfc6839cf',
+        therapistId: 'therapist-123',
+        patientName: 'Jane Smith',
+        patientEmail: 'jane@example.com',
+        appointmentDate: '2024-12-15',
+        startTime: '14:00',
+        endTime: '15:00',
+        status: 'cancelled',
+        reason: 'cancelled by therapist',
+        notes: `Cancellation Note: ${cancellationNote}`,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }
+
+      getAuthSession.mockResolvedValue(mockSession)
+      ;(cancelBookingById as jest.Mock).mockResolvedValue(mockCancelledBooking)
+
+      const mockRequest = {
+        method: 'DELETE',
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: jest.fn().mockResolvedValue({ cancellationNote })
+      } as any
+
+      const mockParams = {
+        params: Promise.resolve({ id: '6907b83e29b8d58dfc6839cf' })
+      }
+
+      const response = await DELETE(mockRequest, mockParams)
+
+      expect(response.status).toBe(200)
+      const jsonResponse = await response.json()
+      expect(jsonResponse.message).toBe('Booking cancelled successfully')
+      expect(cancelBookingById).toHaveBeenCalledWith('6907b83e29b8d58dfc6839cf', 'therapist-123', cancellationNote)
     })
   })
 })
