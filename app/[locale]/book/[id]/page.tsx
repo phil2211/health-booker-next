@@ -1,8 +1,10 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
+import LanguageSwitcher from '@/components/LanguageSwitcher'
 import { findTherapistById } from '@/models/Therapist'
 import { ObjectId } from 'mongodb'
 import BookingInterface from '@/components/BookingInterface'
+import { getTranslations } from 'next-intl/server'
 
 interface BookingPageProps {
   params: Promise<{ id: string }>
@@ -48,6 +50,9 @@ export default async function BookingPage({ params }: BookingPageProps) {
 
   const therapist = data.therapist
 
+  // Get translations
+  const t = await getTranslations('pages.booking')
+
   return (
     <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100">
       {/* Navigation Bar */}
@@ -59,12 +64,13 @@ export default async function BookingPage({ params }: BookingPageProps) {
                 HealthBooker
               </Link>
               <span className="text-gray-400">|</span>
-              <span className="text-sm text-gray-600">Book Appointment</span>
+              <span className="text-sm text-gray-600">{t('bookAppointment')}</span>
             </div>
             <div className="flex items-center space-x-4">
               <Link href="/" className="text-sm text-gray-600 hover:text-gray-800">
-                Home
+                {t('backToHome')}
               </Link>
+              <LanguageSwitcher />
             </div>
           </div>
         </div>
@@ -74,7 +80,7 @@ export default async function BookingPage({ params }: BookingPageProps) {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Therapist Info Card */}
         <div className="bg-white rounded-xl shadow-xl border p-8 mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Book with {therapist.name}</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('bookWith')} {therapist.name}</h1>
         </div>
 
         {/* Booking Interface */}
@@ -89,7 +95,7 @@ export default async function BookingPage({ params }: BookingPageProps) {
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
-            Back to Therapist Profile
+            {t('backToTherapistProfile')}
           </Link>
         </div>
       </div>

@@ -34,6 +34,34 @@ jest.mock('next-intl', () => ({
       'landing.features.easyBooking.title': 'Easy Booking',
       'landing.features.qualifiedProfessionals.title': 'Qualified Professionals',
       'landing.features.secureSystem.title': 'Secure System',
+      'pages.dashboard.dashboardTitle': 'Dashboard',
+      'pages.dashboard.welcome': 'Welcome',
+      'pages.dashboard.totalAvailability': 'Total Availability',
+      'pages.dashboard.blockedSlots': 'Blocked Slots',
+      'pages.dashboard.profileStatus': 'Profile Status',
+      'pages.dashboard.yourProfile': 'Your Profile',
+      'pages.dashboard.availabilityManagement': 'Availability Management',
+      'pages.dashboard.viewAppointments': 'View Appointments',
+      'common.logout': 'Logout',
+    }
+    return translations[fullKey] || fullKey
+  },
+  getTranslations: (namespace: string) => async (key: string) => {
+    const fullKey = namespace ? `${namespace}.${key}` : key
+    const translations: Record<string, string> = {
+      'pages.dashboard.dashboardTitle': 'Dashboard',
+      'pages.dashboard.welcome': 'Welcome',
+      'pages.dashboard.welcomeBack': 'Welcome back',
+      'pages.dashboard.manageAppointments': 'Manage your appointments, availability, and profile settings',
+      'pages.dashboard.totalAvailability': 'Total Availability',
+      'pages.dashboard.blockedSlots': 'Blocked Slots',
+      'pages.dashboard.profileStatus': 'Profile Status',
+      'pages.dashboard.yourProfile': 'Your Profile',
+      'pages.dashboard.availabilityManagement': 'Availability Management',
+      'pages.dashboard.viewAppointments': 'View Appointments',
+      'pages.availability.manageAvailability': 'Manage Availability',
+      'pages.availability.setWeeklySchedule': 'Set your weekly recurring schedule and block specific dates when you\'re not available',
+      'common.logout': 'Logout',
     }
     return translations[fullKey] || fullKey
   },

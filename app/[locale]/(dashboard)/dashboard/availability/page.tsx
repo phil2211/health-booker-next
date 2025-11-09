@@ -2,14 +2,31 @@ import { getAuthSession } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import AvailabilityManagement from '@/components/AvailabilityManagement'
 import LogoutButton from '@/components/LogoutButton'
+import LanguageSwitcher from '@/components/LanguageSwitcher'
 import Link from 'next/link'
+import en from '../../../../../messages/en.json'
+import de from '../../../../../messages/de.json'
 
-export default async function AvailabilityPage() {
+interface AvailabilityPageProps {
+  params: Promise<{ locale: string }>
+}
+
+export default async function AvailabilityPage({ params }: AvailabilityPageProps) {
   const session = await getAuthSession()
 
   if (!session || !session.user) {
     redirect('/login')
   }
+
+  const { locale } = await params
+
+  // Get translations directly from imported messages
+  const messages = { en, de }
+  const localeMessages = messages[locale as keyof typeof messages] || messages.en
+  const availabilityMessages = localeMessages.pages?.availability || {}
+
+  // Create translation function
+  const t = (key: string) => availabilityMessages[key as keyof typeof availabilityMessages] || key
 
   return (
     <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100">
@@ -22,15 +39,16 @@ export default async function AvailabilityPage() {
                 HealthBooker
               </Link>
               <span className="text-gray-400">|</span>
-              <span className="text-sm text-gray-600">Manage Availability</span>
+              <span className="text-sm text-gray-600">{t('manageAvailability')}</span>
             </div>
             <div className="flex items-center space-x-4">
               <Link
                 href="/dashboard"
                 className="text-sm text-indigo-600 hover:text-indigo-700 font-medium"
               >
-                ← Back to Dashboard
+                {t('backToDashboard')}
               </Link>
+              <LanguageSwitcher />
               <LogoutButton />
             </div>
           </div>
@@ -42,10 +60,10 @@ export default async function AvailabilityPage() {
         {/* Header */}
         <div className="mb-8">
           <h2 className="text-4xl font-bold text-gray-900 mb-2">
-            Manage Availability
+            {t('manageAvailability')}
           </h2>
           <p className="text-lg text-gray-600">
-            Set your weekly recurring schedule and block specific dates when you're not available
+            {t('setWeeklySchedule')}
           </p>
         </div>
 

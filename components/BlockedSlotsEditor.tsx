@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react'
 import { BlockedSlot } from '@/lib/types'
+import { useTranslations } from 'next-intl'
 import DateRangePickerPopover from './DateRangePickerPopover'
 
 interface BlockedSlotsEditorProps {
@@ -13,6 +14,7 @@ export default function BlockedSlotsEditor({
   blockedSlots,
   onChange,
 }: BlockedSlotsEditorProps) {
+  const t = useTranslations('availability')
   const [newSlot, setNewSlot] = useState<BlockedSlot>({
     fromDate: '',
     toDate: '',
@@ -71,18 +73,18 @@ export default function BlockedSlotsEditor({
 
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">Blocked Time Slots</h3>
+      <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('blockedTimeSlots')}</h3>
       <p className="text-sm text-gray-600 mb-6">
-        Block specific dates and times when you're not available for appointments.
+        {t('blockedTimeSlotsDescription')}
       </p>
 
       {/* Add New Blocked Slot Form */}
       <div className="bg-gray-50 rounded-lg p-4 border-2 border-gray-200">
-        <h4 className="text-sm font-semibold text-gray-900 mb-4">Add Blocked Slot</h4>
+        <h4 className="text-sm font-semibold text-gray-900 mb-4">{t('addBlockedSlot')}</h4>
         <div className="grid grid-cols-1 gap-3">
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">
-              Date Range & Times
+              {t('dateRangeAndTimes')}
             </label>
             <DateRangePickerPopover
               fromDate={newSlot.fromDate}
@@ -103,14 +105,14 @@ export default function BlockedSlotsEditor({
 
                 // Validate
                 if (!fromDateValue || !toDateValue || !startTimeValue || !endTimeValue) {
-                  alert('Please fill in all fields (dates and times)')
+                  alert('Please fill in all fields (dates and times)') // TODO: Translate
                   return
                 }
 
                 // Check if date format is valid (YYYY-MM-DD)
                 const dateRegex = /^\d{4}-\d{2}-\d{2}$/
                 if (!dateRegex.test(fromDateValue) || !dateRegex.test(toDateValue)) {
-                  alert('Invalid date format. Please select dates again.')
+                  alert('Invalid date format. Please select dates again.') // TODO: Translate
                   return
                 }
 
@@ -118,19 +120,19 @@ export default function BlockedSlotsEditor({
                 const fromDateObj = new Date(fromDateValue + 'T00:00:00.000Z')
                 const toDateObj = new Date(toDateValue + 'T00:00:00.000Z')
                 if (fromDateObj > toDateObj) {
-                  alert('Start date must be before or equal to end date')
+                  alert('Start date must be before or equal to end date') // TODO: Translate
                   return
                 }
 
                 // Check if start datetime < end datetime (considering both date and time)
                 const startDateTime = new Date(fromDateValue + 'T' + startTimeValue + ':00')
                 const endDateTime = new Date(toDateValue + 'T' + endTimeValue + ':00')
-                
+
                 if (startDateTime >= endDateTime) {
                   if (fromDateValue === toDateValue) {
-                    alert('Start time must be before end time')
+                    alert('Start time must be before end time') // TODO: Translate
                   } else {
-                    alert('Start date and time must be before end date and time')
+                    alert('Start date and time must be before end date and time') // TODO: Translate
                   }
                   return
                 }
@@ -150,7 +152,7 @@ export default function BlockedSlotsEditor({
                 })
 
                 if (isDuplicate) {
-                  alert('This date range and time slot is already blocked')
+                  alert('This date range and time slot is already blocked') // TODO: Translate
                   return
                 }
 
@@ -180,13 +182,13 @@ export default function BlockedSlotsEditor({
       {blockedSlots.length === 0 ? (
         <div className="bg-gray-50 rounded-lg p-8 text-center border-2 border-dashed border-gray-300">
           <p className="text-sm text-gray-500">
-            No blocked slots. Add one above to block specific dates and times.
+            {t('noBlockedSlots')}
           </p>
         </div>
       ) : (
         <div className="space-y-2">
           <h4 className="text-sm font-semibold text-gray-900 mb-2">
-            Current Blocked Slots ({blockedSlots.length})
+            {t('currentBlockedSlots')} ({blockedSlots.length})
           </h4>
           {blockedSlots
             .map((slot, index) => ({ slot, originalIndex: index }))

@@ -3,9 +3,11 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 
 export default function RegisterPage() {
   const router = useRouter()
+  const t = useTranslations('register')
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -23,13 +25,13 @@ export default function RegisterPage() {
 
     // Validate passwords match
     if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match')
+      setError(t('errors.passwordMismatch'))
       return
     }
 
     // Validate password length
     if (formData.password.length < 8) {
-      setError('Password must be at least 8 characters long')
+      setError(t('errors.passwordTooShort'))
       return
     }
 
@@ -51,13 +53,13 @@ export default function RegisterPage() {
       const data = await response.json()
 
       if (!response.ok) {
-        setError(data.error || 'Registration failed')
+        setError(data.error || t('errors.registrationFailed'))
       } else {
         // Registration successful, redirect to login
         router.push('/login?registered=true')
       }
     } catch (err) {
-      setError('An error occurred. Please try again.')
+      setError(t('errors.generic'))
     } finally {
       setLoading(false)
     }
@@ -73,8 +75,8 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 flex items-center justify-center px-4 py-12">
       <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Your Account</h1>
-        <p className="text-gray-600 mb-6">Join HealthBooker as a therapist</p>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('title')}</h1>
+        <p className="text-gray-600 mb-6">{t('subtitle')}</p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
@@ -85,7 +87,7 @@ export default function RegisterPage() {
 
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-              Email *
+              {t('email')}
             </label>
             <input
               id="email"
@@ -95,13 +97,13 @@ export default function RegisterPage() {
               onChange={handleChange}
               required
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-black focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-              placeholder="you@example.com"
+              placeholder={t('placeholders.email')}
             />
           </div>
 
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-              Password *
+              {t('password')}
             </label>
             <input
               id="password"
@@ -111,13 +113,13 @@ export default function RegisterPage() {
               onChange={handleChange}
               required
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-black focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-              placeholder="At least 8 characters"
+              placeholder={t('placeholders.password')}
             />
           </div>
 
           <div>
             <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
-              Confirm Password *
+              {t('confirmPassword')}
             </label>
             <input
               id="confirmPassword"
@@ -127,13 +129,13 @@ export default function RegisterPage() {
               onChange={handleChange}
               required
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-black focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-              placeholder="Re-enter your password"
+              placeholder={t('placeholders.confirmPassword')}
             />
           </div>
 
           <div>
             <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-              Full Name *
+              {t('fullName')}
             </label>
             <input
               id="name"
@@ -143,13 +145,13 @@ export default function RegisterPage() {
               onChange={handleChange}
               required
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-black focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-              placeholder="Dr. Jane Smith"
+              placeholder={t('placeholders.fullName')}
             />
           </div>
 
           <div>
             <label htmlFor="specialization" className="block text-sm font-medium text-gray-700 mb-1">
-              Specialization *
+              {t('specialization')}
             </label>
             <input
               id="specialization"
@@ -159,13 +161,13 @@ export default function RegisterPage() {
               onChange={handleChange}
               required
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-black focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-              placeholder="e.g., Craniosacral Therapist"
+              placeholder={t('placeholders.specialization')}
             />
           </div>
 
           <div>
             <label htmlFor="bio" className="block text-sm font-medium text-gray-700 mb-1">
-              Bio/Description *
+              {t('bio')}
             </label>
             <textarea
               id="bio"
@@ -175,7 +177,7 @@ export default function RegisterPage() {
               required
               rows={4}
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-black focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-              placeholder="Tell us about your background and approach..."
+              placeholder={t('placeholders.bio')}
             />
           </div>
 
@@ -184,22 +186,22 @@ export default function RegisterPage() {
             disabled={loading}
             className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            {loading ? 'Creating Account...' : 'Create Account'}
+            {loading ? t('creating') : t('createAccount')}
           </button>
         </form>
 
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600">
-            Already have an account?{' '}
+            {t('loginPrompt')}{' '}
             <Link href="/login" className="text-indigo-600 hover:text-indigo-700 font-medium">
-              Sign in here
+              {t('loginLink')}
             </Link>
           </p>
         </div>
 
         <div className="mt-4 text-center">
           <Link href="/" className="text-sm text-gray-500 hover:text-gray-700">
-            ← Back to home
+            {t('backToHome')}
           </Link>
         </div>
       </div>

@@ -1,8 +1,11 @@
 import { NextIntlClientProvider } from 'next-intl'
-import { getMessages } from 'next-intl/server'
 import { notFound } from 'next/navigation'
 import Providers from './providers'
 import LanguageSwitcher from '@/components/LanguageSwitcher'
+import en from '../../messages/en.json'
+import de from '../../messages/de.json'
+
+const messages = { en, de }
 
 export default async function LocaleLayout({
   children,
@@ -20,15 +23,12 @@ export default async function LocaleLayout({
 
   // Providing all messages to the client
   // side is the easiest way to get started
-  const messages = await getMessages()
+  const localeMessages = messages[locale as keyof typeof messages]
 
   return (
     <html lang={locale}>
       <body>
-        <NextIntlClientProvider messages={messages}>
-          <div className="fixed top-4 right-4 z-50">
-            <LanguageSwitcher />
-          </div>
+        <NextIntlClientProvider messages={localeMessages}>
           <Providers>{children}</Providers>
         </NextIntlClientProvider>
       </body>

@@ -35,7 +35,11 @@
       "backToHome": "← Zurück zur Startseite",
       "invalidCredentials": "Ungültige E-Mail oder Passwort",
       "genericError": "Bei der Anmeldung ist ein Fehler aufgetreten",
-      "retryError": "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut."
+      "retryError": "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.",
+      "placeholders": {
+        "email": "ihre@email.com",
+        "password": "••••••••"
+      }
     },
     "register": {
       "title": "Therapeut Registrierung",
@@ -48,12 +52,6 @@
       "loginLink": "Haben Sie bereits ein Konto? Hier anmelden"
     }
   },
-  "dashboard": {
-    "title": "Dashboard",
-    "appointments": "Termine",
-    "availability": "Verfügbarkeit",
-    "settings": "Einstellungen"
-  },
   "common": {
     "save": "Speichern",
     "cancel": "Abbrechen",
@@ -64,6 +62,212 @@
     "previous": "Zurück",
     "loading": "Laden...",
     "error": "Fehler",
-    "success": "Erfolg"
+    "success": "Erfolg",
+    "close": "Schließen",
+    "book": "Buchen",
+    "confirm": "Bestätigen",
+    "yes": "Ja",
+    "no": "Nein",
+    "logout": "Abmelden"
+  },
+  "booking": {
+    "confirmation": {
+      "title": "Buchung bestätigt!",
+      "subtitle": "Ihr Termin wurde erfolgreich gebucht. Eine Bestätigungs-E-Mail wurde an {email} gesendet.",
+      "details": "Termindetails",
+      "therapist": "Therapeut",
+      "treatment": "Behandlung",
+      "dateTime": "Datum & Uhrzeit",
+      "duration": "Dauer",
+      "patient": "Patient",
+      "treatmentType": "Kraniosakrale Sitzung",
+      "durationValue": "1 Stunde",
+      "calendar": {
+        "title": "Zum Kalender hinzufügen",
+        "description": "Speichern Sie diesen Termin in Ihrem Kalender, damit Sie ihn nicht vergessen!",
+        "added": "Termin wurde zu Ihrem Kalender hinzugefügt!",
+        "ios": "Zum iPhone-Kalender hinzufügen",
+        "android": "Zum Android-Kalender hinzufügen",
+        "desktop": {
+          "mac": "In Kalender-App öffnen",
+          "other": "Kalender-Datei herunterladen (.ics)"
+        },
+        "help": {
+          "ios": "Dies lädt eine .ics-Datei herunter, die Sie mit der Kalender-App öffnen können",
+          "android": "Dies öffnet die Kalender-App Ihres Geräts, um das Ereignis hinzuzufügen",
+          "mac": "Dies öffnet den Termin direkt in Ihrer Kalender-App",
+          "other": "Dies lädt eine .ics-Datei herunter, die mit den meisten Kalenderanwendungen kompatibel ist"
+        }
+      },
+      "actions": {
+        "bookAnother": "Einen weiteren Termin buchen",
+        "close": "Schließen"
+      }
+    },
+    "form": {
+      "title": "Termin buchen",
+      "subtitle": "Wählen Sie einen verfügbaren Termin aus",
+      "selectDate": "Datum auswählen",
+      "selectTime": "Uhrzeit auswählen",
+      "patientName": "Ihr Name",
+      "patientEmail": "Ihre E-Mail",
+      "bookAppointment": "Termin buchen",
+      "booking": "Buchen...",
+      "errors": {
+        "noSlots": "Keine verfügbaren Termine für dieses Datum",
+        "invalidTime": "Bitte wählen Sie eine gültige Uhrzeit",
+        "missingInfo": "Bitte füllen Sie alle erforderlichen Felder aus"
+      }
+    }
+  },
+  "register": {
+    "title": "Konto erstellen",
+    "subtitle": "Treten Sie HealthBooker als Therapeut bei",
+    "email": "E-Mail *",
+    "password": "Passwort *",
+    "confirmPassword": "Passwort bestätigen *",
+    "fullName": "Vollständiger Name *",
+    "specialization": "Spezialisierung *",
+    "bio": "Bio/Beschreibung *",
+    "createAccount": "Konto erstellen",
+    "creating": "Konto wird erstellt...",
+    "placeholders": {
+      "email": "you@example.com",
+      "password": "Mindestens 8 Zeichen",
+      "confirmPassword": "Geben Sie Ihr Passwort erneut ein",
+      "fullName": "Dr. Jane Smith",
+      "specialization": "z.B. Kraniosakraltherapeut",
+      "bio": "Erzählen Sie uns von Ihrem Hintergrund und Ihrer Herangehensweise..."
+    },
+    "loginPrompt": "Haben Sie bereits ein Konto?",
+    "loginLink": "Hier anmelden",
+    "backToHome": "← Zurück zur Startseite",
+    "errors": {
+      "passwordMismatch": "Passwörter stimmen nicht überein",
+      "passwordTooShort": "Passwort muss mindestens 8 Zeichen lang sein",
+      "registrationFailed": "Registrierung fehlgeschlagen",
+      "generic": "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut."
+    }
+  },
+  "availability": {
+    "title": "Verfügbarkeit",
+    "subtitle": "Verwalten Sie Ihre verfügbaren Zeiten",
+    "days": {
+      "monday": "Montag",
+      "tuesday": "Dienstag",
+      "wednesday": "Mittwoch",
+      "thursday": "Donnerstag",
+      "friday": "Freitag",
+      "saturday": "Samstag",
+      "sunday": "Sonntag"
+    },
+    "addSlot": "Zeitfenster hinzufügen",
+    "removeSlot": "Entfernen",
+    "save": "Speichern",
+    "saving": "Wird gespeichert...",
+    "startTime": "Startzeit",
+    "endTime": "Endzeit",
+    "weeklyAvailability": "Wöchentliche Verfügbarkeit",
+    "weeklyAvailabilityDescription": "Setzen Sie Ihren wiederkehrenden wöchentlichen Zeitplan. Aktivieren Sie Tage und legen Sie Zeitbereiche fest, in denen Sie verfügbar sind.",
+    "blockedTimeSlots": "Blockierte Zeitfenster",
+    "blockedTimeSlotsDescription": "Blockieren Sie bestimmte Daten und Uhrzeiten, an denen Sie nicht für Termine verfügbar sind.",
+    "addBlockedSlot": "Blockiertes Zeitfenster hinzufügen",
+    "dateRangeAndTimes": "Datumsbereich & Uhrzeiten",
+    "selectDatesAndTimes": "Daten und Uhrzeiten auswählen",
+    "currentBlockedSlots": "Aktuelle blockierte Zeitfenster",
+    "noBlockedSlots": "Keine blockierten Zeitfenster. Fügen Sie oben eines hinzu, um bestimmte Daten und Uhrzeiten zu blockieren.",
+    "loadingAvailability": "Verfügbarkeit wird geladen...",
+    "cancel": "Abbrechen",
+    "return": "Zurück",
+    "unsavedChanges": "Sie haben nicht gespeicherte Änderungen",
+    "saveChanges": "Änderungen speichern",
+    "saving": "Wird gespeichert...",
+    "availabilityUpdated": "Verfügbarkeit erfolgreich aktualisiert!",
+    "failedToLoad": "Verfügbarkeit konnte nicht geladen werden. Bitte versuchen Sie es erneut.",
+    "failedToSave": "Verfügbarkeit konnte nicht gespeichert werden. Bitte versuchen Sie es erneut.",
+    "networkError": "Netzwerkfehler: Verbindung zum Server konnte nicht hergestellt werden. Bitte überprüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
+    "confirmLeave": "Sie haben nicht gespeicherte Änderungen. Sind Sie sicher, dass Sie gehen möchten?"
+  },
+  "dashboard": {
+    "welcome": "Willkommen zurück",
+    "noAppointments": "Keine bevorstehenden Termine",
+    "upcoming": "Bevorstehend",
+    "today": "Heute",
+    "tomorrow": "Morgen",
+    "thisWeek": "Diese Woche",
+    "nextWeek": "Nächste Woche",
+    "viewAll": "Alle anzeigen"
+  },
+  "navigation": {
+    "home": "Startseite",
+    "dashboard": "Dashboard",
+    "appointments": "Termine",
+    "availability": "Verfügbarkeit",
+    "settings": "Einstellungen"
+  },
+  "pages": {
+    "dashboard": {
+      "dashboardTitle": "Dashboard",
+      "welcome": "Willkommen",
+      "currentAvailability": "Aktuell: {weeklySlots} wöchentliche Slots, {blockedSlots} blockierte Daten",
+      "welcomeBack": "Willkommen zurück",
+      "manageAppointments": "Verwalten Sie Ihre Termine, Verfügbarkeit und Profileinstellungen",
+      "totalAvailability": "Gesamtverfügbarkeit",
+      "blockedSlots": "Blockierte Slots",
+      "profileStatus": "Profilstatus",
+      "active": "Aktiv",
+      "yourProfile": "Ihr Profil",
+      "edit": "Bearbeiten",
+      "fullName": "Vollständiger Name",
+      "specialization": "Spezialisierung",
+      "email": "E-Mail",
+      "bio": "Bio",
+      "availabilityManagement": "Verfügbarkeitsverwaltung",
+      "setWeeklySchedule": "Setzen Sie Ihren wöchentlichen wiederkehrenden Zeitplan und blockieren Sie bestimmte Daten, wenn Sie nicht verfügbar sind",
+      "manageAvailability": "Verfügbarkeit verwalten →",
+      "viewAppointments": "Termine anzeigen",
+      "seeScheduledAppointments": "Sehen Sie alle Ihre geplanten und bevorstehenden Termine",
+      "viewPatientBookings": "Patientenbuchungen anzeigen und Ihren Zeitplan verwalten",
+      "viewAppointmentsBtn": "Termine anzeigen →",
+      "shareYourLinks": "Ihre Links teilen",
+      "shareLinksDescription": "Teilen Sie diese Links mit Patienten, um Ihr Profil anzusehen und Termine zu buchen:",
+      "loadingUrls": "Ihre URLs werden geladen...",
+      "bookingLink": "Buchungslink",
+      "profileLink": "Profillink",
+      "shareTip": "💡 Tipp: Teilen Sie diese Links per E-Mail, sozialen Medien oder fügen Sie sie zu Ihrer Website hinzu, damit Patienten mehr über Sie erfahren und Termine buchen können."
+    },
+    "appointments": {
+      "overview": "Terminübersicht",
+      "viewManageAppointments": "Sehen und verwalten Sie alle Ihre geplanten Termine",
+      "backToDashboard": "← Zurück zum Dashboard",
+      "viewAppointments": "Termine anzeigen"
+    },
+    "availability": {
+      "manageAvailability": "Verfügbarkeit verwalten",
+      "setWeeklySchedule": "Setzen Sie Ihren wöchentlichen wiederkehrenden Zeitplan und blockieren Sie bestimmte Daten, wenn Sie nicht verfügbar sind",
+      "backToDashboard": "← Zurück zum Dashboard"
+    },
+    "providers": {
+      "title": "Gesundheitsanbieter",
+      "comingSoon": "Anbieterverzeichnis kommt bald..."
+    },
+    "bookings": {
+      "title": "Termin buchen",
+      "comingSoon": "Buchungsfunktionalität kommt bald..."
+    },
+    "therapist": {
+      "profile": "Therapeutenprofil",
+      "about": "Über",
+      "contactInformation": "Kontaktinformationen",
+      "readyToBook": "Bereit, einen Termin zu buchen?",
+      "viewAvailableSlots": "Klicken Sie unten, um verfügbare Zeitfenster anzuzeigen und Ihren Termin mit {therapistName} zu planen",
+      "viewAvailabilityBook": "Verfügbarkeit anzeigen & Buchen →",
+      "backToHome": "Zurück zur Startseite"
+    },
+    "booking": {
+      "bookAppointment": "Termin buchen",
+      "bookWith": "Buchen mit",
+      "backToTherapistProfile": "Zurück zum Therapeutenprofil"
+    }
   }
 }

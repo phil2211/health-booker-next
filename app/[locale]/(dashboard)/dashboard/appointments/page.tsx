@@ -2,8 +2,10 @@ import { getAuthSession } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { findTherapistById } from '@/models/Therapist'
 import LogoutButton from '@/components/LogoutButton'
+import LanguageSwitcher from '@/components/LanguageSwitcher'
 import Link from 'next/link'
 import AppointmentsView from '@/components/AppointmentsView'
+import { getTranslations } from 'next-intl/server'
 
 export default async function AppointmentsPage() {
   const session = await getAuthSession()
@@ -11,6 +13,9 @@ export default async function AppointmentsPage() {
   if (!session || !session.user) {
     redirect('/login')
   }
+
+  // Get translations
+  const t = await getTranslations('pages.appointments')
 
   // Get full therapist data
   const therapist = await findTherapistById(session.user.id)
@@ -30,15 +35,16 @@ export default async function AppointmentsPage() {
                 HealthBooker
               </Link>
               <span className="text-gray-400">|</span>
-              <span className="text-sm text-gray-600">View Appointments</span>
+              <span className="text-sm text-gray-600">{t('viewAppointments')}</span>
             </div>
             <div className="flex items-center space-x-4">
               <Link
                 href="/dashboard"
                 className="text-sm text-indigo-600 hover:text-indigo-700 font-medium"
               >
-                ← Back to Dashboard
+                {t('backToDashboard')}
               </Link>
+              <LanguageSwitcher />
               <LogoutButton />
             </div>
           </div>
@@ -50,10 +56,10 @@ export default async function AppointmentsPage() {
         {/* Header */}
         <div className="mb-8">
           <h2 className="text-4xl font-bold text-gray-900 mb-2">
-            Appointments Overview
+            {t('overview')}
           </h2>
           <p className="text-lg text-gray-600">
-            View and manage all your scheduled appointments
+            {t('viewManageAppointments')}
           </p>
         </div>
 

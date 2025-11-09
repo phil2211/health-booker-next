@@ -2,12 +2,14 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { AvailabilityEntry, BlockedSlot } from '@/lib/types'
 import WeeklyAvailabilityEditor from './WeeklyAvailabilityEditor'
 import BlockedSlotsEditor from './BlockedSlotsEditor'
 
 export default function AvailabilityManagement() {
   const router = useRouter()
+  const t = useTranslations('availability')
   const successTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const [weeklyAvailability, setWeeklyAvailability] = useState<AvailabilityEntry[]>([])
   const [blockedSlots, setBlockedSlots] = useState<BlockedSlot[]>([])
@@ -45,12 +47,12 @@ export default function AvailabilityManagement() {
         setWeeklyAvailability(weeklyAvail)
         setBlockedSlots(blocked)
         setInitialState({ weeklyAvailability: weeklyAvail, blockedSlots: blocked })
-      } catch (err) {
-        console.error('Error loading availability:', err)
-        setError('Failed to load availability. Please try again.')
-      } finally {
-        setLoading(false)
-      }
+        } catch (err) {
+          console.error('Error loading availability:', err)
+          setError(t('failedToLoad'))
+        } finally {
+          setLoading(false)
+        }
     }
 
     loadAvailability()
@@ -137,13 +139,13 @@ export default function AvailabilityManagement() {
       })
 
       if (!response.ok) {
-        let errorMessage = 'Failed to save availability'
+        let errorMessage = t('failedToSave')
         try {
           const errorData = await response.json()
           errorMessage = errorData.error || errorMessage
         } catch (parseError) {
           // If response is not JSON, use status text
-          errorMessage = `Failed to save availability: ${response.status} ${response.statusText}`
+          errorMessage = `${t('failedToSave')}: ${response.status} ${response.statusText}`
         }
         throw new Error(errorMessage)
       }
@@ -151,11 +153,11 @@ export default function AvailabilityManagement() {
       const data = await response.json()
       setWeeklyAvailability(data.weeklyAvailability || [])
       setBlockedSlots(data.blockedSlots || [])
-      setInitialState({
+        setInitialState({
         weeklyAvailability: data.weeklyAvailability || [],
         blockedSlots: data.blockedSlots || [],
       })
-      setSuccess('Availability updated successfully!')
+      setSuccess(t('availabilityUpdated'))
       setHasChanges(false)
 
       // Clear any existing timeout
@@ -171,11 +173,11 @@ export default function AvailabilityManagement() {
     } catch (err) {
       console.error('Error saving availability:', err)
       if (err instanceof TypeError && err.message.includes('fetch')) {
-        setError('Network error: Unable to connect to server. Please check your connection and try again.')
+        setError(t('networkError'))
       } else if (err instanceof Error) {
         setError(err.message)
       } else {
-        setError('Failed to save availability. Please try again.')
+        setError(t('failedToSave'))
       }
     } finally {
       setSaving(false)
@@ -269,7 +271,7 @@ export default function AvailabilityManagement() {
   }
 
   const handleCancel = () => {
-    if (hasChanges && !confirm('You have unsaved changes. Are you sure you want to leave?')) {
+    if (hasChanges && !confirm(t('confirmLeave'))) {
       return
     }
     router.push('/dashboard')
@@ -299,7 +301,7 @@ export default function AvailabilityManagement() {
               d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
             ></path>
           </svg>
-          <p className="text-gray-600">Loading availability...</p>
+          <p className="text-gray-600">{t('loadingAvailability')}</p>
         </div>
       </div>
     )
@@ -373,11 +375,11 @@ export default function AvailabilityManagement() {
           onClick={handleCancel}
           className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
         >
-          {hasChanges ? 'Cancel' : 'Return'}
+          {hasChanges ? t('cancel') : t('return')}
         </button>
         <div className="flex items-center gap-3">
           {hasChanges && (
-            <span className="text-sm text-gray-500">You have unsaved changes</span>
+            <span className="text-sm text-gray-500">{t('unsavedChanges')}</span>
           )}
           <button
             onClick={handleSave}
@@ -406,7 +408,7 @@ export default function AvailabilityManagement() {
                 ></path>
               </svg>
             )}
-            {saving ? 'Saving...' : 'Save Changes'}
+            {saving ? t('saving') : t('saveChanges')}
           </button>
         </div>
       </div>

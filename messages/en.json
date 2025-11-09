@@ -35,7 +35,11 @@
       "backToHome": "← Back to home",
       "invalidCredentials": "Invalid email or password",
       "genericError": "An error occurred during login",
-      "retryError": "An error occurred. Please try again."
+      "retryError": "An error occurred. Please try again.",
+      "placeholders": {
+        "email": "you@example.com",
+        "password": "••••••••"
+      }
     },
     "register": {
       "title": "Therapist Registration",
@@ -48,12 +52,6 @@
       "loginLink": "Already have an account? Login here"
     }
   },
-  "dashboard": {
-    "title": "Dashboard",
-    "appointments": "Appointments",
-    "availability": "Availability",
-    "settings": "Settings"
-  },
   "common": {
     "save": "Save",
     "cancel": "Cancel",
@@ -64,6 +62,212 @@
     "previous": "Previous",
     "loading": "Loading...",
     "error": "Error",
-    "success": "Success"
+    "success": "Success",
+    "close": "Close",
+    "book": "Book",
+    "confirm": "Confirm",
+    "yes": "Yes",
+    "no": "No",
+    "logout": "Logout"
+  },
+  "booking": {
+    "confirmation": {
+      "title": "Booking Confirmed!",
+      "subtitle": "Your appointment has been successfully booked. A confirmation email has been sent to {email}.",
+      "details": "Appointment Details",
+      "therapist": "Therapist",
+      "treatment": "Treatment",
+      "dateTime": "Date & Time",
+      "duration": "Duration",
+      "patient": "Patient",
+      "treatmentType": "Cranio Sacral Session",
+      "durationValue": "1 hour",
+      "calendar": {
+        "title": "Add to Calendar",
+        "description": "Save this appointment to your calendar so you don't forget!",
+        "added": "Appointment added to your calendar!",
+        "ios": "Add to iPhone Calendar",
+        "android": "Add to Android Calendar",
+        "desktop": {
+          "mac": "Open in Calendar App",
+          "other": "Download Calendar File (.ics)"
+        },
+        "help": {
+          "ios": "This will download an .ics file that you can open with the Calendar app",
+          "android": "This will open your device's calendar app to add the event",
+          "mac": "This will open the appointment directly in your Calendar app",
+          "other": "This will download an .ics file compatible with most calendar applications"
+        }
+      },
+      "actions": {
+        "bookAnother": "Book Another Appointment",
+        "close": "Close"
+      }
+    },
+    "form": {
+      "title": "Book Appointment",
+      "subtitle": "Select an available time slot",
+      "selectDate": "Select Date",
+      "selectTime": "Select Time",
+      "patientName": "Your Name",
+      "patientEmail": "Your Email",
+      "bookAppointment": "Book Appointment",
+      "booking": "Booking...",
+      "errors": {
+        "noSlots": "No available slots for this date",
+        "invalidTime": "Please select a valid time",
+        "missingInfo": "Please fill in all required fields"
+      }
+    }
+  },
+  "register": {
+    "title": "Create Your Account",
+    "subtitle": "Join HealthBooker as a therapist",
+    "email": "Email *",
+    "password": "Password *",
+    "confirmPassword": "Confirm Password *",
+    "fullName": "Full Name *",
+    "specialization": "Specialization *",
+    "bio": "Bio/Description *",
+    "createAccount": "Create Account",
+    "creating": "Creating Account...",
+    "placeholders": {
+      "email": "you@example.com",
+      "password": "At least 8 characters",
+      "confirmPassword": "Re-enter your password",
+      "fullName": "Dr. Jane Smith",
+      "specialization": "e.g., Craniosacral Therapist",
+      "bio": "Tell us about your background and approach..."
+    },
+    "loginPrompt": "Already have an account?",
+    "loginLink": "Sign in here",
+    "backToHome": "← Back to home",
+    "errors": {
+      "passwordMismatch": "Passwords do not match",
+      "passwordTooShort": "Password must be at least 8 characters long",
+      "registrationFailed": "Registration failed",
+      "generic": "An error occurred. Please try again."
+    }
+  },
+  "availability": {
+    "title": "Availability",
+    "subtitle": "Manage your available times",
+    "days": {
+      "monday": "Monday",
+      "tuesday": "Tuesday",
+      "wednesday": "Wednesday",
+      "thursday": "Thursday",
+      "friday": "Friday",
+      "saturday": "Saturday",
+      "sunday": "Sunday"
+    },
+    "addSlot": "Add time slot",
+    "removeSlot": "Remove",
+    "save": "Save",
+    "saving": "Saving...",
+    "startTime": "Start time",
+    "endTime": "End time",
+    "weeklyAvailability": "Weekly Availability",
+    "weeklyAvailabilityDescription": "Set your recurring weekly schedule. Enable days and set time ranges when you're available.",
+    "blockedTimeSlots": "Blocked Time Slots",
+    "blockedTimeSlotsDescription": "Block specific dates and times when you're not available for appointments.",
+    "addBlockedSlot": "Add Blocked Slot",
+    "dateRangeAndTimes": "Date Range & Times",
+    "selectDatesAndTimes": "Select dates and times",
+    "currentBlockedSlots": "Current Blocked Slots",
+    "noBlockedSlots": "No blocked slots. Add one above to block specific dates and times.",
+    "loadingAvailability": "Loading availability...",
+    "cancel": "Cancel",
+    "return": "Return",
+    "unsavedChanges": "You have unsaved changes",
+    "saveChanges": "Save Changes",
+    "saving": "Saving...",
+    "availabilityUpdated": "Availability updated successfully!",
+    "failedToLoad": "Failed to load availability. Please try again.",
+    "failedToSave": "Failed to save availability. Please try again.",
+    "networkError": "Network error: Unable to connect to server. Please check your connection and try again.",
+    "confirmLeave": "You have unsaved changes. Are you sure you want to leave?"
+  },
+  "dashboard": {
+    "welcome": "Welcome back",
+    "noAppointments": "No upcoming appointments",
+    "upcoming": "Upcoming",
+    "today": "Today",
+    "tomorrow": "Tomorrow",
+    "thisWeek": "This week",
+    "nextWeek": "Next week",
+    "viewAll": "View all"
+  },
+  "navigation": {
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "appointments": "Appointments",
+    "availability": "Availability",
+    "settings": "Settings"
+  },
+  "pages": {
+    "dashboard": {
+      "dashboardTitle": "Dashboard",
+      "welcome": "Welcome",
+      "currentAvailability": "Currently: {weeklySlots} weekly slots, {blockedSlots} blocked dates",
+      "welcomeBack": "Welcome back",
+      "manageAppointments": "Manage your appointments, availability, and profile settings",
+      "totalAvailability": "Total Availability",
+      "blockedSlots": "Blocked Slots",
+      "profileStatus": "Profile Status",
+      "active": "Active",
+      "yourProfile": "Your Profile",
+      "edit": "Edit",
+      "fullName": "Full Name",
+      "specialization": "Specialization",
+      "email": "Email",
+      "bio": "Bio",
+      "availabilityManagement": "Availability Management",
+      "setWeeklySchedule": "Set your weekly recurring schedule and block specific dates when you're not available",
+      "manageAvailability": "Manage Availability →",
+      "viewAppointments": "View Appointments",
+      "seeScheduledAppointments": "See all your scheduled and upcoming appointments",
+      "viewPatientBookings": "View patient bookings and manage your schedule",
+      "viewAppointmentsBtn": "View Appointments →",
+      "shareYourLinks": "Share Your Links",
+      "shareLinksDescription": "Share these links with patients to view your profile and book appointments:",
+      "loadingUrls": "Loading your URLs...",
+      "bookingLink": "Booking Link",
+      "profileLink": "Profile Link",
+      "shareTip": "💡 Tip: Share these links via email, social media, or add them to your website to let patients learn about you and book appointments."
+    },
+    "appointments": {
+      "overview": "Appointments Overview",
+      "viewManageAppointments": "View and manage all your scheduled appointments",
+      "backToDashboard": "← Back to Dashboard",
+      "viewAppointments": "View Appointments"
+    },
+    "availability": {
+      "manageAvailability": "Manage Availability",
+      "setWeeklySchedule": "Set your weekly recurring schedule and block specific dates when you're not available",
+      "backToDashboard": "← Back to Dashboard"
+    },
+    "providers": {
+      "title": "Health Providers",
+      "comingSoon": "Provider directory coming soon..."
+    },
+    "bookings": {
+      "title": "Book Appointment",
+      "comingSoon": "Booking functionality coming soon..."
+    },
+    "therapist": {
+      "profile": "Therapist Profile",
+      "about": "About",
+      "contactInformation": "Contact Information",
+      "readyToBook": "Ready to Book an Appointment?",
+      "viewAvailableSlots": "Click below to view available time slots and schedule your appointment with {therapistName}",
+      "viewAvailabilityBook": "View Availability & Book →",
+      "backToHome": "Back to Home"
+    },
+    "booking": {
+      "bookAppointment": "Book Appointment",
+      "bookWith": "Book with",
+      "backToTherapistProfile": "Back to Therapist Profile"
+    }
   }
 }

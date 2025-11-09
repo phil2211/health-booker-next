@@ -3,18 +3,46 @@ import { redirect } from 'next/navigation'
 import { findTherapistById } from '@/models/Therapist'
 import LogoutButton from '@/components/LogoutButton'
 import BookingUrlSection from '@/components/BookingUrlSection'
+import LanguageSwitcher from '@/components/LanguageSwitcher'
 import Link from 'next/link'
+import en from '../../../../messages/en.json'
+import de from '../../../../messages/de.json'
 
-export default async function DashboardPage() {
+interface DashboardPageProps {
+  params: Promise<{ locale: string }>
+}
+
+export default async function DashboardPage({ params }: DashboardPageProps) {
   const session = await getAuthSession()
 
   if (!session || !session.user) {
     redirect('/login')
   }
 
+  const { locale } = await params
+
+  // Get translations directly from imported messages
+  const messages = { en, de }
+  const localeMessages = messages[locale as keyof typeof messages] || messages.en
+  const dashboardMessages = localeMessages.pages?.dashboard || {}
+
+  // Create translation function with interpolation support
+  const t = (key: string, params?: Record<string, any>) => {
+    let message = dashboardMessages[key as keyof typeof dashboardMessages] || key
+
+    if (params && typeof message === 'string') {
+      // Simple interpolation for placeholders like {variable}
+      Object.entries(params).forEach(([paramKey, paramValue]) => {
+        message = message.replace(new RegExp(`\\{${paramKey}\\}`, 'g'), String(paramValue))
+      })
+    }
+
+    return message
+  }
+
   // Get full therapist data
   const therapist = await findTherapistById(session.user.id)
-  
+
   if (!therapist) {
     return <div>Therapist not found</div>
   }
@@ -36,10 +64,11 @@ export default async function DashboardPage() {
             <div className="flex items-center space-x-4">
               <h1 className="text-xl font-bold text-indigo-600">HealthBooker</h1>
               <span className="text-gray-400">|</span>
-              <span className="text-sm text-gray-600">Dashboard</span>
+              <span className="text-sm text-gray-600">{t('dashboardTitle')}</span>
             </div>
             <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-600 hidden sm:inline">Welcome, {therapist.name}</span>
+              <span className="text-sm text-gray-600 hidden sm:inline">{t('welcome')}, {therapist.name}</span>
+              <LanguageSwitcher />
               <LogoutButton />
             </div>
           </div>
@@ -51,10 +80,10 @@ export default async function DashboardPage() {
         {/* Welcome Section */}
         <div className="mb-8">
           <h2 className="text-4xl font-bold text-gray-900 mb-2">
-            Welcome back, {therapist.name}! 👋
+            {t('welcomeBack')}, {therapist.name}! 👋
           </h2>
           <p className="text-lg text-gray-600">
-            Manage your appointments, availability, and profile settings
+            {t('manageAppointments')}
           </p>
         </div>
 
@@ -70,7 +99,7 @@ export default async function DashboardPage() {
                 </div>
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Total Availability</p>
+                <p className="text-sm font-medium text-gray-500">{t('totalAvailability')}</p>
                 <p className="text-2xl font-bold text-gray-900">{therapist.weeklyAvailability.length}</p>
               </div>
             </div>
@@ -86,7 +115,7 @@ export default async function DashboardPage() {
                 </div>
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Blocked Slots</p>
+                <p className="text-sm font-medium text-gray-500">{t('blockedSlots')}</p>
                 <p className="text-2xl font-bold text-gray-900">{therapist.blockedSlots.length}</p>
               </div>
             </div>
@@ -102,8 +131,8 @@ export default async function DashboardPage() {
                 </div>
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Profile Status</p>
-                <p className="text-2xl font-bold text-green-600">Active</p>
+                <p className="text-sm font-medium text-gray-500">{t('profileStatus')}</p>
+                <p className="text-2xl font-bold text-green-600">{t('active')}</p>
               </div>
             </div>
           </div>
@@ -113,26 +142,26 @@ export default async function DashboardPage() {
           {/* Profile Card */}
           <div className="bg-white rounded-xl shadow-md border p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-semibold text-gray-900">Your Profile</h3>
+              <h3 className="text-xl font-semibold text-gray-900">{t('yourProfile')}</h3>
               <button className="text-sm text-indigo-600 hover:text-indigo-700 font-medium">
-                Edit
+                {t('edit')}
               </button>
             </div>
             <div className="space-y-4">
               <div className="pb-4 border-b">
-                <p className="text-sm text-gray-500 mb-1">Full Name</p>
+                <p className="text-sm text-gray-500 mb-1">{t('fullName')}</p>
                 <p className="text-gray-900 font-medium">{therapist.name}</p>
               </div>
               <div className="pb-4 border-b">
-                <p className="text-sm text-gray-500 mb-1">Specialization</p>
+                <p className="text-sm text-gray-500 mb-1">{t('specialization')}</p>
                 <p className="text-gray-900 font-medium">{therapist.specialization}</p>
               </div>
               <div className="pb-4 border-b">
-                <p className="text-sm text-gray-500 mb-1">Email</p>
+                <p className="text-sm text-gray-500 mb-1">{t('email')}</p>
                 <p className="text-gray-900 font-medium">{therapist.email}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-500 mb-2">Bio</p>
+                <p className="text-sm text-gray-500 mb-2">{t('bio')}</p>
                 <p className="text-gray-700 leading-relaxed">{therapist.bio}</p>
               </div>
             </div>
@@ -148,34 +177,34 @@ export default async function DashboardPage() {
         {/* Quick Actions */}
         <div className="mt-6 grid md:grid-cols-2 gap-6">
           <div className="bg-white rounded-xl shadow-md border p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Availability Management</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('availabilityManagement')}</h3>
             <p className="text-gray-600 mb-4">
-              Set your weekly recurring availability and block specific dates.
+              {t('setWeeklySchedule')}
             </p>
             <p className="text-sm text-gray-500 mb-4">
-              Currently: {therapist.weeklyAvailability.length} weekly slots, {therapist.blockedSlots.length} blocked dates
+              {t('currentAvailability', { weeklySlots: therapist.weeklyAvailability.length, blockedSlots: therapist.blockedSlots.length })}
             </p>
             <Link
               href="/dashboard/availability"
               className="block w-full bg-indigo-600 text-white px-4 py-3 rounded-lg font-medium hover:bg-indigo-700 transition-colors text-center"
             >
-              Manage Availability →
+              {t('manageAvailability')}
             </Link>
           </div>
 
           <div className="bg-white rounded-xl shadow-md border p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">View Appointments</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('viewAppointments')}</h3>
             <p className="text-gray-600 mb-4">
-              See all your scheduled and upcoming appointments.
+              {t('seeScheduledAppointments')}
             </p>
             <p className="text-sm text-gray-500 mb-4">
-              View patient bookings and manage your schedule
+              {t('viewPatientBookings')}
             </p>
             <Link
               href="/dashboard/appointments"
               className="block w-full bg-green-600 text-white px-4 py-3 rounded-lg font-medium hover:bg-green-700 transition-colors text-center"
             >
-              View Appointments →
+              {t('viewAppointmentsBtn')}
             </Link>
           </div>
         </div>

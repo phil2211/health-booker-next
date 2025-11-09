@@ -1,8 +1,10 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
+import LanguageSwitcher from '@/components/LanguageSwitcher'
 import { findTherapistById } from '@/models/Therapist'
 import { ObjectId } from 'mongodb'
+import { getTranslations } from 'next-intl/server'
 
 interface TherapistPageProps {
   params: Promise<{ id: string }>
@@ -48,6 +50,9 @@ export default async function TherapistProfilePage({ params }: TherapistPageProp
 
   const therapist = data.therapist
 
+  // Get translations
+  const t = await getTranslations('pages.therapist')
+
   return (
     <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100">
       {/* Navigation Bar */}
@@ -59,12 +64,13 @@ export default async function TherapistProfilePage({ params }: TherapistPageProp
                 HealthBooker
               </Link>
               <span className="text-gray-400">|</span>
-              <span className="text-sm text-gray-600">Therapist Profile</span>
+              <span className="text-sm text-gray-600">{t('profile')}</span>
             </div>
             <div className="flex items-center space-x-4">
               <Link href="/" className="text-sm text-gray-600 hover:text-gray-800">
-                Home
+                {t('backToHome')}
               </Link>
+              <LanguageSwitcher />
             </div>
           </div>
         </div>
@@ -96,13 +102,13 @@ export default async function TherapistProfilePage({ params }: TherapistPageProp
           {/* Bio Section */}
           <div className="space-y-6">
             <div>
-              <h2 className="text-lg font-semibold text-gray-900 mb-3">About {therapist.name.split(' ')[0]}</h2>
+              <h2 className="text-lg font-semibold text-gray-900 mb-3">{t('about')} {therapist.name.split(' ')[0]}</h2>
               <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{therapist.bio}</p>
             </div>
 
             {/* Contact Information */}
             <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
-              <h3 className="text-md font-semibold text-gray-900 mb-3">Contact Information</h3>
+              <h3 className="text-md font-semibold text-gray-900 mb-3">{t('contactInformation')}</h3>
               <p className="text-sm text-gray-600 mb-1">
                 <span className="font-medium">Email:</span> {therapist.email}
               </p>
@@ -111,16 +117,16 @@ export default async function TherapistProfilePage({ params }: TherapistPageProp
             {/* Booking Call to Action */}
             <div className="mt-8 bg-indigo-50 rounded-lg p-6 border border-indigo-200">
               <h3 className="text-lg font-semibold text-indigo-900 mb-3">
-                Ready to Book an Appointment?
+                {t('readyToBook')}
               </h3>
               <p className="text-indigo-700 mb-4">
-                Click below to view available time slots and schedule your appointment with {therapist.name}.
+                {t('viewAvailableSlots', { therapistName: therapist.name })}
               </p>
               <Link
                 href={`/book/${therapist._id}`}
                 className="inline-block w-full sm:w-auto bg-indigo-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-indigo-700 transition-colors text-center"
               >
-                View Availability & Book →
+                {t('viewAvailabilityBook')}
               </Link>
             </div>
           </div>
@@ -135,7 +141,7 @@ export default async function TherapistProfilePage({ params }: TherapistPageProp
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
-            Back to Home
+            {t('backToHome')}
           </Link>
         </div>
       </div>
