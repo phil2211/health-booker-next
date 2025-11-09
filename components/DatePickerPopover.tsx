@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { DayPicker } from 'react-day-picker'
 import { format, parseISO, startOfToday, isWithinInterval, startOfDay } from 'date-fns'
 import { BlockedSlot } from '@/lib/types'
@@ -15,6 +15,7 @@ interface DatePickerPopoverProps {
   availableDates?: Set<string> // Set of dates (YYYY-MM-DD) that have available slots
   onChange: (date: string) => void // Callback with YYYY-MM-DD format
   'data-testid'?: string
+  popoverId?: string // Unique ID for the popover
 }
 
 export default function DatePickerPopover({
@@ -25,11 +26,42 @@ export default function DatePickerPopover({
   availableDates,
   onChange,
   'data-testid': testId,
+  popoverId,
 }: DatePickerPopoverProps) {
+  const uniquePopoverId = popoverId || `date-picker-popover-${Math.random().toString(36).substr(2, 9)}`
+
+  // Initialize displayText based on selectedDate prop
+  const getInitialDisplayText = () => {
+    if (selectedDate) {
+      try {
+        const date = parseISO(selectedDate)
+        if (!isNaN(date.getTime())) {
+          return format(date, 'MMM d, yyyy')
+        }
+      } catch (error) {
+        // Ignore parsing errors
+      }
+    }
+    return 'Select date'
+  }
+
   const [selected, setSelected] = useState<Date | undefined>(undefined)
   const [isOpen, setIsOpen] = useState(false)
   const popoverRef = useRef<HTMLDivElement>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  const displayText = useMemo(() => {
+    if (selectedDate) {
+      try {
+        const date = new Date(selectedDate + 'T00:00:00')
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+      } catch (e) {
+        return 'Select date'
+      }
+    }
+    return 'Select date'
+  }, [selectedDate])
   
   const today = min || startOfToday()
 
@@ -94,53 +126,56 @@ export default function DatePickerPopover({
     return false
   }
 
-  // Initialize selected date from props
+  // Update selected date when props change
   useEffect(() => {
     if (selectedDate) {
       try {
         const date = parseISO(selectedDate)
         if (!isNaN(date.getTime())) {
-          const timeoutId = setTimeout(() => {
-            setSelected(date)
-          }, 0)
-          return () => clearTimeout(timeoutId)
+          setSelected(date)
         }
       } catch (error) {
-        const timeoutId = setTimeout(() => {
-          setSelected(undefined)
-        }, 0)
-        return () => clearTimeout(timeoutId)
+        setSelected(undefined)
       }
     } else {
-      const timeoutId = setTimeout(() => {
-        setSelected(undefined)
-      }, 0)
-      return () => clearTimeout(timeoutId)
+      setSelected(undefined)
     }
   }, [selectedDate])
 
-  // Handle popover events
+  // Force re-render when selected changes
+  const [, forceUpdate] = useState({})
   useEffect(() => {
-    const popover = popoverRef.current
-    if (!popover) return
+    forceUpdate({})
+  }, [selected])
 
-    const handleToggle = (e: ToggleEvent) => {
-      setIsOpen(e.newState === 'open')
+  // Handle click outside to close calendar
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node) &&
+        isOpen
+      ) {
+        setIsOpen(false)
+      }
     }
 
-    popover.addEventListener('toggle', handleToggle)
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+
     return () => {
-      popover.removeEventListener('toggle', handleToggle)
+      document.removeEventListener('mousedown', handleClickOutside)
     }
-  }, [])
+  }, [isOpen])
 
-  // Handle keyboard: Esc closes popover
+  // Handle keyboard: Esc closes calendar
   useEffect(() => {
     if (!isOpen) return
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        popoverRef.current?.hidePopover()
+        setIsOpen(false)
         triggerRef.current?.focus()
       }
     }
@@ -161,9 +196,10 @@ export default function DatePickerPopover({
 
   const handleDateSelect = (date: Date | undefined) => {
     if (date) {
+      const dateString = format(date, 'yyyy-MM-dd')
       setSelected(date)
-      onChange(format(date, 'yyyy-MM-dd'))
-      popoverRef.current?.hidePopover()
+      onChange(dateString)
+      setIsOpen(false)
       triggerRef.current?.focus()
     }
   }
@@ -171,7 +207,7 @@ export default function DatePickerPopover({
   const handleClear = () => {
     setSelected(undefined)
     onChange('')
-    popoverRef.current?.hidePopover()
+    setIsOpen(false)
     triggerRef.current?.focus()
   }
 
@@ -191,21 +227,23 @@ export default function DatePickerPopover({
     } else {
       setSelected(undefined)
     }
-    popoverRef.current?.hidePopover()
+    setIsOpen(false)
     triggerRef.current?.focus()
   }
 
   return (
-    <div className="relative">
+    <div ref={containerRef} className="relative">
       <button
         ref={triggerRef}
         type="button"
-        popoverTarget="date-picker-popover"
+        onClick={() => setIsOpen(!isOpen)}
         data-testid={testId || 'date-picker-trigger'}
         className="w-full min-w-44 px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 bg-white text-left flex items-center justify-between hover:border-gray-400 transition-colors font-medium"
         aria-label="Select date"
+        aria-expanded={isOpen}
+        aria-haspopup="dialog"
       >
-        <span className="flex-1 truncate">{getDisplayText()}</span>
+        <span className="flex-1 truncate">{displayText}</span>
         <svg
           className="w-5 h-5 text-gray-400 shrink-0 ml-2"
           fill="none"
@@ -221,51 +259,51 @@ export default function DatePickerPopover({
         </svg>
       </button>
 
-      <div
-        ref={popoverRef}
-        id="date-picker-popover"
-        popover="auto"
-        className="bg-white rounded-lg shadow-lg border border-gray-200 p-4 z-50"
-        style={{ width: 'max-content', maxWidth: '90vw' }}
-      >
-        <DayPicker
-          mode="single"
-          numberOfMonths={1}
-          selected={selected}
-          onSelect={handleDateSelect}
-          disabled={disabledDays}
-          className="rdp"
-          showOutsideDays
-          fixedWeeks
-          modifiers={{
-            blocked: (date) => isBlockedDate(date) || isUnavailableDate(date),
-          }}
-          modifiersClassNames={{
-            blocked: 'rdp-day_blocked',
-          }}
-        />
-        
-        <div className="flex items-center justify-between gap-3 mt-4 pt-4 border-t border-gray-200">
-          <button
-            type="button"
-            onClick={handleClear}
-            className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
-            data-testid={`${testId || 'date-picker'}-clear`}
-          >
-            Clear
-          </button>
-          <div className="flex gap-2">
+      {isOpen && (
+        <div
+          ref={popoverRef}
+          className="absolute top-full left-0 mt-1 bg-white rounded-lg shadow-lg border border-gray-200 p-4 z-50"
+          style={{ width: 'max-content', maxWidth: '90vw' }}
+        >
+          <DayPicker
+            mode="single"
+            numberOfMonths={1}
+            selected={selected}
+            onSelect={handleDateSelect}
+            disabled={disabledDays}
+            className="rdp"
+            showOutsideDays
+            fixedWeeks
+            modifiers={{
+              blocked: (date) => isBlockedDate(date) || isUnavailableDate(date),
+            }}
+            modifiersClassNames={{
+              blocked: 'rdp-day_blocked',
+            }}
+          />
+
+          <div className="flex items-center justify-between gap-3 mt-4 pt-4 border-t border-gray-200">
             <button
               type="button"
-              onClick={handleCancel}
-              className="px-4 py-2 text-sm text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-              data-testid={`${testId || 'date-picker'}-cancel`}
+              onClick={handleClear}
+              className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
+              data-testid={`${testId || 'date-picker'}-clear`}
             >
-              Cancel
+              Clear
             </button>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={handleCancel}
+                className="px-4 py-2 text-sm text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                data-testid={`${testId || 'date-picker'}-cancel`}
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }

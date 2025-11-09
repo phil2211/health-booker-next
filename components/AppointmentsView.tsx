@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { format, addWeeks, startOfToday } from 'date-fns'
 import { Booking, BookingStatus } from '@/lib/types'
 import AppointmentsList from './AppointmentsList'
 import AppointmentsCalendar from './AppointmentsCalendar'
@@ -8,6 +9,7 @@ import AppointmentDetailModal from './AppointmentDetailModal'
 import RescheduleModal from './RescheduleModal'
 import CancellationModal from './CancellationModal'
 import AppointmentStatusBadge from './AppointmentStatusBadge'
+import DatePickerPopover from './DatePickerPopover'
 
 interface AppointmentsViewProps {
   therapistId: string
@@ -37,8 +39,8 @@ export default function AppointmentsView({ therapistId }: AppointmentsViewProps)
     startDate: string
     endDate: string
   }>({
-    startDate: '',
-    endDate: ''
+    startDate: format(startOfToday(), 'yyyy-MM-dd'),
+    endDate: format(addWeeks(startOfToday(), 2), 'yyyy-MM-dd')
   })
 
   // Modal states
@@ -317,20 +319,22 @@ export default function AppointmentsView({ therapistId }: AppointmentsViewProps)
             <div className="flex gap-2">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">From</label>
-                <input
-                  type="date"
-                  value={dateRange.startDate}
-                  onChange={(e) => setDateRange(prev => ({ ...prev, startDate: e.target.value }))}
-                  className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-black"
+                <DatePickerPopover
+                  key="date-from"
+                  selectedDate={dateRange.startDate}
+                  onChange={(date) => setDateRange(prev => ({ ...prev, startDate: date }))}
+                  data-testid="date-from"
+                  popoverId="date-from-popover"
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">To</label>
-                <input
-                  type="date"
-                  value={dateRange.endDate}
-                  onChange={(e) => setDateRange(prev => ({ ...prev, endDate: e.target.value }))}
-                  className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-black"
+                <DatePickerPopover
+                  key="date-to"
+                  selectedDate={dateRange.endDate}
+                  onChange={(date) => setDateRange(prev => ({ ...prev, endDate: date }))}
+                  data-testid="date-to"
+                  popoverId="date-to-popover"
                 />
               </div>
             </div>

@@ -99,9 +99,14 @@ export async function GET(request: NextRequest) {
     const defaultStartDate = startDate || new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
     const defaultEndDate = endDate || new Date(now.getTime() + 180 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
 
+    // Always include cancelled bookings since we need them for filtering
+    // The getBookingsByTherapistAndDateRange function now defaults to includeCancelled = true
+    // when no parameter is passed, but we'll be explicit
+    const includeCancelled = true
+
     // Fetch bookings and statistics in parallel
     const [bookings, stats] = await Promise.all([
-      getBookingsByTherapistAndDateRange(therapistId, defaultStartDate, defaultEndDate),
+      getBookingsByTherapistAndDateRange(therapistId, defaultStartDate, defaultEndDate, includeCancelled),
       getAppointmentStats(therapistId)
     ])
 

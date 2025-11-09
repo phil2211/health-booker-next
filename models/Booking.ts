@@ -46,12 +46,17 @@ export function validateBooking(booking: Partial<Booking>): boolean {
 
 /**
  * Get bookings by therapist ID and date range
- * Returns non-cancelled bookings only
+ * @param therapistId - The therapist ID
+ * @param startDate - Start date for the range (YYYY-MM-DD)
+ * @param endDate - End date for the range (YYYY-MM-DD)
+ * @param includeCancelled - Whether to include cancelled bookings (default: false)
+ * @returns Array of booking documents
  */
 export async function getBookingsByTherapistAndDateRange(
   therapistId: string,
   startDate: string,
-  endDate: string
+  endDate: string,
+  includeCancelled: boolean = false
 ): Promise<BookingDocument[]> {
   const db = await getDatabase()
   
@@ -87,9 +92,8 @@ export async function getBookingsByTherapistAndDateRange(
           },
         ],
       },
-      {
-        status: { $ne: BookingStatus.CANCELLED },
-      },
+      // Only exclude cancelled bookings if includeCancelled is false
+      ...(includeCancelled ? [] : [{ status: { $ne: BookingStatus.CANCELLED } }]),
     ],
   }
   
