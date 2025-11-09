@@ -26,7 +26,7 @@ function createErrorResponse(error: unknown, functionName: string, statusCode: n
     error: errorMessage,
     details: {
       function: functionName,
-    }
+    } as { function: string; message?: string; stack?: string }
   }
 
   if (error instanceof Error) {

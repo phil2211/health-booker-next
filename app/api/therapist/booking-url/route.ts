@@ -4,7 +4,7 @@ import { requireAuth } from '@/lib/auth'
 /**
  * Helper function to create detailed error responses
  */
-function createErrorResponse(error: unknown, functionName: string, statusCode: number = 500): { error: string; details?: { function: string; message: string; stack?: string } } {
+function createErrorResponse(error: unknown, functionName: string, statusCode: number = 500): { error: string; details?: { function: string; message?: string; stack?: string } } {
   let errorMessage: string
   if (statusCode === 500) {
     errorMessage = 'Internal server error'
@@ -22,7 +22,7 @@ function createErrorResponse(error: unknown, functionName: string, statusCode: n
     error: errorMessage,
     details: {
       function: functionName,
-    }
+    } as { function: string; message?: string; stack?: string }
   }
 
   if (error instanceof Error) {
