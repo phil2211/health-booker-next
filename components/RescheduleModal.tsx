@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Booking } from '@/lib/types'
 
 interface RescheduleModalProps {
@@ -32,14 +32,7 @@ export default function RescheduleModal({
     setSelectedDate(dateString)
   }, [booking.appointmentDate])
 
-  // Fetch available slots when date changes
-  useEffect(() => {
-    if (selectedDate) {
-      fetchAvailableSlots(selectedDate)
-    }
-  }, [selectedDate])
-
-  const fetchAvailableSlots = async (date: string) => {
+  const fetchAvailableSlots = useCallback(async (date: string) => {
     setLoading(true)
     try {
       // For now, generate some example time slots
@@ -74,7 +67,14 @@ export default function RescheduleModal({
     } finally {
       setLoading(false)
     }
-  }
+  }, [booking])
+
+  // Fetch available slots when date changes
+  useEffect(() => {
+    if (selectedDate) {
+      fetchAvailableSlots(selectedDate)
+    }
+  }, [selectedDate, fetchAvailableSlots])
 
   const handleReschedule = async () => {
     if (!selectedDate || !selectedTimeSlot) {
