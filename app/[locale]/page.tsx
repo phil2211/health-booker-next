@@ -4,10 +4,12 @@ import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
+import { useTranslations } from 'next-intl'
 
 export default function Home() {
   const { data: session, status } = useSession()
   const router = useRouter()
+  const t = useTranslations('landing')
 
   useEffect(() => {
     if (status === 'authenticated' && session) {
@@ -21,7 +23,7 @@ export default function Home() {
       <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
+          <p className="text-gray-600">{t('loading')}</p>
         </div>
       </div>
     )
@@ -34,23 +36,23 @@ export default function Home() {
         <div className="container mx-auto px-4 py-16">
           <div className="max-w-3xl mx-auto text-center">
             <h1 className="text-5xl font-bold text-gray-900 mb-6">
-              Health Worker Booking System
+              {t('title')}
             </h1>
             <p className="text-xl text-gray-700 mb-8">
-              Easily schedule appointments with qualified health professionals
+              {t('subtitle')}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 href="/bookings"
                 className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-indigo-700 transition-colors"
               >
-                Book Appointment
+                {t('bookAppointment')}
               </Link>
               <Link
                 href="/providers"
                 className="bg-white text-indigo-600 px-6 py-3 rounded-lg font-semibold border-2 border-indigo-600 hover:bg-indigo-50 transition-colors"
               >
-                View Providers
+                {t('viewProviders')}
               </Link>
             </div>
 
@@ -59,13 +61,13 @@ export default function Home() {
                 href="/login"
                 className="text-indigo-600 px-6 py-2 font-semibold hover:text-indigo-700 transition-colors"
               >
-                Therapist Login
+                {t('therapistLogin')}
               </Link>
               <Link
                 href="/register"
                 className="text-indigo-600 px-6 py-2 font-semibold hover:text-indigo-700 transition-colors"
               >
-                Therapist Register
+                {t('therapistRegister')}
               </Link>
             </div>
           </div>
@@ -73,26 +75,26 @@ export default function Home() {
           <div className="mt-20 grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             <div className="bg-white p-6 rounded-lg shadow-md">
               <h3 className="text-xl font-semibold text-gray-900 mb-3">
-                Easy Booking
+                {t('features.easyBooking.title')}
               </h3>
               <p className="text-gray-600">
-                Simple and intuitive appointment scheduling with real-time availability
+                {t('features.easyBooking.description')}
               </p>
             </div>
             <div className="bg-white p-6 rounded-lg shadow-md">
               <h3 className="text-xl font-semibold text-gray-900 mb-3">
-                Qualified Professionals
+                {t('features.qualifiedProfessionals.title')}
               </h3>
               <p className="text-gray-600">
-                Choose from a network of certified health workers and specialists
+                {t('features.qualifiedProfessionals.description')}
               </p>
             </div>
             <div className="bg-white p-6 rounded-lg shadow-md">
               <h3 className="text-xl font-semibold text-gray-900 mb-3">
-                Secure System
+                {t('features.secureSystem.title')}
               </h3>
               <p className="text-gray-600">
-                Your personal information and health data are always protected
+                {t('features.secureSystem.description')}
               </p>
             </div>
           </div>

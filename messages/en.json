@@ -1,0 +1,69 @@
+{
+  "landing": {
+    "title": "Health Worker Booking System",
+    "subtitle": "Easily schedule appointments with qualified health professionals",
+    "bookAppointment": "Book Appointment",
+    "viewProviders": "View Providers",
+    "therapistLogin": "Therapist Login",
+    "therapistRegister": "Therapist Register",
+    "features": {
+      "easyBooking": {
+        "title": "Easy Booking",
+        "description": "Simple and intuitive appointment scheduling with real-time availability"
+      },
+      "qualifiedProfessionals": {
+        "title": "Qualified Professionals",
+        "description": "Choose from a network of certified health workers and specialists"
+      },
+      "secureSystem": {
+        "title": "Secure System",
+        "description": "Your personal information and health data are always protected"
+      }
+    },
+    "loading": "Loading..."
+  },
+  "auth": {
+    "login": {
+      "title": "Welcome Back",
+      "subtitle": "Sign in to your therapist account",
+      "email": "Email",
+      "password": "Password",
+      "signInButton": "Sign In",
+      "signingIn": "Signing in...",
+      "registerPrompt": "Don't have an account?",
+      "registerLink": "Register here",
+      "backToHome": "← Back to home",
+      "invalidCredentials": "Invalid email or password",
+      "genericError": "An error occurred during login",
+      "retryError": "An error occurred. Please try again."
+    },
+    "register": {
+      "title": "Therapist Registration",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "email": "Email",
+      "password": "Password",
+      "confirmPassword": "Confirm Password",
+      "registerButton": "Register",
+      "loginLink": "Already have an account? Login here"
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "appointments": "Appointments",
+    "availability": "Availability",
+    "settings": "Settings"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success"
+  }
+}

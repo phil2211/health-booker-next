@@ -4,9 +4,11 @@ import { useState } from 'react'
 import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 
 export default function LoginPage() {
   const router = useRouter()
+  const t = useTranslations('auth.login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -28,7 +30,7 @@ export default function LoginPage() {
 
       if (result?.error) {
         console.error('Login error:', result.error)
-        setError('Invalid email or password')
+        setError(t('invalidCredentials'))
       } else if (result?.ok) {
         // Success - wait a moment for session to be set, then redirect
         console.log('Login successful, waiting for session...')
@@ -37,11 +39,11 @@ export default function LoginPage() {
         }, 100)
       } else {
         console.error('Unexpected result:', result)
-        setError('An error occurred during login')
+        setError(t('genericError'))
       }
     } catch (err) {
       console.error('Login exception:', err)
-      setError('An error occurred. Please try again.')
+      setError(t('retryError'))
     } finally {
       setLoading(false)
     }
@@ -50,8 +52,8 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 flex items-center justify-center px-4">
       <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back</h1>
-        <p className="text-gray-600 mb-6">Sign in to your therapist account</p>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('title')}</h1>
+        <p className="text-gray-600 mb-6">{t('subtitle')}</p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
@@ -62,7 +64,7 @@ export default function LoginPage() {
 
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-              Email
+              {t('email')}
             </label>
             <input
               id="email"
@@ -78,7 +80,7 @@ export default function LoginPage() {
 
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-              Password
+              {t('password')}
             </label>
             <input
               id="password"
@@ -97,22 +99,22 @@ export default function LoginPage() {
             disabled={loading}
             className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            {loading ? 'Signing in...' : 'Sign In'}
+            {loading ? t('signingIn') : t('signInButton')}
           </button>
         </form>
 
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600">
-            Don't have an account?{' '}
+            {t('registerPrompt')}{' '}
             <Link href="/register" className="text-indigo-600 hover:text-indigo-700 font-medium">
-              Register here
+              {t('registerLink')}
             </Link>
           </p>
         </div>
 
         <div className="mt-4 text-center">
           <Link href="/" className="text-sm text-gray-500 hover:text-gray-700">
-            ← Back to home
+            {t('backToHome')}
           </Link>
         </div>
       </div>

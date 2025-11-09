@@ -1,0 +1,69 @@
+{
+  "landing": {
+    "title": "Gesundheitsarbeiter-Buchungssystem",
+    "subtitle": "Einfach Termine mit qualifizierten Gesundheitsfachkräften vereinbaren",
+    "bookAppointment": "Termin buchen",
+    "viewProviders": "Anbieter ansehen",
+    "therapistLogin": "Therapeut Login",
+    "therapistRegister": "Therapeut registrieren",
+    "features": {
+      "easyBooking": {
+        "title": "Einfache Buchung",
+        "description": "Einfache und intuitive Terminplanung mit Echtzeit-Verfügbarkeit"
+      },
+      "qualifiedProfessionals": {
+        "title": "Qualifizierte Fachkräfte",
+        "description": "Wählen Sie aus einem Netzwerk zertifizierter Gesundheitsarbeiter und Spezialisten"
+      },
+      "secureSystem": {
+        "title": "Sicheres System",
+        "description": "Ihre persönlichen Informationen und Gesundheitsdaten sind immer geschützt"
+      }
+    },
+    "loading": "Laden..."
+  },
+  "auth": {
+    "login": {
+      "title": "Willkommen zurück",
+      "subtitle": "Melden Sie sich in Ihrem Therapeuten-Konto an",
+      "email": "E-Mail",
+      "password": "Passwort",
+      "signInButton": "Anmelden",
+      "signingIn": "Anmeldung läuft...",
+      "registerPrompt": "Haben Sie noch kein Konto?",
+      "registerLink": "Hier registrieren",
+      "backToHome": "← Zurück zur Startseite",
+      "invalidCredentials": "Ungültige E-Mail oder Passwort",
+      "genericError": "Bei der Anmeldung ist ein Fehler aufgetreten",
+      "retryError": "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut."
+    },
+    "register": {
+      "title": "Therapeut Registrierung",
+      "firstName": "Vorname",
+      "lastName": "Nachname",
+      "email": "E-Mail",
+      "password": "Passwort",
+      "confirmPassword": "Passwort bestätigen",
+      "registerButton": "Registrieren",
+      "loginLink": "Haben Sie bereits ein Konto? Hier anmelden"
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "appointments": "Termine",
+    "availability": "Verfügbarkeit",
+    "settings": "Einstellungen"
+  },
+  "common": {
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "delete": "Löschen",
+    "edit": "Bearbeiten",
+    "back": "Zurück",
+    "next": "Weiter",
+    "previous": "Zurück",
+    "loading": "Laden...",
+    "error": "Fehler",
+    "success": "Erfolg"
+  }
+}
