@@ -2,6 +2,42 @@ import { NextResponse } from 'next/server'
 import { getDatabase } from '@/lib/mongodb'
 import { BookingStatus } from '@/lib/types'
 
+/**
+ * Helper function to create detailed error responses
+ */
+function createErrorResponse(error: unknown, functionName: string, statusCode: number = 500): { error: string; details?: { function: string; message: string; stack?: string } } {
+  let errorMessage: string
+  if (statusCode === 500) {
+    errorMessage = 'Internal server error'
+  } else if (statusCode === 404) {
+    errorMessage = 'Not found'
+  } else if (statusCode === 401) {
+    errorMessage = 'Unauthorized'
+  } else if (statusCode === 400) {
+    errorMessage = 'Bad request'
+  } else {
+    errorMessage = 'Request failed'
+  }
+
+  const baseResponse = {
+    error: errorMessage,
+    details: {
+      function: functionName,
+    }
+  }
+
+  if (error instanceof Error) {
+    baseResponse.details.message = error.message
+    if (process.env.NODE_ENV === 'development') {
+      baseResponse.details.stack = error.stack
+    }
+  } else {
+    baseResponse.details.message = String(error)
+  }
+
+  return baseResponse
+}
+
 interface CancelBookingParams {
   params: Promise<{ token: string }>
 }
@@ -87,7 +123,7 @@ export async function POST(request: Request, { params }: CancelBookingParams) {
   } catch (error) {
     console.error('Cancel booking error:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      createErrorResponse(error, 'POST /api/cancel/[token]'),
       { status: 500 }
     )
   }
@@ -136,7 +172,7 @@ export async function GET(request: Request, { params }: CancelBookingParams) {
   } catch (error) {
     console.error('Get booking for cancellation error:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      createErrorResponse(error, 'GET /api/cancel/[token]'),
       { status: 500 }
     )
   }

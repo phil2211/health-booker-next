@@ -249,7 +249,8 @@ describe('Availability API', () => {
 
       expect(response.status).toBe(400)
       const responseData = await response.json()
-      expect(responseData.error).toContain('Invalid availability entry')
+      expect(responseData.error).toBe('Bad request')
+      expect(responseData.details.message).toContain('Invalid availability entry')
     })
 
     test('should reject invalid blocked slot', async () => {
@@ -274,7 +275,8 @@ describe('Availability API', () => {
 
       expect(response.status).toBe(400)
       const responseData = await response.json()
-      expect(responseData.error).toContain('Invalid blocked slot')
+      expect(responseData.error).toBe('Bad request')
+      expect(responseData.details.message).toContain('Invalid blocked slot')
     })
 
     test('should reject unauthenticated requests', async () => {
@@ -293,6 +295,8 @@ describe('Availability API', () => {
       expect(response.status).toBe(401)
       const responseData = await response.json()
       expect(responseData.error).toBe('Unauthorized')
+      expect(responseData.details.function).toBe('requireAuth')
+      expect(responseData.details.message).toBe('Unauthorized - Please login')
     })
 
     test('should reject requests without any data', async () => {
@@ -312,7 +316,8 @@ describe('Availability API', () => {
 
       expect(response.status).toBe(400)
       const responseData = await response.json()
-      expect(responseData.error).toContain('Either weeklyAvailability or blockedSlots must be provided')
+      expect(responseData.error).toBe('Bad request')
+      expect(responseData.details.message).toBe('Either weeklyAvailability or blockedSlots must be provided')
     })
   })
 
@@ -354,6 +359,8 @@ describe('Availability API', () => {
       expect(response.status).toBe(401)
       const responseData = await response.json()
       expect(responseData.error).toBe('Unauthorized')
+      expect(responseData.details.function).toBe('requireAuth')
+      expect(responseData.details.message).toBe('Unauthorized - Please login')
     })
   })
 

@@ -2,6 +2,42 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getAuthSession } from '@/lib/auth'
 import { rescheduleBooking } from '@/models/Booking'
 
+/**
+ * Helper function to create detailed error responses
+ */
+function createErrorResponse(error: unknown, functionName: string, statusCode: number = 500): { error: string; details?: { function: string; message: string; stack?: string } } {
+  let errorMessage: string
+  if (statusCode === 500) {
+    errorMessage = 'Internal server error'
+  } else if (statusCode === 404) {
+    errorMessage = 'Not found'
+  } else if (statusCode === 401) {
+    errorMessage = 'Unauthorized'
+  } else if (statusCode === 400) {
+    errorMessage = 'Bad request'
+  } else {
+    errorMessage = 'Request failed'
+  }
+
+  const baseResponse = {
+    error: errorMessage,
+    details: {
+      function: functionName,
+    }
+  }
+
+  if (error instanceof Error) {
+    baseResponse.details.message = error.message
+    if (process.env.NODE_ENV === 'development') {
+      baseResponse.details.stack = error.stack
+    }
+  } else {
+    baseResponse.details.message = String(error)
+  }
+
+  return baseResponse
+}
+
 export const runtime = 'nodejs'
 
 interface RescheduleBookingRequest {
@@ -106,20 +142,20 @@ export async function POST(request: NextRequest, { params }: BookingParams) {
     if (error instanceof Error) {
       if (error.message.includes('not found') || error.message.includes('access denied') || error.message.includes('not in confirmed status')) {
         return NextResponse.json(
-          { error: error.message },
+          createErrorResponse(error, 'rescheduleBooking', 404),
           { status: 404 }
         )
       }
       if (error.message.includes('Invalid') || error.message.includes('Cannot') || error.message.includes('conflict')) {
         return NextResponse.json(
-          { error: error.message },
+          createErrorResponse(error, 'rescheduleBooking', 400),
           { status: 400 }
         )
       }
     }
 
     return NextResponse.json(
-      { error: 'Internal server error' },
+      createErrorResponse(error, 'POST /api/therapist/bookings/[id]/reschedule'),
       { status: 500 }
     )
   }

@@ -230,7 +230,9 @@ describe('DELETE /api/therapist/bookings/[id] (Cancel Booking)', () => {
 
       expect(response.status).toBe(400)
       const jsonResponse = await response.json()
-      expect(jsonResponse.error).toBe('Invalid booking ID format')
+      expect(jsonResponse.error).toBe('Bad request')
+      expect(jsonResponse.details.function).toBe('cancelBookingById')
+      expect(jsonResponse.details.message).toBe('Invalid booking ID format')
     })
 
     test('should return 500 for internal server error', async () => {

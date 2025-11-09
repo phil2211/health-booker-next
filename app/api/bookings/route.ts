@@ -5,6 +5,42 @@ import { createBooking, checkBookingConflict } from '@/models/Booking'
 import { findTherapistById } from '@/models/Therapist'
 import { v4 as uuidv4 } from 'uuid'
 
+/**
+ * Helper function to create detailed error responses
+ */
+function createErrorResponse(error: unknown, functionName: string, statusCode: number = 500): { error: string; details?: { function: string; message: string; stack?: string } } {
+  let errorMessage: string
+  if (statusCode === 500) {
+    errorMessage = 'Internal server error'
+  } else if (statusCode === 404) {
+    errorMessage = 'Not found'
+  } else if (statusCode === 401) {
+    errorMessage = 'Unauthorized'
+  } else if (statusCode === 400) {
+    errorMessage = 'Bad request'
+  } else {
+    errorMessage = 'Request failed'
+  }
+
+  const baseResponse = {
+    error: errorMessage,
+    details: {
+      function: functionName,
+    }
+  }
+
+  if (error instanceof Error) {
+    baseResponse.details.message = error.message
+    if (process.env.NODE_ENV === 'development') {
+      baseResponse.details.stack = error.stack
+    }
+  } else {
+    baseResponse.details.message = String(error)
+  }
+
+  return baseResponse
+}
+
 export const runtime = 'nodejs'
 
 interface CreateBookingRequest {
@@ -142,20 +178,20 @@ export async function POST(request: Request) {
     if (error instanceof Error) {
       if (error.message.includes('conflict') || error.message.includes('already booked')) {
         return NextResponse.json(
-          { error: 'Time slot is already booked' },
+          createErrorResponse(error, 'createBooking', 409),
           { status: 409 }
         )
       }
       if (error.message.includes('Invalid booking data')) {
         return NextResponse.json(
-          { error: 'Invalid booking data' },
+          createErrorResponse(error, 'createBooking', 400),
           { status: 400 }
         )
       }
     }
-    
+
     return NextResponse.json(
-      { error: 'Internal server error' },
+      createErrorResponse(error, 'POST /api/bookings'),
       { status: 500 }
     )
   }

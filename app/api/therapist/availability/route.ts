@@ -9,6 +9,42 @@ import {
 import { AvailabilityEntry, BlockedSlot } from '@/lib/types'
 import { ObjectId } from 'mongodb'
 
+/**
+ * Helper function to create detailed error responses
+ */
+function createErrorResponse(error: unknown, functionName: string, statusCode: number = 500): { error: string; details?: { function: string; message: string; stack?: string } } {
+  let errorMessage: string
+  if (statusCode === 500) {
+    errorMessage = 'Internal server error'
+  } else if (statusCode === 404) {
+    errorMessage = 'Not found'
+  } else if (statusCode === 401) {
+    errorMessage = 'Unauthorized'
+  } else if (statusCode === 400) {
+    errorMessage = 'Bad request'
+  } else {
+    errorMessage = 'Request failed'
+  }
+
+  const baseResponse = {
+    error: errorMessage,
+    details: {
+      function: functionName,
+    }
+  }
+
+  if (error instanceof Error) {
+    baseResponse.details.message = error.message
+    if (process.env.NODE_ENV === 'development') {
+      baseResponse.details.stack = error.stack
+    }
+  } else {
+    baseResponse.details.message = String(error)
+  }
+
+  return baseResponse
+}
+
 export const runtime = 'nodejs'
 
 /**
@@ -28,7 +64,7 @@ export async function PUT(request: Request) {
     if (!ObjectId.isValid(therapistId)) {
       console.error('Invalid therapist ID format:', therapistId)
       return NextResponse.json(
-        { error: 'Invalid therapist ID format' },
+        createErrorResponse(new Error('Invalid therapist ID format'), 'PUT /api/therapist/availability', 400),
         { status: 400 }
       )
     }
@@ -39,17 +75,17 @@ export async function PUT(request: Request) {
       body = await request.json()
     } catch (parseError) {
       return NextResponse.json(
-        { error: 'Invalid JSON in request body' },
+        createErrorResponse(parseError, 'PUT /api/therapist/availability', 400),
         { status: 400 }
       )
     }
-    
+
     const { weeklyAvailability, blockedSlots } = body
 
     // Validate that at least one field is provided
     if (weeklyAvailability === undefined && blockedSlots === undefined) {
       return NextResponse.json(
-        { error: 'Either weeklyAvailability or blockedSlots must be provided' },
+        createErrorResponse(new Error('Either weeklyAvailability or blockedSlots must be provided'), 'PUT /api/therapist/availability', 400),
         { status: 400 }
       )
     }
@@ -58,20 +94,17 @@ export async function PUT(request: Request) {
     if (weeklyAvailability !== undefined) {
       if (!Array.isArray(weeklyAvailability)) {
         return NextResponse.json(
-          { error: 'weeklyAvailability must be an array' },
+          createErrorResponse(new Error('weeklyAvailability must be an array'), 'PUT /api/therapist/availability', 400),
           { status: 400 }
         )
       }
 
       for (let i = 0; i < weeklyAvailability.length; i++) {
         const entry = weeklyAvailability[i] as AvailabilityEntry
-        
+
         if (!validateAvailabilityEntry(entry)) {
           return NextResponse.json(
-            {
-              error: `Invalid availability entry at index ${i}`,
-              details: 'Each entry must have valid dayOfWeek (0-6), startTime, and endTime (HH:MM format). Start time must be before end time.',
-            },
+            createErrorResponse(new Error(`Invalid availability entry at index ${i}`), 'PUT /api/therapist/availability', 400),
             { status: 400 }
           )
         }
@@ -82,20 +115,17 @@ export async function PUT(request: Request) {
     if (blockedSlots !== undefined) {
       if (!Array.isArray(blockedSlots)) {
         return NextResponse.json(
-          { error: 'blockedSlots must be an array' },
+          createErrorResponse(new Error('blockedSlots must be an array'), 'PUT /api/therapist/availability', 400),
           { status: 400 }
         )
       }
 
       for (let i = 0; i < blockedSlots.length; i++) {
         const slot = blockedSlots[i] as BlockedSlot
-        
+
         if (!validateBlockedSlot(slot)) {
           return NextResponse.json(
-            {
-              error: `Invalid blocked slot at index ${i}`,
-              details: 'Each slot must have valid fromDate and toDate (YYYY-MM-DD), startTime, and endTime (HH:MM format). From date must be before or equal to toDate. Start datetime (date + time) must be before end datetime.',
-            },
+            createErrorResponse(new Error(`Invalid blocked slot at index ${i}`), 'PUT /api/therapist/availability', 400),
             { status: 400 }
           )
         }
@@ -106,7 +136,7 @@ export async function PUT(request: Request) {
     const therapist = await findTherapistById(therapistId)
     if (!therapist) {
       return NextResponse.json(
-        { error: 'Therapist not found' },
+        createErrorResponse(new Error('Therapist not found'), 'PUT /api/therapist/availability', 404),
         { status: 404 }
       )
     }
@@ -120,7 +150,7 @@ export async function PUT(request: Request) {
 
     if (!updatedTherapist) {
       return NextResponse.json(
-        { error: 'Failed to update availability' },
+        createErrorResponse(new Error('Failed to update availability'), 'PUT /api/therapist/availability', 500),
         { status: 500 }
       )
     }
@@ -133,28 +163,24 @@ export async function PUT(request: Request) {
     })
   } catch (error) {
     console.error('Update availability error:', error)
-    
+
     // Check if it's an authentication error
     if (error instanceof Error && error.message.includes('Unauthorized')) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        createErrorResponse(error, 'requireAuth', 401),
         { status: 401 }
       )
     }
-
     // Check if it's an ObjectId error
     if (error instanceof Error && (error.message.includes('ObjectId') || error.message.includes('BSON'))) {
       return NextResponse.json(
-        { error: 'Invalid therapist ID format' },
+        createErrorResponse(error, 'PUT /api/therapist/availability', 400),
         { status: 400 }
       )
     }
 
-    // Provide more detailed error message if available
-    const errorMessage = error instanceof Error ? error.message : 'Internal server error'
-    
     return NextResponse.json(
-      { error: errorMessage },
+      createErrorResponse(error, 'PUT /api/therapist/availability'),
       { status: 500 }
     )
   }
@@ -178,7 +204,7 @@ export async function GET() {
 
     if (!therapist) {
       return NextResponse.json(
-        { error: 'Therapist not found' },
+        createErrorResponse(new Error('Therapist not found'), 'GET /api/therapist/availability', 404),
         { status: 404 }
       )
     }
@@ -190,17 +216,17 @@ export async function GET() {
     })
   } catch (error) {
     console.error('Get availability error:', error)
-    
+
     // Check if it's an authentication error
     if (error instanceof Error && error.message.includes('Unauthorized')) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        createErrorResponse(error, 'requireAuth', 401),
         { status: 401 }
       )
     }
 
     return NextResponse.json(
-      { error: 'Internal server error' },
+      createErrorResponse(error, 'GET /api/therapist/availability'),
       { status: 500 }
     )
   }
