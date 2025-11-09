@@ -34,6 +34,7 @@ export default function DateRangePickerPopover({
   const [selectedStartTime, setSelectedStartTime] = useState<string>(startTime)
   const [selectedEndTime, setSelectedEndTime] = useState<string>(endTime)
   const [isOpen, setIsOpen] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
   const popoverRef = useRef<HTMLDivElement>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
   const startTimeInputRef = useRef<HTMLInputElement>(null)
@@ -123,6 +124,19 @@ export default function DateRangePickerPopover({
 
     const handleToggle = (e: ToggleEvent) => {
       setIsOpen(e.newState === 'open')
+      // Center the popover when it's opened
+      if (e.newState === 'open') {
+        // Use setTimeout to ensure the popover is rendered before repositioning
+        setTimeout(() => {
+          if (popover) {
+            popover.style.position = 'fixed'
+            popover.style.top = '50%'
+            popover.style.left = '50%'
+            popover.style.transform = 'translate(-50%, -50%)'
+            popover.style.zIndex = '50'
+          }
+        }, 0)
+      }
     }
 
     popover.addEventListener('toggle', handleToggle)
@@ -147,6 +161,20 @@ export default function DateRangePickerPopover({
       document.removeEventListener('keydown', handleKeyDown)
     }
   }, [isOpen])
+
+  // Detect mobile screen size
+  useEffect(() => {
+    const checkIsMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+
+    checkIsMobile()
+    window.addEventListener('resize', checkIsMobile)
+
+    return () => {
+      window.removeEventListener('resize', checkIsMobile)
+    }
+  }, [])
 
   // Format display text
   const getDisplayText = () => {
@@ -246,12 +274,12 @@ export default function DateRangePickerPopover({
         ref={popoverRef}
         id="date-range-popover"
         popover="auto"
-        className="bg-white rounded-lg shadow-lg border border-gray-200 p-4 z-50"
+        className="bg-white rounded-lg shadow-lg border border-gray-200 p-4"
         style={{ width: 'max-content', maxWidth: '90vw' }}
       >
         <DayPicker
           mode="range"
-          numberOfMonths={2}
+          numberOfMonths={isMobile ? 1 : 2}
           selected={selected}
           onSelect={setSelected}
           disabled={disabledDays}
@@ -268,23 +296,23 @@ export default function DateRangePickerPopover({
         
         {/* Time inputs */}
         <div className="mt-4 pt-4 border-t border-gray-200">
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <div>
+          <div className="grid grid-cols-2 gap-4 mb-4 min-w-0">
+            <div className="min-w-0">
               <label className="block text-xs font-medium text-gray-700 mb-1">
                 Start Time
               </label>
-              <div className="relative">
+              <div className="relative w-full min-w-0 overflow-hidden">
                 <input
                   ref={startTimeInputRef}
                   type="time"
                   value={selectedStartTime}
                   onChange={(e) => setSelectedStartTime(e.target.value)}
-                  className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900"
+                  className="w-full min-w-0 px-3 py-2 pr-14 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-black"
                 />
                 <button
                   type="button"
                   onClick={() => startTimeInputRef.current?.showPicker?.() || startTimeInputRef.current?.focus()}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none focus:text-gray-600"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none focus:text-gray-600 pointer-events-auto"
                   aria-label="Open time picker"
                 >
                   <svg
@@ -303,22 +331,22 @@ export default function DateRangePickerPopover({
                 </button>
               </div>
             </div>
-            <div>
+            <div className="min-w-0">
               <label className="block text-xs font-medium text-gray-700 mb-1">
                 End Time
               </label>
-              <div className="relative">
+              <div className="relative w-full min-w-0 overflow-hidden">
                 <input
                   ref={endTimeInputRef}
                   type="time"
                   value={selectedEndTime}
                   onChange={(e) => setSelectedEndTime(e.target.value)}
-                  className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900"
+                  className="w-full min-w-0 px-3 py-2 pr-14 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-black"
                 />
                 <button
                   type="button"
                   onClick={() => endTimeInputRef.current?.showPicker?.() || endTimeInputRef.current?.focus()}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none focus:text-gray-600"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none focus:text-gray-600 pointer-events-auto"
                   aria-label="Open time picker"
                 >
                   <svg

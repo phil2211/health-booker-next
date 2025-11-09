@@ -29,6 +29,14 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 /**
+ * Gets the MongoDB client instance (for transactions)
+ * @returns {Promise<MongoClient>} MongoDB client instance
+ */
+export async function getClient(): Promise<MongoClient> {
+  return clientPromise
+}
+
+/**
  * Gets the database instance
  * @returns {Promise<Db>} MongoDB database instance
  */

@@ -274,24 +274,12 @@ export function calculateAvailableSlots(
       // We need to add explicit break markers between slots if there's a gap
     }
     
-    // Limit to 2 available slots per day (not including booked/blocked)
-    const availableSlots = daySlots.filter((s) => s.status === 'available')
-    const bookedBlockedSlots = daySlots.filter(
-      (s) => s.status === 'booked' || s.status === 'blocked'
-    )
-    
-    // Take up to 2 available slots, sorted by start time
-    const limitedAvailableSlots = availableSlots
-      .sort((a, b) => timeToMinutes(a.startTime!) - timeToMinutes(b.startTime!))
-      .slice(0, 2)
-    
-    // Combine: booked/blocked slots + limited available slots
-    // Sort all by start time
-    const combinedSlots = [...bookedBlockedSlots, ...limitedAvailableSlots].sort(
+    // Sort all slots by start time and add to allSlots
+    const sortedDaySlots = daySlots.sort(
       (a, b) => timeToMinutes(a.startTime!) - timeToMinutes(b.startTime!)
     )
     
-    allSlots.push(...combinedSlots)
+    allSlots.push(...sortedDaySlots)
   }
   
   // Add break slots explicitly - 30 minutes after each available/booked session

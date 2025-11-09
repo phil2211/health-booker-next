@@ -37,6 +37,16 @@ export interface Therapist {
   photoUrl?: string
   weeklyAvailability: AvailabilityEntry[]
   blockedSlots: BlockedSlot[]
+  bookings?: Array<{
+    _id: string
+    patientName: string
+    patientEmail: string
+    appointmentDate: string // YYYY-MM-DD format
+    startTime: string // HH:MM format
+    endTime: string // HH:MM format
+    status: BookingStatus
+    createdAt: Date
+  }> // Array of future bookings (more than 3 days old are removed)
   createdAt?: Date
   updatedAt?: Date
 }
@@ -68,7 +78,7 @@ export interface Booking {
   therapistId: string // Changed from providerId per requirements
   patientName: string
   patientEmail: string
-  patientPhone: string
+  patientPhone?: string // Optional phone number
   appointmentDate: Date | string // Can be Date object or YYYY-MM-DD string
   startTime: string // HH:MM format
   endTime: string // HH:MM format

@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { findTherapistById } from '@/models/Therapist'
 import { ObjectId } from 'mongodb'
+import BookingInterface from '@/components/BookingInterface'
 
 interface BookingPageProps {
   params: Promise<{ id: string }>
@@ -74,25 +75,10 @@ export default async function BookingPage({ params }: BookingPageProps) {
         {/* Therapist Info Card */}
         <div className="bg-white rounded-xl shadow-xl border p-8 mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Book with {therapist.name}</h1>
-          <p className="text-xl text-indigo-600 font-medium mb-6">{therapist.specialization}</p>
-          <div className="border-t pt-6">
-            <p className="text-gray-700 leading-relaxed">{therapist.bio}</p>
-          </div>
         </div>
 
-        {/* Booking Interface Placeholder */}
-        <div className="bg-white rounded-xl shadow-xl border p-8">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-4">Select Appointment Time</h2>
-          <div className="text-center py-12">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-indigo-100 rounded-full mb-4">
-              <svg className="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-            </div>
-            <p className="text-gray-600 mb-2">Booking calendar coming soon...</p>
-            <p className="text-sm text-gray-500">This feature will be implemented in Phase 3</p>
-          </div>
-        </div>
+        {/* Booking Interface */}
+        <BookingInterface therapistId={therapist._id} blockedSlots={therapist.blockedSlots} therapistName={therapist.name} />
 
         {/* Back to Profile */}
         <div className="mt-8 text-center">
