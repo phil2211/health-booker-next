@@ -24,26 +24,27 @@ jest.mock('mongodb', () => {
 })
 
 jest.mock('@/lib/mongodb', () => ({
-  getDatabase: jest.fn(),
+  getDatabaseFn: jest.fn(),
   getClient: jest.fn(),
 }))
 
-const { ObjectId } = require('mongodb')
-const { BookingStatus } = require('@/lib/types')
-const { checkBookingConflict } = require('@/models/Booking')
-const { getDatabase } = require('@/lib/mongodb')
+// Functions imported after mocks are set up
 
 // Mock console.log to avoid noise in tests
-const originalConsoleLog = console.log
+const originalConsoleLogIntegration = console.log
 beforeAll(() => {
   console.log = jest.fn()
 })
 
 afterAll(() => {
-  console.log = originalConsoleLog
+  console.log = originalConsoleLogIntegration
 })
 
 describe('checkBookingConflict - Realistic Query Simulation', () => {
+  const { ObjectId } = require('mongodb')
+  const { BookingStatus } = require('@/lib/types')
+  const { checkBookingConflict } = require('@/models/Booking')
+
   const mockDb = {
     collection: jest.fn(),
   }
@@ -55,6 +56,7 @@ describe('checkBookingConflict - Realistic Query Simulation', () => {
 
   beforeEach(() => {
     jest.clearAllMocks()
+    const { getDatabase } = require('@/lib/mongodb')
     ;(getDatabase as jest.Mock).mockResolvedValue(mockDb)
     mockDb.collection.mockReturnValue(mockCollection)
     mockCollection.find.mockReturnValue({
@@ -70,7 +72,8 @@ describe('checkBookingConflict - Realistic Query Simulation', () => {
       toArray: jest.fn().mockResolvedValue([]), // No bookings exist
     })
 
-    const result = await checkBookingConflict(
+      const { checkBookingConflict } = require('@/models/Booking')
+      const result = await checkBookingConflict(
       therapistId,
       '2024-12-15',
       '09:00',
@@ -94,7 +97,8 @@ describe('checkBookingConflict - Realistic Query Simulation', () => {
       toArray: jest.fn().mockResolvedValue([]),
     })
 
-    const result = await checkBookingConflict(
+      const { checkBookingConflict } = require('@/models/Booking')
+      const result = await checkBookingConflict(
       therapistId,
       '2024-12-15',
       '09:00',
@@ -117,7 +121,8 @@ describe('checkBookingConflict - Realistic Query Simulation', () => {
       toArray: jest.fn().mockResolvedValue([]), // No bookings
     })
 
-    const result = await checkBookingConflict(
+      const { checkBookingConflict } = require('@/models/Booking')
+      const result = await checkBookingConflict(
       therapistId,
       '2024-12-15',
       '09:00',
@@ -142,7 +147,8 @@ describe('checkBookingConflict - Realistic Query Simulation', () => {
       ]), // Conflicting booking exists
     })
 
-    const result = await checkBookingConflict(
+      const { checkBookingConflict } = require('@/models/Booking')
+      const result = await checkBookingConflict(
       therapistId,
       '2024-12-15',
       '09:00',

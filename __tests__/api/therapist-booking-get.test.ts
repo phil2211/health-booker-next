@@ -2,6 +2,7 @@
  * Integration test for GET /api/therapist/bookings/[id] endpoint
  */
 import { GET } from '@/app/api/therapist/bookings/[id]/route'
+import { NextRequest } from 'next/server'
 
 // Mock the authentication
 jest.mock('@/lib/auth', () => ({
@@ -44,7 +45,7 @@ describe('GET /api/therapist/bookings/[id]', () => {
 
       getAuthSession.mockResolvedValue(null)
 
-      const mockRequest = {} as Request
+      const mockRequest = {} as NextRequest
       const mockParams = { params: Promise.resolve({ id: '6907b83e29b8d58dfc6839cf' }) }
 
       const response = await GET(mockRequest, mockParams)
@@ -59,7 +60,7 @@ describe('GET /api/therapist/bookings/[id]', () => {
 
       getAuthSession.mockResolvedValue({})
 
-      const mockRequest = {} as Request
+      const mockRequest = {} as NextRequest
       const mockParams = { params: Promise.resolve({ id: '6907b83e29b8d58dfc6839cf' }) }
 
       const response = await GET(mockRequest, mockParams)
@@ -83,7 +84,7 @@ describe('GET /api/therapist/bookings/[id]', () => {
 
       getAuthSession.mockResolvedValue(mockSession)
 
-      const mockRequest = {} as Request
+      const mockRequest = {} as NextRequest
       const mockParams = { params: Promise.resolve({ id: '' }) }
 
       const response = await GET(mockRequest, mockParams)
@@ -125,7 +126,7 @@ describe('GET /api/therapist/bookings/[id]', () => {
       getAuthSession.mockResolvedValue(mockSession)
       ;(getBookingById as jest.Mock).mockResolvedValue(mockBooking)
 
-      const mockRequest = {} as Request
+      const mockRequest = {} as NextRequest
       const mockParams = { params: Promise.resolve({ id: '6907b83e29b8d58dfc6839cf' }) }
 
       const response = await GET(mockRequest, mockParams)
@@ -151,7 +152,7 @@ describe('GET /api/therapist/bookings/[id]', () => {
       getAuthSession.mockResolvedValue(mockSession)
       ;(getBookingById as jest.Mock).mockResolvedValue(null)
 
-      const mockRequest = {} as Request
+      const mockRequest = {} as NextRequest
       const mockParams = { params: Promise.resolve({ id: '6907b83e29b8d58dfc6839cf' }) }
 
       const response = await GET(mockRequest, mockParams)
@@ -175,7 +176,7 @@ describe('GET /api/therapist/bookings/[id]', () => {
       getAuthSession.mockResolvedValue(mockSession)
       ;(getBookingById as jest.Mock).mockResolvedValue(null) // Another therapist's booking
 
-      const mockRequest = {} as Request
+      const mockRequest = {} as NextRequest
       const mockParams = { params: Promise.resolve({ id: '6907b83e29b8d58dfc6839cf' }) }
 
       const response = await GET(mockRequest, mockParams)
@@ -199,7 +200,7 @@ describe('GET /api/therapist/bookings/[id]', () => {
       getAuthSession.mockResolvedValue(mockSession)
       ;(getBookingById as jest.Mock).mockRejectedValue(new Error('Invalid booking ID format'))
 
-      const mockRequest = {} as Request
+      const mockRequest = {} as NextRequest
       const mockParams = { params: Promise.resolve({ id: 'invalid-id' }) }
 
       const response = await GET(mockRequest, mockParams)
@@ -225,7 +226,7 @@ describe('GET /api/therapist/bookings/[id]', () => {
       getAuthSession.mockResolvedValue(mockSession)
       ;(getBookingById as jest.Mock).mockRejectedValue(new Error('Database connection failed'))
 
-      const mockRequest = {} as Request
+      const mockRequest = {} as NextRequest
       const mockParams = { params: Promise.resolve({ id: '6907b83e29b8d58dfc6839cf' }) }
 
       const response = await GET(mockRequest, mockParams)
@@ -265,7 +266,7 @@ describe('GET /api/therapist/bookings/[id]', () => {
       getAuthSession.mockResolvedValue(mockSession)
       ;(getBookingById as jest.Mock).mockResolvedValue(mockBooking)
 
-      const mockRequest = {} as Request
+      const mockRequest = {} as NextRequest
       const mockParams = { params: Promise.resolve({ id: '6907b83e29b8d58dfc6839cf' }) }
 
       await GET(mockRequest, mockParams)

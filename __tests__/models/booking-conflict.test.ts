@@ -23,27 +23,27 @@ jest.mock('mongodb', () => {
 })
 
 jest.mock('@/lib/mongodb', () => ({
-  getDatabase: jest.fn(),
+  getDatabaseFn: jest.fn(),
   getClient: jest.fn(),
 }))
 
-// Import after mocks are set up
-const { ObjectId } = require('mongodb')
-const { BookingStatus } = require('@/lib/types')
-const { checkBookingConflict } = require('@/models/Booking')
-const { getDatabase } = require('@/lib/mongodb')
+// Functions imported after mocks are set up
 
 // Mock console.log to avoid noise in tests
-const originalConsoleLog = console.log
+const originalConsoleLogUnit = console.log
 beforeAll(() => {
   console.log = jest.fn()
 })
 
 afterAll(() => {
-  console.log = originalConsoleLog
+  console.log = originalConsoleLogUnit
 })
 
 describe('checkBookingConflict', () => {
+  const { ObjectId } = require('mongodb')
+  const { BookingStatus } = require('@/lib/types')
+  const { checkBookingConflict } = require('@/models/Booking')
+
   const mockDb = {
     collection: jest.fn(),
   }
@@ -55,6 +55,7 @@ describe('checkBookingConflict', () => {
 
   beforeEach(() => {
     jest.clearAllMocks()
+    const { getDatabase } = require('@/lib/mongodb')
     ;(getDatabase as jest.Mock).mockResolvedValue(mockDb)
     mockDb.collection.mockReturnValue(mockCollection)
     mockCollection.find.mockReturnValue({
@@ -73,6 +74,7 @@ describe('checkBookingConflict', () => {
         toArray: jest.fn().mockResolvedValue([]),
       })
 
+      const { checkBookingConflict } = require('@/models/Booking')
       const result = await checkBookingConflict(
         therapistId,
         appointmentDate,
@@ -89,6 +91,7 @@ describe('checkBookingConflict', () => {
         toArray: jest.fn().mockResolvedValue([]),
       })
 
+      const { checkBookingConflict } = require('@/models/Booking')
       const result = await checkBookingConflict(
         '507f1f77bcf86cd799439012', // Different therapist
         appointmentDate,
@@ -104,6 +107,7 @@ describe('checkBookingConflict', () => {
         toArray: jest.fn().mockResolvedValue([]),
       })
 
+      const { checkBookingConflict } = require('@/models/Booking')
       const result = await checkBookingConflict(
         therapistId,
         '2024-12-16', // Different date
@@ -119,6 +123,7 @@ describe('checkBookingConflict', () => {
         toArray: jest.fn().mockResolvedValue([]),
       })
 
+      const { checkBookingConflict } = require('@/models/Booking')
       const result = await checkBookingConflict(
         therapistId,
         appointmentDate,
@@ -134,6 +139,7 @@ describe('checkBookingConflict', () => {
         toArray: jest.fn().mockResolvedValue([]),
       })
 
+      const { checkBookingConflict } = require('@/models/Booking')
       const result = await checkBookingConflict(
         therapistId,
         appointmentDate,
@@ -160,6 +166,7 @@ describe('checkBookingConflict', () => {
         ]),
       })
 
+      const { checkBookingConflict } = require('@/models/Booking')
       const result = await checkBookingConflict(
         therapistId,
         appointmentDate,
@@ -176,6 +183,7 @@ describe('checkBookingConflict', () => {
         toArray: jest.fn().mockResolvedValue([]), // Query filters out cancelled
       })
 
+      const { checkBookingConflict } = require('@/models/Booking')
       const result = await checkBookingConflict(
         therapistId,
         appointmentDate,
@@ -202,6 +210,7 @@ describe('checkBookingConflict', () => {
         ]),
       })
 
+      const { checkBookingConflict } = require('@/models/Booking')
       const result = await checkBookingConflict(
         therapistId,
         appointmentDate,
@@ -228,6 +237,7 @@ describe('checkBookingConflict', () => {
         ]),
       })
 
+      const { checkBookingConflict } = require('@/models/Booking')
       const result = await checkBookingConflict(
         therapistId,
         appointmentDate,
@@ -254,6 +264,7 @@ describe('checkBookingConflict', () => {
         ]),
       })
 
+      const { checkBookingConflict } = require('@/models/Booking')
       const result = await checkBookingConflict(
         therapistId,
         appointmentDate,
@@ -280,6 +291,7 @@ describe('checkBookingConflict', () => {
         ]),
       })
 
+      const { checkBookingConflict } = require('@/models/Booking')
       const result = await checkBookingConflict(
         therapistId,
         appointmentDate,
@@ -306,6 +318,7 @@ describe('checkBookingConflict', () => {
         ]),
       })
 
+      const { checkBookingConflict } = require('@/models/Booking')
       const result = await checkBookingConflict(
         therapistId,
         appointmentDate,
