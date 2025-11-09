@@ -303,7 +303,7 @@ export default function AppointmentsView({ therapistId }: AppointmentsViewProps)
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value as BookingStatus | 'all')}
-                className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-black"
               >
                 <option value="all">All Statuses</option>
                 <option value={BookingStatus.CONFIRMED}>Confirmed</option>
@@ -321,7 +321,7 @@ export default function AppointmentsView({ therapistId }: AppointmentsViewProps)
                   type="date"
                   value={dateRange.startDate}
                   onChange={(e) => setDateRange(prev => ({ ...prev, startDate: e.target.value }))}
-                  className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-black"
                 />
               </div>
               <div>
@@ -330,7 +330,7 @@ export default function AppointmentsView({ therapistId }: AppointmentsViewProps)
                   type="date"
                   value={dateRange.endDate}
                   onChange={(e) => setDateRange(prev => ({ ...prev, endDate: e.target.value }))}
-                  className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-black"
                 />
               </div>
             </div>
@@ -343,7 +343,7 @@ export default function AppointmentsView({ therapistId }: AppointmentsViewProps)
                 placeholder="Search by patient name, email..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-black"
               />
             </div>
           </div>

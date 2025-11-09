@@ -152,7 +152,7 @@ export default function RescheduleModal({
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
               min={getMinDate()}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-black"
             />
           </div>
 

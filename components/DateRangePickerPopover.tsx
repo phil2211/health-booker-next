@@ -307,7 +307,7 @@ export default function DateRangePickerPopover({
                   type="time"
                   value={selectedStartTime}
                   onChange={(e) => setSelectedStartTime(e.target.value)}
-                  className="w-full min-w-0 px-3 py-2 pr-14 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900"
+                  className="w-full min-w-0 px-3 py-2 pr-14 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-black"
                 />
                 <button
                   type="button"
@@ -341,7 +341,7 @@ export default function DateRangePickerPopover({
                   type="time"
                   value={selectedEndTime}
                   onChange={(e) => setSelectedEndTime(e.target.value)}
-                  className="w-full min-w-0 px-3 py-2 pr-14 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900"
+                  className="w-full min-w-0 px-3 py-2 pr-14 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-black"
                 />
                 <button
                   type="button"
