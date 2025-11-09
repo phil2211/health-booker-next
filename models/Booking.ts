@@ -447,6 +447,44 @@ export async function cancelBookingById(
 }
 
 /**
+ * Get a booking by ID (therapist operations only)
+ * Validates that the therapist owns the booking
+ */
+export async function getBookingById(
+  bookingId: string,
+  therapistId: string
+): Promise<BookingDocument | null> {
+  const db = await getDatabase()
+
+  if (!ObjectId.isValid(bookingId)) {
+    throw new Error('Invalid booking ID format')
+  }
+
+  // Find booking and verify therapist owns it
+  const booking = await db.collection('bookings').findOne({
+    _id: new ObjectId(bookingId),
+    therapistId: ObjectId.isValid(therapistId)
+      ? { $or: [{ therapistId: new ObjectId(therapistId) }, { therapistId: therapistId }] }
+      : { therapistId: therapistId }
+  })
+
+  if (!booking) {
+    return null
+  }
+
+  return {
+    ...booking,
+    _id: booking._id.toString(),
+    therapistId: booking.therapistId instanceof ObjectId
+      ? booking.therapistId.toString()
+      : String(booking.therapistId),
+    appointmentDate: booking.appointmentDate instanceof Date
+      ? booking.appointmentDate.toISOString().split('T')[0]
+      : booking.appointmentDate,
+  } as BookingDocument
+}
+
+/**
  * Reschedule a booking to a new date/time
  * Validates no conflicts and therapist owns the booking
  */

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAuthSession } from '@/lib/auth'
-import { updateBookingById, cancelBookingById } from '@/models/Booking'
+import { getBookingById, updateBookingById, cancelBookingById } from '@/models/Booking'
 import { BookingStatus } from '@/lib/types'
 
 export const runtime = 'nodejs'
@@ -12,6 +12,71 @@ interface UpdateBookingRequest {
 
 interface BookingParams {
   params: Promise<{ id: string }>
+}
+
+/**
+ * GET /api/therapist/bookings/[id]
+ * Fetch a specific booking by ID (therapist operations only)
+ */
+export async function GET(request: NextRequest, { params }: BookingParams) {
+  try {
+    const session = await getAuthSession()
+
+    if (!session || !session.user) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      )
+    }
+
+    const { id } = await params
+    const therapistId = session.user.id
+
+    if (!id) {
+      return NextResponse.json(
+        { error: 'Booking ID is required' },
+        { status: 400 }
+      )
+    }
+
+    // Fetch the booking
+    const booking = await getBookingById(id, therapistId)
+
+    if (!booking) {
+      return NextResponse.json(
+        { error: 'Booking not found or access denied' },
+        { status: 404 }
+      )
+    }
+
+    return NextResponse.json({
+      booking,
+      message: 'Booking retrieved successfully'
+    })
+
+  } catch (error) {
+    console.error('Fetch therapist booking error:', error)
+
+    if (error instanceof Error) {
+      if (error.message.includes('not found') || error.message.includes('access denied')) {
+        return NextResponse.json(
+          { error: error.message },
+          { status: 404 }
+        )
+      }
+      if (error.message.includes('Invalid')) {
+        return NextResponse.json(
+          { error: error.message },
+          { status: 400 }
+        )
+      }
+    }
+
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
 }
 
 /**
