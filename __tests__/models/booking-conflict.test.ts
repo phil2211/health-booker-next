@@ -23,7 +23,7 @@ jest.mock('mongodb', () => {
 })
 
 jest.mock('@/lib/mongodb', () => ({
-  getDatabaseFn: jest.fn(),
+  getDatabase: jest.fn(),
   getClient: jest.fn(),
 }))
 

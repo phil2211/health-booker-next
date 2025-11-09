@@ -23,7 +23,7 @@ const customJestConfig = {
   ],
   testPathIgnorePatterns: ['<rootDir>/.next/', '<rootDir>/node_modules/'],
   transformIgnorePatterns: [
-    'node_modules/(?!(mongodb|bson)/)',
+    'node_modules/(?!(mongodb|bson|next-auth|@auth|jose)/)',
   ],
 }
 
