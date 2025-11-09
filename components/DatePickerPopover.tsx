@@ -28,8 +28,6 @@ export default function DatePickerPopover({
   'data-testid': testId,
   popoverId,
 }: DatePickerPopoverProps) {
-  const uniquePopoverId = popoverId || `date-picker-popover-${Math.random().toString(36).substr(2, 9)}`
-
   // Initialize displayText based on selectedDate prop
   const getInitialDisplayText = () => {
     if (selectedDate) {
@@ -45,11 +43,23 @@ export default function DatePickerPopover({
     return 'Select date'
   }
 
-  const [selected, setSelected] = useState<Date | undefined>(undefined)
   const [isOpen, setIsOpen] = useState(false)
   const popoverRef = useRef<HTMLDivElement>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+
+  // Derive selected date from prop
+  const selected = useMemo(() => {
+    if (selectedDate) {
+      try {
+        const date = parseISO(selectedDate)
+        return !isNaN(date.getTime()) ? date : undefined
+      } catch (error) {
+        return undefined
+      }
+    }
+    return undefined
+  }, [selectedDate])
 
   const displayText = useMemo(() => {
     if (selectedDate) {
@@ -62,30 +72,30 @@ export default function DatePickerPopover({
     }
     return 'Select date'
   }, [selectedDate])
-  
+
   const today = min || startOfToday()
 
   // Create a matcher function to check if a date is in any blocked range
   const isBlockedDate = (date: Date): boolean => {
     if (!blockedSlots || blockedSlots.length === 0) return false
-    
+
     const dateStart = startOfDay(date)
-    
+
     return blockedSlots.some((slot) => {
       try {
         const slotFromDate = slot.fromDate || slot.date || ''
         const slotToDate = slot.toDate || slot.date || ''
-        
+
         if (!slotFromDate || !slotToDate) return false
-        
+
         const from = parseISO(slotFromDate)
         const to = parseISO(slotToDate)
-        
+
         if (isNaN(from.getTime()) || isNaN(to.getTime())) return false
-        
+
         const fromStart = startOfDay(from)
         const toEnd = startOfDay(to)
-        
+
         // Check if date is within the blocked range (inclusive)
         return isWithinInterval(dateStart, {
           start: fromStart,
@@ -126,27 +136,6 @@ export default function DatePickerPopover({
     return false
   }
 
-  // Update selected date when props change
-  useEffect(() => {
-    if (selectedDate) {
-      try {
-        const date = parseISO(selectedDate)
-        if (!isNaN(date.getTime())) {
-          setSelected(date)
-        }
-      } catch (error) {
-        setSelected(undefined)
-      }
-    } else {
-      setSelected(undefined)
-    }
-  }, [selectedDate])
-
-  // Force re-render when selected changes
-  const [, forceUpdate] = useState({})
-  useEffect(() => {
-    forceUpdate({})
-  }, [selected])
 
   // Handle click outside to close calendar
   useEffect(() => {
@@ -197,7 +186,6 @@ export default function DatePickerPopover({
   const handleDateSelect = (date: Date | undefined) => {
     if (date) {
       const dateString = format(date, 'yyyy-MM-dd')
-      setSelected(date)
       onChange(dateString)
       setIsOpen(false)
       triggerRef.current?.focus()
@@ -205,28 +193,13 @@ export default function DatePickerPopover({
   }
 
   const handleClear = () => {
-    setSelected(undefined)
     onChange('')
     setIsOpen(false)
     triggerRef.current?.focus()
   }
 
   const handleCancel = () => {
-    // Reset to original value
-    if (selectedDate) {
-      try {
-        const date = parseISO(selectedDate)
-        if (!isNaN(date.getTime())) {
-          setSelected(date)
-        } else {
-          setSelected(undefined)
-        }
-      } catch {
-        setSelected(undefined)
-      }
-    } else {
-      setSelected(undefined)
-    }
+    // Close without making changes - selected will remain as derived from props
     setIsOpen(false)
     triggerRef.current?.focus()
   }

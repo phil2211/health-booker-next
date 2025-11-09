@@ -28,13 +28,9 @@ jest.mock('@/lib/mongodb', () => ({
 }))
 
 // Import after mocks are set up
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 const { ObjectId } = require('mongodb')
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 const { BookingStatus } = require('@/lib/types')
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 const { checkBookingConflict } = require('@/models/Booking')
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 const { getDatabase } = require('@/lib/mongodb')
 
 // Mock console.log to avoid noise in tests

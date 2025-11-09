@@ -23,20 +23,18 @@ export default function BookingConfirmation({
   cancellationToken,
   onClose
 }: BookingConfirmationProps) {
-  const [deviceType, setDeviceType] = useState<'ios' | 'android' | 'desktop'>('desktop')
-  const [calendarAdded, setCalendarAdded] = useState(false)
-
-  useEffect(() => {
-    // Detect device type
+  const [deviceType] = useState<'ios' | 'android' | 'desktop'>(() => {
+    // Detect device type on initial render
     const userAgent = navigator.userAgent.toLowerCase()
     if (userAgent.includes('iphone') || userAgent.includes('ipad') || userAgent.includes('ipod')) {
-      setDeviceType('ios')
+      return 'ios'
     } else if (userAgent.includes('android')) {
-      setDeviceType('android')
+      return 'android'
     } else {
-      setDeviceType('desktop')
+      return 'desktop'
     }
-  }, [])
+  })
+  const [calendarAdded, setCalendarAdded] = useState(false)
 
   const generateICSCalendarEvent = () => {
     const appointmentDateTime = new Date(`${appointmentDate}T${startTime}:00`)
