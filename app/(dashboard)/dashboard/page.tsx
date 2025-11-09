@@ -171,9 +171,12 @@ export default async function DashboardPage() {
             <p className="text-sm text-gray-500 mb-4">
               View patient bookings and manage your schedule
             </p>
-            <button className="w-full bg-green-600 text-white px-4 py-3 rounded-lg font-medium hover:bg-green-700 transition-colors">
+            <Link
+              href="/dashboard/appointments"
+              className="block w-full bg-green-600 text-white px-4 py-3 rounded-lg font-medium hover:bg-green-700 transition-colors text-center"
+            >
               View Appointments →
-            </button>
+            </Link>
           </div>
         </div>
       </div>

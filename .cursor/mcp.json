@@ -1,0 +1,17 @@
+  {
+    "mcpServers": {
+      "MongoDB": {
+        "type": "stdio",
+        "command": "npx",
+        "args": [
+          "-y",
+          "mongodb-mcp-server@latest",
+          "--readOnly"
+        ],
+        "env": {
+          "MDB_MCP_CONNECTION_STRING": "mongodb+srv://admin:Passw0rd@healthbooker.dxxqtvv.mongodb.net/"
+        }
+      }
+    }
+  }
+  
