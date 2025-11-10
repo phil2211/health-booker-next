@@ -1,11 +1,11 @@
 'use client'
 
-import { useTranslation } from '@/lib/i18n/useTranslation'
+import { useLocaleContext } from '@/lib/i18n/LocaleProvider'
 import { locales, type Locale, defaultLocale } from '@/lib/i18n'
 import { usePathname, useRouter } from 'next/navigation'
 
 export default function LanguageSwitcher() {
-  const { locale, setLocale } = useTranslation()
+  const { locale, setLocale } = useLocaleContext()
   const pathname = usePathname()
   const router = useRouter()
 

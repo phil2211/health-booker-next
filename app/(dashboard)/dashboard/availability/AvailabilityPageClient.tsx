@@ -5,6 +5,7 @@ import { useTranslation } from '@/lib/i18n/useTranslation'
 import { useLocale } from '@/lib/i18n/LocaleProvider'
 import AvailabilityManagement from '@/components/AvailabilityManagement'
 import LogoutButton from '@/components/LogoutButton'
+import LanguageSwitcher from '@/components/LanguageSwitcher'
 
 export default function AvailabilityPageClient() {
   const { t } = useTranslation()
@@ -32,6 +33,7 @@ export default function AvailabilityPageClient() {
               >
                 {t('dashboard.backToDashboard')}
               </Link>
+              <LanguageSwitcher />
               <LogoutButton />
             </div>
           </div>

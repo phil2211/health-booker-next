@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useTranslation } from '@/lib/i18n/useTranslation'
 import { useLocale } from '@/lib/i18n/LocaleProvider'
 import LogoutButton from '@/components/LogoutButton'
+import LanguageSwitcher from '@/components/LanguageSwitcher'
 import BookingUrlSection from '@/components/BookingUrlSection'
 
 interface DashboardClientProps {
@@ -40,6 +41,7 @@ export default function DashboardClient({ therapist, bookingUrl, baseUrl }: Dash
             </div>
             <div className="flex items-center space-x-4">
               <span className="text-sm text-gray-600 hidden sm:inline">{t('dashboard.welcomeUser', { name: therapist.name })}</span>
+              <LanguageSwitcher />
               <LogoutButton />
             </div>
           </div>

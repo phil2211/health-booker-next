@@ -9,7 +9,7 @@ interface LocaleContextType {
   setLocale: (locale: Locale) => void
 }
 
-const LocaleContext = createContext<LocaleContextType>({
+export const LocaleContext = createContext<LocaleContextType>({
   locale: defaultLocale,
   setLocale: () => {},
 })
@@ -67,5 +67,9 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
 export function useLocale(): Locale {
   const context = useContext(LocaleContext)
   return context.locale
+}
+
+export function useLocaleContext(): LocaleContextType {
+  return useContext(LocaleContext)
 }
 

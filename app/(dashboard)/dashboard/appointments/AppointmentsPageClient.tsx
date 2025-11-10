@@ -5,6 +5,7 @@ import { useTranslation } from '@/lib/i18n/useTranslation'
 import { useLocale } from '@/lib/i18n/LocaleProvider'
 import AppointmentsView from '@/components/AppointmentsView'
 import LogoutButton from '@/components/LogoutButton'
+import LanguageSwitcher from '@/components/LanguageSwitcher'
 
 interface AppointmentsPageClientProps {
   therapistId: string
@@ -36,6 +37,7 @@ export default function AppointmentsPageClient({ therapistId }: AppointmentsPage
               >
                 {t('dashboard.backToDashboard')}
               </Link>
+              <LanguageSwitcher />
               <LogoutButton />
             </div>
           </div>

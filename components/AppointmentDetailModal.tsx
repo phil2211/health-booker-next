@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Booking, BookingStatus } from '@/lib/types'
 import AppointmentStatusBadge from './AppointmentStatusBadge'
+import { useTranslation } from '@/lib/i18n/useTranslation'
 
 interface AppointmentDetailModalProps {
   booking: Booking
@@ -19,13 +20,14 @@ export default function AppointmentDetailModal({
   onCancel,
   onReschedule
 }: AppointmentDetailModalProps) {
+  const { t, locale } = useTranslation()
   const [notes, setNotes] = useState(booking.notes || '')
   const [isEditingNotes, setIsEditingNotes] = useState(false)
   const [isUpdating, setIsUpdating] = useState(false)
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString + 'T00:00:00')
-    return date.toLocaleDateString('en-US', {
+    return date.toLocaleDateString(locale === 'de' ? 'de-DE' : 'en-US', {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
@@ -46,7 +48,10 @@ export default function AppointmentDetailModal({
   }
 
   const handleStatusUpdate = async (newStatus: BookingStatus) => {
-    if (!confirm(`Are you sure you want to mark this appointment as ${newStatus.toLowerCase()}?`)) {
+    // Map BookingStatus enum value to translation key (handle no_show -> noShow)
+    const statusKey = newStatus === 'no_show' ? 'noShow' : newStatus
+    const statusLabel = t(`appointments.status.${statusKey}`)
+    if (!confirm(t('appointments.confirmStatusChange', { status: statusLabel }))) {
       return
     }
 
@@ -66,7 +71,7 @@ export default function AppointmentDetailModal({
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 md:p-6 border-b border-gray-200 gap-4">
           <div>
-            <h2 className="text-lg md:text-xl font-semibold text-gray-900">Appointment Details</h2>
+            <h2 className="text-lg md:text-xl font-semibold text-gray-900">{t('appointments.appointmentDetails')}</h2>
             <p className="text-sm text-gray-600 mt-1">
               {formatDate(booking.appointmentDate instanceof Date ? booking.appointmentDate.toISOString().split('T')[0] : booking.appointmentDate)} • {booking.startTime} - {booking.endTime}
             </p>
@@ -85,25 +90,25 @@ export default function AppointmentDetailModal({
         <div className="p-4 md:p-6 space-y-4 md:space-y-6">
           {/* Status */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">{t('appointments.filters.status')}</label>
             <AppointmentStatusBadge status={booking.status} />
           </div>
 
           {/* Patient Information */}
           <div>
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Patient Information</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-4">{t('appointments.patientInformation')}</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('common.name')}</label>
                 <p className="text-gray-900 bg-gray-50 px-3 py-2 rounded-lg">{booking.patientName}</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('common.email')}</label>
                 <p className="text-gray-900 bg-gray-50 px-3 py-2 rounded-lg">{booking.patientEmail}</p>
               </div>
               {booking.patientPhone && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('common.phone')}</label>
                   <p className="text-gray-900 bg-gray-50 px-3 py-2 rounded-lg">{booking.patientPhone}</p>
                 </div>
               )}
@@ -112,14 +117,14 @@ export default function AppointmentDetailModal({
 
           {/* Appointment Details */}
           <div>
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Appointment Details</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-4">{t('appointments.appointmentDetails')}</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('common.date')}</label>
                 <p className="text-gray-900 bg-gray-50 px-3 py-2 rounded-lg">{formatDate(booking.appointmentDate instanceof Date ? booking.appointmentDate.toISOString().split('T')[0] : booking.appointmentDate)}</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Time</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('common.time')}</label>
                 <p className="text-gray-900 bg-gray-50 px-3 py-2 rounded-lg">{booking.startTime} - {booking.endTime}</p>
               </div>
             </div>
@@ -128,13 +133,13 @@ export default function AppointmentDetailModal({
           {/* Notes */}
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-medium text-gray-900">Notes</h3>
+              <h3 className="text-lg font-medium text-gray-900">{t('appointments.notes')}</h3>
               {!isEditingNotes && booking.status === 'confirmed' && (
                 <button
                   onClick={() => setIsEditingNotes(true)}
                   className="text-sm text-indigo-600 hover:text-indigo-700 font-medium"
                 >
-                  Edit Notes
+                  {t('appointments.editNotes')}
                 </button>
               )}
             </div>
@@ -144,7 +149,7 @@ export default function AppointmentDetailModal({
                 <textarea
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Add notes about this appointment..."
+                  placeholder={t('appointments.addNotesPlaceholder')}
                   rows={4}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-black"
                 />
@@ -154,7 +159,7 @@ export default function AppointmentDetailModal({
                     disabled={isUpdating}
                     className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
                   >
-                    {isUpdating ? 'Saving...' : 'Save Notes'}
+                    {isUpdating ? t('appointments.saving') : t('appointments.saveNotes')}
                   </button>
                   <button
                     onClick={() => {
@@ -163,20 +168,20 @@ export default function AppointmentDetailModal({
                     }}
                     className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 font-medium"
                   >
-                    Cancel
+                    {t('common.cancel')}
                   </button>
                 </div>
               </div>
             ) : (
               <div className="bg-gray-50 px-3 py-2 rounded-lg min-h-[60px] text-black">
-                {notes || <span className="text-black italic">No notes added yet</span>}
+                {notes || <span className="text-black italic">{t('appointments.noNotesYet')}</span>}
               </div>
             )}
           </div>
 
           {/* Cancellation Token */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Cancellation Token</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('appointments.cancellationToken')}</label>
             <p className="text-sm text-gray-600 bg-gray-50 px-3 py-2 rounded-lg font-mono">
               {booking.cancellationToken}
             </p>
@@ -193,7 +198,7 @@ export default function AppointmentDetailModal({
                   disabled={isUpdating}
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
                 >
-                  Mark as Completed
+                  {t('appointments.markAsCompleted')}
                 </button>
 
                 <button
@@ -201,7 +206,7 @@ export default function AppointmentDetailModal({
                   disabled={isUpdating}
                   className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
                 >
-                  Mark as No Show
+                  {t('appointments.markAsNoShow')}
                 </button>
               </>
             )}
@@ -214,14 +219,14 @@ export default function AppointmentDetailModal({
                   onClick={onReschedule}
                   className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 font-medium"
                 >
-                  Reschedule
+                  {t('appointments.reschedule')}
                 </button>
 
                 <button
                   onClick={onCancel}
                   className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium"
                 >
-                  Cancel Appointment
+                  {t('appointments.cancelAppointment')}
                 </button>
               </>
             )}
@@ -230,7 +235,7 @@ export default function AppointmentDetailModal({
               onClick={onClose}
               className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 font-medium"
             >
-              Close
+              {t('common.close')}
             </button>
           </div>
         </div>
