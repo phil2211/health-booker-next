@@ -3,7 +3,10 @@
 import { useState, useEffect, useRef } from 'react'
 import { DayPicker, DateRange, Matcher } from 'react-day-picker'
 import { format, parseISO, startOfToday, isWithinInterval, startOfDay } from 'date-fns'
+import { enUS, de } from 'date-fns/locale'
 import { BlockedSlot } from '@/lib/types'
+import { useLocale } from 'next-intl'
+import { useTranslations } from 'next-intl'
 // Import react-day-picker styles
 import 'react-day-picker/src/style.css'
 
@@ -30,6 +33,12 @@ export default function DateRangePickerPopover({
   onApply,
   'data-testid': testId,
 }: DateRangePickerPopoverProps) {
+  const locale = useLocale()
+  const t = useTranslations('calendar')
+  
+  // Get date-fns locale based on next-intl locale
+  const dateFnsLocale = locale === 'de' ? de : enUS
+  
   const [selected, setSelected] = useState<DateRange | undefined>(undefined)
   const [selectedStartTime, setSelectedStartTime] = useState<string>(startTime)
   const [selectedEndTime, setSelectedEndTime] = useState<string>(endTime)
@@ -179,12 +188,12 @@ export default function DateRangePickerPopover({
   // Format display text
   const getDisplayText = () => {
     if (selected?.from && selected?.to && selectedStartTime && selectedEndTime) {
-      return `${format(selected.from, 'MMM d, yyyy')} ${selectedStartTime} – ${format(selected.to, 'MMM d, yyyy')} ${selectedEndTime}`
+      return `${format(selected.from, 'MMM d, yyyy', { locale: dateFnsLocale })} ${selectedStartTime} – ${format(selected.to, 'MMM d, yyyy', { locale: dateFnsLocale })} ${selectedEndTime}`
     }
     if (selected?.from && selectedStartTime) {
-      return `${format(selected.from, 'MMM d, yyyy')} ${selectedStartTime} – ...`
+      return `${format(selected.from, 'MMM d, yyyy', { locale: dateFnsLocale })} ${selectedStartTime} – ...`
     }
-    return 'Select dates and times'
+    return t('selectDateRange')
   }
 
   const handleApply = () => {
@@ -252,7 +261,7 @@ export default function DateRangePickerPopover({
         popoverTarget="date-range-popover"
         data-testid={testId || 'blocked-range-trigger'}
         className="w-full min-w-44 px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 bg-white text-left flex items-center justify-between hover:border-gray-400 transition-colors"
-        aria-label="Select date range"
+        aria-label={t('selectDateRange')}
       >
         <span className="flex-1 truncate">{getDisplayText()}</span>
         <svg
@@ -283,6 +292,7 @@ export default function DateRangePickerPopover({
           selected={selected}
           onSelect={setSelected}
           disabled={disabledDays}
+          locale={dateFnsLocale}
           className="rdp"
           showOutsideDays
           fixedWeeks
@@ -299,7 +309,7 @@ export default function DateRangePickerPopover({
           <div className="grid grid-cols-2 gap-4 mb-4 min-w-0">
             <div className="min-w-0">
               <label className="block text-xs font-medium text-gray-700 mb-1">
-                Start Time
+                {t('startTime')}
               </label>
               <div className="relative w-full min-w-0 overflow-hidden">
                 <input
@@ -313,7 +323,7 @@ export default function DateRangePickerPopover({
                   type="button"
                   onClick={() => startTimeInputRef.current?.showPicker?.() || startTimeInputRef.current?.focus()}
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none focus:text-gray-600 pointer-events-auto"
-                  aria-label="Open time picker"
+                  aria-label={t('openTimePicker')}
                 >
                   <svg
                     className="w-5 h-5"
@@ -333,7 +343,7 @@ export default function DateRangePickerPopover({
             </div>
             <div className="min-w-0">
               <label className="block text-xs font-medium text-gray-700 mb-1">
-                End Time
+                {t('endTime')}
               </label>
               <div className="relative w-full min-w-0 overflow-hidden">
                 <input
@@ -347,7 +357,7 @@ export default function DateRangePickerPopover({
                   type="button"
                   onClick={() => endTimeInputRef.current?.showPicker?.() || endTimeInputRef.current?.focus()}
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none focus:text-gray-600 pointer-events-auto"
-                  aria-label="Open time picker"
+                  aria-label={t('openTimePicker')}
                 >
                   <svg
                     className="w-5 h-5"
@@ -375,7 +385,7 @@ export default function DateRangePickerPopover({
             className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
             data-testid={`${testId || 'blocked-range'}-clear`}
           >
-            Clear
+            {t('clear')}
           </button>
           <div className="flex gap-2">
             <button
@@ -384,7 +394,7 @@ export default function DateRangePickerPopover({
               className="px-4 py-2 text-sm text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
               data-testid={`${testId || 'blocked-range'}-cancel`}
             >
-              Cancel
+              {t('cancel')}
             </button>
             <button
               type="button"
@@ -393,7 +403,7 @@ export default function DateRangePickerPopover({
               className="px-4 py-2 text-sm text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
               data-testid={`${testId || 'blocked-range'}-apply`}
             >
-              Apply
+              {t('apply')}
             </button>
           </div>
         </div>

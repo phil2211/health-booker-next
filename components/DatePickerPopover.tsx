@@ -3,7 +3,10 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { DayPicker } from 'react-day-picker'
 import { format, parseISO, startOfToday, isWithinInterval, startOfDay } from 'date-fns'
+import { enUS, de } from 'date-fns/locale'
 import { BlockedSlot } from '@/lib/types'
+import { useLocale } from 'next-intl'
+import { useTranslations } from 'next-intl'
 // Import react-day-picker styles
 import 'react-day-picker/src/style.css'
 
@@ -28,19 +31,25 @@ export default function DatePickerPopover({
   'data-testid': testId,
   popoverId,
 }: DatePickerPopoverProps) {
+  const locale = useLocale()
+  const t = useTranslations('calendar')
+  
+  // Get date-fns locale based on next-intl locale
+  const dateFnsLocale = locale === 'de' ? de : enUS
+  
   // Initialize displayText based on selectedDate prop
   const getInitialDisplayText = () => {
     if (selectedDate) {
       try {
         const date = parseISO(selectedDate)
         if (!isNaN(date.getTime())) {
-          return format(date, 'MMM d, yyyy')
+          return format(date, 'MMM d, yyyy', { locale: dateFnsLocale })
         }
       } catch (error) {
         // Ignore parsing errors
       }
     }
-    return 'Select date'
+    return t('selectDate')
   }
 
   const [isOpen, setIsOpen] = useState(false)
@@ -64,14 +73,16 @@ export default function DatePickerPopover({
   const displayText = useMemo(() => {
     if (selectedDate) {
       try {
-        const date = new Date(selectedDate + 'T00:00:00')
-        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+        const date = parseISO(selectedDate)
+        if (!isNaN(date.getTime())) {
+          return format(date, 'MMM d, yyyy', { locale: dateFnsLocale })
+        }
       } catch (e) {
-        return 'Select date'
+        return t('selectDate')
       }
     }
-    return 'Select date'
-  }, [selectedDate])
+    return t('selectDate')
+  }, [selectedDate, dateFnsLocale, t])
 
   const today = min || startOfToday()
 
@@ -178,9 +189,9 @@ export default function DatePickerPopover({
   // Format display text
   const getDisplayText = () => {
     if (selected) {
-      return format(selected, 'MMM d, yyyy')
+      return format(selected, 'MMM d, yyyy', { locale: dateFnsLocale })
     }
-    return 'Select date'
+    return t('selectDate')
   }
 
   const handleDateSelect = (date: Date | undefined) => {
@@ -212,7 +223,7 @@ export default function DatePickerPopover({
         onClick={() => setIsOpen(!isOpen)}
         data-testid={testId || 'date-picker-trigger'}
         className="w-full min-w-44 px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 bg-white text-left flex items-center justify-between hover:border-gray-400 transition-colors font-medium"
-        aria-label="Select date"
+        aria-label={t('selectDate')}
         aria-expanded={isOpen}
         aria-haspopup="dialog"
       >
@@ -244,6 +255,7 @@ export default function DatePickerPopover({
             selected={selected}
             onSelect={handleDateSelect}
             disabled={disabledDays}
+            locale={dateFnsLocale}
             className="rdp"
             showOutsideDays
             fixedWeeks
@@ -262,7 +274,7 @@ export default function DatePickerPopover({
               className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
               data-testid={`${testId || 'date-picker'}-clear`}
             >
-              Clear
+              {t('clear')}
             </button>
             <div className="flex gap-2">
               <button
@@ -271,7 +283,7 @@ export default function DatePickerPopover({
                 className="px-4 py-2 text-sm text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                 data-testid={`${testId || 'date-picker'}-cancel`}
               >
-                Cancel
+                {t('cancel')}
               </button>
             </div>
           </div>

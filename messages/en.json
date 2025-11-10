@@ -149,6 +149,16 @@
       "generic": "An error occurred. Please try again."
     }
   },
+  "calendar": {
+    "selectDate": "Select date",
+    "selectDateRange": "Select date range",
+    "clear": "Clear",
+    "cancel": "Cancel",
+    "apply": "Apply",
+    "startTime": "Start Time",
+    "endTime": "End Time",
+    "openTimePicker": "Open time picker"
+  },
   "availability": {
     "title": "Availability",
     "subtitle": "Manage your available times",
@@ -181,7 +191,6 @@
     "return": "Return",
     "unsavedChanges": "You have unsaved changes",
     "saveChanges": "Save Changes",
-    "saving": "Saving...",
     "availabilityUpdated": "Availability updated successfully!",
     "failedToLoad": "Failed to load availability. Please try again.",
     "failedToSave": "Failed to save availability. Please try again.",
@@ -267,7 +276,34 @@
     "booking": {
       "bookAppointment": "Book Appointment",
       "bookWith": "Book with",
-      "backToTherapistProfile": "Back to Therapist Profile"
+      "backToTherapistProfile": "Back to Therapist Profile",
+      "backToHome": "Back to Home",
+      "selectAppointmentTime": "Select Appointment Time",
+      "treatment": "Treatment",
+      "treatmentType": "Cranio Sacral Session",
+      "selectDate": "Select Date",
+      "timesInLocalTimezone": "Times shown in your local time zone",
+      "selectTime": "Select Time",
+      "loadingAvailableTimes": "Loading available times...",
+      "noAvailableSlots": "No available time slots for this date",
+      "oneHourSession": "1 hour session",
+      "selectedAppointment": "Selected Appointment",
+      "patientInformation": "Patient Information",
+      "fullName": "Full Name",
+      "fullNamePlaceholder": "Enter your full name",
+      "emailAddress": "Email Address",
+      "emailPlaceholder": "your.email@example.com",
+      "phoneNumber": "Phone Number",
+      "phoneOptional": "(optional)",
+      "phonePlaceholder": "+1 (555) 123-4567",
+      "specialRequirements": "Special Requirements or Comments",
+      "specialRequirementsPlaceholder": "Please let us know about any special requirements, accessibility needs, or other important information for your appointment...",
+      "creatingBooking": "Creating Booking...",
+      "confirmBooking": "Confirm Booking",
+      "pleaseSelectDateAndTime": "Please select a date and time",
+      "pleaseFillRequiredFields": "Please fill in all required fields",
+      "pleaseEnterValidEmail": "Please enter a valid email address",
+      "errorCreatingBooking": "An error occurred while creating the booking"
     }
   }
 }

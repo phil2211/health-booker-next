@@ -5,17 +5,29 @@ import LogoutButton from '@/components/LogoutButton'
 import LanguageSwitcher from '@/components/LanguageSwitcher'
 import Link from 'next/link'
 import AppointmentsView from '@/components/AppointmentsView'
-import { getTranslations } from 'next-intl/server'
+import en from '../../../../../messages/en.json'
+import de from '../../../../../messages/de.json'
 
-export default async function AppointmentsPage() {
+interface AppointmentsPageProps {
+  params: Promise<{ locale: string }>
+}
+
+export default async function AppointmentsPage({ params }: AppointmentsPageProps) {
   const session = await getAuthSession()
 
   if (!session || !session.user) {
     redirect('/login')
   }
 
-  // Get translations
-  const t = await getTranslations('pages.appointments')
+  const { locale } = await params
+
+  // Get translations directly from imported messages
+  const messages = { en, de }
+  const localeMessages = messages[locale as keyof typeof messages] || messages.en
+  const appointmentsMessages = localeMessages.pages?.appointments || {}
+
+  // Create translation function
+  const t = (key: string) => appointmentsMessages[key as keyof typeof appointmentsMessages] || key
 
   // Get full therapist data
   const therapist = await findTherapistById(session.user.id)

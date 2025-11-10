@@ -61,6 +61,8 @@ jest.mock('next-intl', () => ({
       'pages.dashboard.viewAppointments': 'View Appointments',
       'pages.availability.manageAvailability': 'Manage Availability',
       'pages.availability.setWeeklySchedule': 'Set your weekly recurring schedule and block specific dates when you\'re not available',
+      'pages.appointments.overview': 'Appointments Overview',
+      'pages.appointments.viewManageAppointments': 'View and manage all your scheduled appointments',
       'common.logout': 'Logout',
     }
     return translations[fullKey] || fullKey

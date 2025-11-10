@@ -149,6 +149,16 @@
       "generic": "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut."
     }
   },
+  "calendar": {
+    "selectDate": "Datum auswählen",
+    "selectDateRange": "Datumsbereich auswählen",
+    "clear": "Löschen",
+    "cancel": "Abbrechen",
+    "apply": "Anwenden",
+    "startTime": "Startzeit",
+    "endTime": "Endzeit",
+    "openTimePicker": "Zeitauswahl öffnen"
+  },
   "availability": {
     "title": "Verfügbarkeit",
     "subtitle": "Verwalten Sie Ihre verfügbaren Zeiten",
@@ -181,7 +191,6 @@
     "return": "Zurück",
     "unsavedChanges": "Sie haben nicht gespeicherte Änderungen",
     "saveChanges": "Änderungen speichern",
-    "saving": "Wird gespeichert...",
     "availabilityUpdated": "Verfügbarkeit erfolgreich aktualisiert!",
     "failedToLoad": "Verfügbarkeit konnte nicht geladen werden. Bitte versuchen Sie es erneut.",
     "failedToSave": "Verfügbarkeit konnte nicht gespeichert werden. Bitte versuchen Sie es erneut.",
@@ -267,7 +276,34 @@
     "booking": {
       "bookAppointment": "Termin buchen",
       "bookWith": "Buchen mit",
-      "backToTherapistProfile": "Zurück zum Therapeutenprofil"
+      "backToTherapistProfile": "Zurück zum Therapeutenprofil",
+      "backToHome": "Zurück zur Startseite",
+      "selectAppointmentTime": "Terminzeit auswählen",
+      "treatment": "Behandlung",
+      "treatmentType": "Cranio Sacral Sitzung",
+      "selectDate": "Datum auswählen",
+      "timesInLocalTimezone": "Zeiten werden in Ihrer lokalen Zeitzone angezeigt",
+      "selectTime": "Uhrzeit auswählen",
+      "loadingAvailableTimes": "Verfügbare Zeiten werden geladen...",
+      "noAvailableSlots": "Keine verfügbaren Zeitslots für dieses Datum",
+      "oneHourSession": "1 Stunde Sitzung",
+      "selectedAppointment": "Ausgewählter Termin",
+      "patientInformation": "Patienteninformationen",
+      "fullName": "Vollständiger Name",
+      "fullNamePlaceholder": "Geben Sie Ihren vollständigen Namen ein",
+      "emailAddress": "E-Mail-Adresse",
+      "emailPlaceholder": "ihre.email@beispiel.com",
+      "phoneNumber": "Telefonnummer",
+      "phoneOptional": "(optional)",
+      "phonePlaceholder": "+49 (0) 123 456789",
+      "specialRequirements": "Besondere Anforderungen oder Kommentare",
+      "specialRequirementsPlaceholder": "Bitte teilen Sie uns mit, ob Sie besondere Anforderungen, Barrierefreiheitsbedürfnisse oder andere wichtige Informationen für Ihren Termin haben...",
+      "creatingBooking": "Buchung wird erstellt...",
+      "confirmBooking": "Buchung bestätigen",
+      "pleaseSelectDateAndTime": "Bitte wählen Sie ein Datum und eine Uhrzeit aus",
+      "pleaseFillRequiredFields": "Bitte füllen Sie alle erforderlichen Felder aus",
+      "pleaseEnterValidEmail": "Bitte geben Sie eine gültige E-Mail-Adresse ein",
+      "errorCreatingBooking": "Beim Erstellen der Buchung ist ein Fehler aufgetreten"
     }
   }
 }

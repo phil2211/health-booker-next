@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { BlockedSlot } from '@/lib/types'
 import PatientBookingScheduler from './PatientBookingScheduler'
+import { useTranslations } from 'next-intl'
 
 interface BookingInterfaceProps {
   therapistId: string
@@ -12,6 +13,7 @@ interface BookingInterfaceProps {
 
 export default function BookingInterface({ therapistId, blockedSlots, therapistName }: BookingInterfaceProps) {
   const [bookingConfirmed, setBookingConfirmed] = useState(false)
+  const t = useTranslations('pages.booking')
 
   const handleBookingConfirmed = () => {
     setBookingConfirmed(true)
@@ -20,7 +22,7 @@ export default function BookingInterface({ therapistId, blockedSlots, therapistN
   return (
     <>
       {!bookingConfirmed && (
-        <h2 className="text-2xl font-semibold text-gray-900 mb-6">Select Appointment Time</h2>
+        <h2 className="text-2xl font-semibold text-gray-900 mb-6">{t('selectAppointmentTime')}</h2>
       )}
       <PatientBookingScheduler
         therapistId={therapistId}

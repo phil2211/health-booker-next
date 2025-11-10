@@ -4,10 +4,11 @@ import LanguageSwitcher from '@/components/LanguageSwitcher'
 import { findTherapistById } from '@/models/Therapist'
 import { ObjectId } from 'mongodb'
 import BookingInterface from '@/components/BookingInterface'
-import { getTranslations } from 'next-intl/server'
+import en from '../../../../messages/en.json'
+import de from '../../../../messages/de.json'
 
 interface BookingPageProps {
-  params: Promise<{ id: string }>
+  params: Promise<{ id: string; locale: string }>
 }
 
 async function getTherapistProfile(id: string) {
@@ -41,7 +42,7 @@ async function getTherapistProfile(id: string) {
 }
 
 export default async function BookingPage({ params }: BookingPageProps) {
-  const { id } = await params
+  const { id, locale } = await params
   const data = await getTherapistProfile(id)
 
   if (!data || !data.therapist) {
@@ -50,8 +51,13 @@ export default async function BookingPage({ params }: BookingPageProps) {
 
   const therapist = data.therapist
 
-  // Get translations
-  const t = await getTranslations('pages.booking')
+  // Get translations directly from imported messages
+  const messages = { en, de }
+  const localeMessages = messages[locale as keyof typeof messages] || messages.en
+  const bookingMessages = localeMessages.pages?.booking || {}
+
+  // Create translation function
+  const t = (key: string) => bookingMessages[key as keyof typeof bookingMessages] || key
 
   return (
     <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100">
