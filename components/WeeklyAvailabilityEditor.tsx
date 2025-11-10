@@ -2,21 +2,12 @@
 
 import { useRef } from 'react'
 import { AvailabilityEntry } from '@/lib/types'
+import { useTranslation } from '@/lib/i18n/useTranslation'
 
 interface WeeklyAvailabilityEditorProps {
   weeklyAvailability: AvailabilityEntry[]
   onChange: (availability: AvailabilityEntry[]) => void
 }
-
-const DAYS_OF_WEEK = [
-  { value: 1, label: 'Monday' },
-  { value: 2, label: 'Tuesday' },
-  { value: 3, label: 'Wednesday' },
-  { value: 4, label: 'Thursday' },
-  { value: 5, label: 'Friday' },
-  { value: 6, label: 'Saturday' },
-  { value: 0, label: 'Sunday' },
-]
 
 function TimeInput({ value, onChange }: { value: string; onChange: (value: string) => void }) {
   const inputRef = useRef<HTMLInputElement>(null)
@@ -59,6 +50,18 @@ export default function WeeklyAvailabilityEditor({
   weeklyAvailability,
   onChange,
 }: WeeklyAvailabilityEditorProps) {
+  const { t } = useTranslation()
+  
+  const DAYS_OF_WEEK = [
+    { value: 1, label: t('availabilityEditor.days.monday') },
+    { value: 2, label: t('availabilityEditor.days.tuesday') },
+    { value: 3, label: t('availabilityEditor.days.wednesday') },
+    { value: 4, label: t('availabilityEditor.days.thursday') },
+    { value: 5, label: t('availabilityEditor.days.friday') },
+    { value: 6, label: t('availabilityEditor.days.saturday') },
+    { value: 0, label: t('availabilityEditor.days.sunday') },
+  ]
+  
   const getAvailabilityForDay = (dayOfWeek: number): AvailabilityEntry[] => {
     return weeklyAvailability.filter((avail) => avail.dayOfWeek === dayOfWeek)
   }
@@ -143,9 +146,9 @@ export default function WeeklyAvailabilityEditor({
 
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">Weekly Availability</h3>
+      <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('availability.weeklyAvailability')}</h3>
       <p className="text-sm text-gray-600 mb-6">
-        Set your recurring weekly schedule. Enable days and set time ranges when you're available.
+        {t('availability.setWeeklyAvailability')}
       </p>
       
       {DAYS_OF_WEEK.map((day) => {
@@ -174,7 +177,7 @@ export default function WeeklyAvailabilityEditor({
                   onClick={() => addTimeRange(day.value)}
                   className="text-sm text-indigo-600 hover:text-indigo-700 font-medium"
                 >
-                  + Add Time Range
+                  + {t('availabilityEditor.addTimeRange')}
                 </button>
               )}
             </div>
@@ -189,7 +192,7 @@ export default function WeeklyAvailabilityEditor({
                     <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3 min-w-0">
                       <div className="min-w-0">
                         <label className="block text-xs font-medium text-gray-700 mb-1">
-                          Start Time
+                          {t('availabilityEditor.startTime')}
                         </label>
                         <TimeInput
                           value={entry.startTime}
@@ -205,7 +208,7 @@ export default function WeeklyAvailabilityEditor({
                       </div>
                       <div className="min-w-0">
                         <label className="block text-xs font-medium text-gray-700 mb-1">
-                          End Time
+                          {t('availabilityEditor.endTime')}
                         </label>
                         <TimeInput
                           value={entry.endTime}
@@ -224,7 +227,7 @@ export default function WeeklyAvailabilityEditor({
                       <button
                         onClick={() => removeTimeRange(day.value, index)}
                         className="px-3 py-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
-                        aria-label="Remove time range"
+                        aria-label={t('availabilityEditor.remove')}
                       >
                         <svg
                           className="w-5 h-5"

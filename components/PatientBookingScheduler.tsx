@@ -5,6 +5,7 @@ import { TimeSlot } from '@/lib/utils/availability'
 import { BlockedSlot } from '@/lib/types'
 import DatePickerPopover from './DatePickerPopover'
 import BookingConfirmation from './BookingConfirmation'
+import { useTranslation } from '@/lib/i18n/useTranslation'
 
 interface PatientBookingSchedulerProps {
   therapistId: string
@@ -21,6 +22,7 @@ interface AvailabilityResponse {
 }
 
 export default function PatientBookingScheduler({ therapistId, blockedSlots = [], onBookingConfirmed, therapistName }: PatientBookingSchedulerProps) {
+  const { t } = useTranslation()
   const [selectedDate, setSelectedDate] = useState<string>('')
 
   const [slots, setSlots] = useState<TimeSlot[]>([])
@@ -363,7 +365,7 @@ export default function PatientBookingScheduler({ therapistId, blockedSlots = []
       {selectedSlot && !submitSuccess && (
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="bg-white border border-gray-200 rounded-lg p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Patient Information</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('patientForm.patientInformation')}</h3>
             
             {submitError && (
               <div className="mb-4 bg-red-50 border border-red-200 rounded-lg p-4 text-red-800 text-sm">
@@ -374,7 +376,7 @@ export default function PatientBookingScheduler({ therapistId, blockedSlots = []
             <div className="space-y-4">
               <div>
                 <label htmlFor="patient-name" className="block text-sm font-medium text-gray-700 mb-1">
-                  Full Name <span className="text-red-500">*</span>
+                  {t('patientForm.fullName')} <span className="text-red-500">*</span>
                 </label>
                 <input
                   id="patient-name"
@@ -383,13 +385,13 @@ export default function PatientBookingScheduler({ therapistId, blockedSlots = []
                   value={patientName}
                   onChange={(e) => setPatientName(e.target.value)}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-black"
-                  placeholder="Enter your full name"
+                  placeholder={t('booking.fullNamePlaceholder')}
                 />
               </div>
 
               <div>
                 <label htmlFor="patient-email" className="block text-sm font-medium text-gray-700 mb-1">
-                  Email Address <span className="text-red-500">*</span>
+                  {t('patientForm.emailAddress')} <span className="text-red-500">*</span>
                 </label>
                 <input
                   id="patient-email"
@@ -398,13 +400,13 @@ export default function PatientBookingScheduler({ therapistId, blockedSlots = []
                   value={patientEmail}
                   onChange={(e) => setPatientEmail(e.target.value)}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-black"
-                  placeholder="your.email@example.com"
+                  placeholder={t('booking.emailPlaceholder')}
                 />
               </div>
 
               <div>
                 <label htmlFor="patient-phone" className="block text-sm font-medium text-gray-700 mb-1">
-                  Phone Number <span className="text-gray-500 text-xs">(optional)</span>
+                  {t('patientForm.phoneNumber')} <span className="text-gray-500 text-xs">{t('patientForm.phoneOptional')}</span>
                 </label>
                 <input
                   id="patient-phone"
@@ -412,13 +414,13 @@ export default function PatientBookingScheduler({ therapistId, blockedSlots = []
                   value={patientPhone}
                   onChange={(e) => setPatientPhone(e.target.value)}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-black"
-                  placeholder="+1 (555) 123-4567"
+                  placeholder={t('patientForm.phonePlaceholder')}
                 />
               </div>
 
               <div>
                 <label htmlFor="patient-comment" className="block text-sm font-medium text-gray-700 mb-1">
-                  Special Requirements or Comments <span className="text-gray-500 text-xs">(optional)</span>
+                  {t('patientForm.specialRequirements')} <span className="text-gray-500 text-xs">{t('patientForm.phoneOptional')}</span>
                 </label>
                 <textarea
                   id="patient-comment"
@@ -426,7 +428,7 @@ export default function PatientBookingScheduler({ therapistId, blockedSlots = []
                   onChange={(e) => setPatientComment(e.target.value)}
                   rows={3}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-black resize-none"
-                  placeholder="Please let us know about any special requirements, accessibility needs, or other important information for your appointment..."
+                  placeholder={t('patientForm.specialRequirementsPlaceholder')}
                 />
               </div>
 
@@ -457,10 +459,10 @@ export default function PatientBookingScheduler({ therapistId, blockedSlots = []
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                       ></path>
                     </svg>
-                    Creating Booking...
+                    {t('patientForm.creatingBooking')}
                   </>
                 ) : (
-                  'Confirm Booking'
+                  t('patientForm.confirmBooking')
                 )}
               </button>
             </div>

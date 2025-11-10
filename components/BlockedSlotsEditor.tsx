@@ -3,6 +3,8 @@
 import { useState, useRef } from 'react'
 import { BlockedSlot } from '@/lib/types'
 import DateRangePickerPopover from './DateRangePickerPopover'
+import { useTranslation } from '@/lib/i18n/useTranslation'
+import { useLocale } from '@/lib/i18n/LocaleProvider'
 
 interface BlockedSlotsEditorProps {
   blockedSlots: BlockedSlot[]
@@ -13,6 +15,7 @@ export default function BlockedSlotsEditor({
   blockedSlots,
   onChange,
 }: BlockedSlotsEditorProps) {
+  const { t, locale } = useTranslation()
   const [newSlot, setNewSlot] = useState<BlockedSlot>({
     fromDate: '',
     toDate: '',
@@ -27,13 +30,13 @@ export default function BlockedSlotsEditor({
   const formatDate = (dateString: string): string => {
     try {
       if (!dateString || typeof dateString !== 'string') {
-        return dateString || 'Invalid date'
+        return dateString || t('errors.notFound')
       }
       const date = new Date(dateString + 'T00:00:00.000Z')
       if (isNaN(date.getTime())) {
         return dateString // Return original if invalid
       }
-      return date.toLocaleDateString('en-US', {
+      return date.toLocaleDateString(locale === 'de' ? 'de-DE' : 'en-US', {
         weekday: 'long',
         year: 'numeric',
         month: 'long',
@@ -41,20 +44,20 @@ export default function BlockedSlotsEditor({
       })
     } catch (error) {
       console.error('Error formatting date:', error)
-      return dateString || 'Invalid date'
+      return dateString || t('errors.notFound')
     }
   }
 
   const formatDateWithTime = (dateString: string, time: string): string => {
     try {
       if (!dateString || typeof dateString !== 'string') {
-        return dateString || 'Invalid date'
+        return dateString || t('errors.notFound')
       }
       const date = new Date(dateString + 'T00:00:00.000Z')
       if (isNaN(date.getTime())) {
         return dateString
       }
-      const formattedDate = date.toLocaleDateString('en-US', {
+      const formattedDate = date.toLocaleDateString(locale === 'de' ? 'de-DE' : 'en-US', {
         month: 'short',
         day: 'numeric',
         year: 'numeric',
@@ -71,18 +74,18 @@ export default function BlockedSlotsEditor({
 
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">Blocked Time Slots</h3>
+      <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('blockedSlots.title')}</h3>
       <p className="text-sm text-gray-600 mb-6">
-        Block specific dates and times when you're not available for appointments.
+        {t('blockedSlots.description')}
       </p>
 
       {/* Add New Blocked Slot Form */}
       <div className="bg-gray-50 rounded-lg p-4 border-2 border-gray-200">
-        <h4 className="text-sm font-semibold text-gray-900 mb-4">Add Blocked Slot</h4>
+        <h4 className="text-sm font-semibold text-gray-900 mb-4">{t('blockedSlots.addBlockedSlot')}</h4>
         <div className="grid grid-cols-1 gap-3">
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">
-              Date Range & Times
+              {t('blockedSlots.dateRangeTimes')}
             </label>
             <DateRangePickerPopover
               fromDate={newSlot.fromDate}
@@ -180,13 +183,13 @@ export default function BlockedSlotsEditor({
       {blockedSlots.length === 0 ? (
         <div className="bg-gray-50 rounded-lg p-8 text-center border-2 border-dashed border-gray-300">
           <p className="text-sm text-gray-500">
-            No blocked slots. Add one above to block specific dates and times.
+            {t('blockedSlots.noBlockedSlots')}
           </p>
         </div>
       ) : (
         <div className="space-y-2">
           <h4 className="text-sm font-semibold text-gray-900 mb-2">
-            Current Blocked Slots ({blockedSlots.length})
+            {t('blockedSlots.title')} ({blockedSlots.length})
           </h4>
           {blockedSlots
             .map((slot, index) => ({ slot, originalIndex: index }))
@@ -222,7 +225,7 @@ export default function BlockedSlotsEditor({
                     <div className="flex items-center gap-4">
                       <div>
                         <p className="font-medium text-gray-900">
-                          {formatDateWithTime(fromDate, slot.startTime)} to {formatDateWithTime(toDate, slot.endTime)}
+                          {t('blockedSlots.from')}: {formatDateWithTime(fromDate, slot.startTime)} {t('blockedSlots.to')}: {formatDateWithTime(toDate, slot.endTime)}
                         </p>
                       </div>
                     </div>
@@ -230,7 +233,7 @@ export default function BlockedSlotsEditor({
                   <button
                     onClick={() => removeBlockedSlot(originalIndex)}
                     className="px-3 py-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
-                    aria-label="Remove blocked slot"
+                    aria-label={t('common.delete')}
                   >
                     <svg
                       className="w-5 h-5"

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import CopyUrlButton from './CopyUrlButton'
+import { useTranslation } from '@/lib/i18n/useTranslation'
 
 interface BookingUrlSectionProps {
   fallbackUrl: string
@@ -9,6 +10,7 @@ interface BookingUrlSectionProps {
 }
 
 export default function BookingUrlSection({ fallbackUrl, therapistId }: BookingUrlSectionProps) {
+  const { t } = useTranslation()
   const [bookingUrl, setBookingUrl] = useState<string>(fallbackUrl)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -20,9 +22,9 @@ export default function BookingUrlSection({ fallbackUrl, therapistId }: BookingU
         
         if (!response.ok) {
           if (response.status === 401) {
-            setError('Please log in to view your booking URL')
+            setError(t('bookingUrl.pleaseLogIn'))
           } else {
-            setError('Failed to fetch booking URL')
+            setError(t('bookingUrl.failedToFetch'))
           }
           return
         }
@@ -33,22 +35,22 @@ export default function BookingUrlSection({ fallbackUrl, therapistId }: BookingU
         }
       } catch (err) {
         console.error('Error fetching booking URL:', err)
-        setError('Failed to fetch booking URL. Using fallback.')
+        setError(t('bookingUrl.failedToFetchFallback'))
       } finally {
         setLoading(false)
       }
     }
 
     fetchBookingUrl()
-  }, [])
+  }, [t])
 
   const profileUrl = bookingUrl.replace('/book/', '/therapist/')
 
   return (
     <div className="bg-white rounded-xl shadow-md border p-6">
-      <h3 className="text-xl font-semibold text-gray-900 mb-4">Share Your Links</h3>
+      <h3 className="text-xl font-semibold text-gray-900 mb-4">{t('bookingUrl.shareYourLinks')}</h3>
       <p className="text-sm text-gray-600 mb-6">
-        Share these links with patients to view your profile and book appointments:
+        {t('bookingUrl.shareDescription')}
       </p>
       
       {loading ? (
@@ -58,7 +60,7 @@ export default function BookingUrlSection({ fallbackUrl, therapistId }: BookingU
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-            <span className="text-sm text-gray-600">Loading your URLs...</span>
+            <span className="text-sm text-gray-600">{t('bookingUrl.loadingUrls')}</span>
           </div>
         </div>
       ) : (
@@ -69,7 +71,7 @@ export default function BookingUrlSection({ fallbackUrl, therapistId }: BookingU
               <svg className="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
-              Booking Link
+              {t('bookingUrl.bookingLink')}
             </label>
             <div className="bg-gray-50 border rounded-lg p-4 mb-2">
               <code className="text-xs break-all text-gray-800">
@@ -85,7 +87,7 @@ export default function BookingUrlSection({ fallbackUrl, therapistId }: BookingU
               <svg className="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
-              Profile Link
+              {t('bookingUrl.profileLink')}
             </label>
             <div className="bg-gray-50 border rounded-lg p-4 mb-2">
               <code className="text-xs break-all text-gray-800">
@@ -107,7 +109,7 @@ export default function BookingUrlSection({ fallbackUrl, therapistId }: BookingU
 
       <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
         <p className="text-sm text-blue-800">
-          <strong>💡 Tip:</strong> Share these links via email, social media, or add them to your website to let patients learn about you and book appointments.
+          <strong>💡 {t('bookingUrl.tip')}</strong> {t('bookingUrl.tipText')}
         </p>
       </div>
     </div>

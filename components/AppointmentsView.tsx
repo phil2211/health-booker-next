@@ -9,6 +9,7 @@ import RescheduleModal from './RescheduleModal'
 import CancellationModal from './CancellationModal'
 import AppointmentStatusBadge from './AppointmentStatusBadge'
 import DatePickerPopover from './DatePickerPopover'
+import { useTranslation } from '@/lib/i18n/useTranslation'
 
 interface AppointmentsViewProps {
   therapistId: string
@@ -23,6 +24,7 @@ interface AppointmentsStats {
 }
 
 export default function AppointmentsView({ therapistId }: AppointmentsViewProps) {
+  const { t } = useTranslation()
   const [bookings, setBookings] = useState<Booking[]>([])
   const [filteredBookings, setFilteredBookings] = useState<Booking[]>([])
   const [loading, setLoading] = useState(true)
@@ -67,7 +69,7 @@ export default function AppointmentsView({ therapistId }: AppointmentsViewProps)
 
       const response = await fetch(`/api/therapist/bookings?${params}`)
       if (!response.ok) {
-        throw new Error('Failed to fetch bookings')
+        throw new Error(t('appointments.errors.failedToFetch'))
       }
 
       const data = await response.json()
@@ -77,11 +79,12 @@ export default function AppointmentsView({ therapistId }: AppointmentsViewProps)
         setStats(data.stats)
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch bookings')
+      setError(err instanceof Error ? err.message : t('appointments.errors.failedToFetch'))
     } finally {
       setLoading(false)
     }
-  }, [statusFilter, dateRange])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [statusFilter, dateRange.startDate, dateRange.endDate])
 
   // Filter bookings based on search query
   useEffect(() => {
@@ -140,7 +143,7 @@ export default function AppointmentsView({ therapistId }: AppointmentsViewProps)
       })
 
       if (!response.ok) {
-        throw new Error('Failed to cancel booking')
+        throw new Error(t('appointments.errors.failedToCancel'))
       }
 
       // Refresh bookings
@@ -148,7 +151,7 @@ export default function AppointmentsView({ therapistId }: AppointmentsViewProps)
       setShowCancellationModal(false)
       setSelectedBooking(null)
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to cancel booking')
+      alert(err instanceof Error ? err.message : t('appointments.errors.failedToCancel'))
     }
   }
 
@@ -161,14 +164,14 @@ export default function AppointmentsView({ therapistId }: AppointmentsViewProps)
       })
 
       if (!response.ok) {
-        throw new Error('Failed to update booking')
+        throw new Error(t('appointments.errors.failedToUpdate'))
       }
 
       // Refresh bookings
       await fetchBookings()
       setShowDetailModal(false)
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to update booking')
+      alert(err instanceof Error ? err.message : t('appointments.errors.failedToUpdate'))
     }
   }
 
@@ -185,14 +188,14 @@ export default function AppointmentsView({ therapistId }: AppointmentsViewProps)
       })
 
       if (!response.ok) {
-        throw new Error('Failed to reschedule booking')
+        throw new Error(t('appointments.errors.failedToReschedule'))
       }
 
       // Refresh bookings
       await fetchBookings()
       setShowRescheduleModal(false)
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to reschedule booking')
+      alert(err instanceof Error ? err.message : t('appointments.errors.failedToReschedule'))
     }
   }
 
@@ -204,13 +207,13 @@ export default function AppointmentsView({ therapistId }: AppointmentsViewProps)
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 18.5c-.77.833.192 2.5 1.732 2.5z" />
           </svg>
         </div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">Error Loading Appointments</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('appointments.errorLoading')}</h3>
         <p className="text-gray-600 mb-4">{error}</p>
         <button
           onClick={fetchBookings}
           className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700"
         >
-          Try Again
+          {t('appointments.tryAgain')}
         </button>
       </div>
     )
@@ -223,7 +226,7 @@ export default function AppointmentsView({ therapistId }: AppointmentsViewProps)
         <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-blue-500">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-500">Total</p>
+              <p className="text-sm font-medium text-gray-500">{t('appointments.stats.total')}</p>
               <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
             </div>
             <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -237,7 +240,7 @@ export default function AppointmentsView({ therapistId }: AppointmentsViewProps)
         <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-green-500">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-500">Upcoming</p>
+              <p className="text-sm font-medium text-gray-500">{t('appointments.stats.upcoming')}</p>
               <p className="text-2xl font-bold text-gray-900">{stats.upcoming}</p>
             </div>
             <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
@@ -251,7 +254,7 @@ export default function AppointmentsView({ therapistId }: AppointmentsViewProps)
         <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-yellow-500">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-500">Today</p>
+              <p className="text-sm font-medium text-gray-500">{t('appointments.stats.today')}</p>
               <p className="text-2xl font-bold text-gray-900">{stats.today}</p>
             </div>
             <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
@@ -265,7 +268,7 @@ export default function AppointmentsView({ therapistId }: AppointmentsViewProps)
         <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-indigo-500">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-500">Completed</p>
+              <p className="text-sm font-medium text-gray-500">{t('appointments.stats.completed')}</p>
               <p className="text-2xl font-bold text-gray-900">{stats.completed}</p>
             </div>
             <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center">
@@ -279,7 +282,7 @@ export default function AppointmentsView({ therapistId }: AppointmentsViewProps)
         <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-red-500">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-500">Cancelled</p>
+              <p className="text-sm font-medium text-gray-500">{t('appointments.stats.cancelled')}</p>
               <p className="text-2xl font-bold text-gray-900">{stats.cancelled}</p>
             </div>
             <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
@@ -298,24 +301,24 @@ export default function AppointmentsView({ therapistId }: AppointmentsViewProps)
           <div className="flex flex-col sm:flex-row gap-4">
             {/* Status Filter */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('appointments.filters.status')}</label>
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value as BookingStatus | 'all')}
                 className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-black"
               >
-                <option value="all">All Statuses</option>
-                <option value={BookingStatus.CONFIRMED}>Confirmed</option>
-                <option value={BookingStatus.COMPLETED}>Completed</option>
-                <option value={BookingStatus.CANCELLED}>Cancelled</option>
-                <option value={BookingStatus.NO_SHOW}>No Show</option>
+                <option value="all">{t('appointments.filters.allStatuses')}</option>
+                <option value={BookingStatus.CONFIRMED}>{t('appointments.status.confirmed')}</option>
+                <option value={BookingStatus.COMPLETED}>{t('appointments.status.completed')}</option>
+                <option value={BookingStatus.CANCELLED}>{t('appointments.status.cancelled')}</option>
+                <option value={BookingStatus.NO_SHOW}>{t('appointments.status.noShow')}</option>
               </select>
             </div>
 
             {/* Date Range */}
             <div className="flex flex-col sm:flex-row gap-2">
               <div className="flex-1">
-                <label className="block text-sm font-medium text-gray-700 mb-1">From</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('appointments.filters.from')}</label>
                 <DatePickerPopover
                   key="date-from"
                   selectedDate={dateRange.startDate}
@@ -325,7 +328,7 @@ export default function AppointmentsView({ therapistId }: AppointmentsViewProps)
                 />
               </div>
               <div className="flex-1">
-                <label className="block text-sm font-medium text-gray-700 mb-1">To</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('appointments.filters.to')}</label>
                 <DatePickerPopover
                   key="date-to"
                   selectedDate={dateRange.endDate}
@@ -338,10 +341,10 @@ export default function AppointmentsView({ therapistId }: AppointmentsViewProps)
 
             {/* Search */}
             <div className="flex-1 min-w-0">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('appointments.filters.search')}</label>
               <input
                 type="text"
-                placeholder="Search by patient name, email, phone, or notes..."
+                placeholder={t('appointments.filters.searchPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-black"
@@ -356,7 +359,7 @@ export default function AppointmentsView({ therapistId }: AppointmentsViewProps)
       {loading ? (
         <div className="bg-white rounded-xl shadow-md p-8 text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading appointments...</p>
+          <p className="text-gray-600">{t('appointments.loading')}</p>
         </div>
       ) : (
         <AppointmentsList
