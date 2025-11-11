@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useTranslation } from '@/lib/i18n/useTranslation'
 import { useLocale } from '@/lib/i18n/LocaleProvider'
 import BookingInterface from '@/components/BookingInterface'
+import LanguageSwitcher from '@/components/LanguageSwitcher'
 
 interface BookingPageClientProps {
   therapistId: string
@@ -35,6 +36,7 @@ export default function BookingPageClient({ therapistId, therapistName, blockedS
               <Link href={homePath} className="text-sm text-gray-600 hover:text-gray-800">
                 {t('booking.home')}
               </Link>
+              <LanguageSwitcher />
             </div>
           </div>
         </div>

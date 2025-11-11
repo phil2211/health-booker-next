@@ -22,7 +22,7 @@ interface AvailabilityResponse {
 }
 
 export default function PatientBookingScheduler({ therapistId, blockedSlots = [], onBookingConfirmed, therapistName }: PatientBookingSchedulerProps) {
-  const { t } = useTranslation()
+  const { t, locale } = useTranslation()
   const [selectedDate, setSelectedDate] = useState<string>('')
 
   const [slots, setSlots] = useState<TimeSlot[]>([])
@@ -122,17 +122,22 @@ export default function PatientBookingScheduler({ therapistId, blockedSlots = []
 
   // Format time from HH:MM to browser's local timezone
   // Assumes the time string is in UTC and converts to user's local timezone
+  // Uses 24-hour format for European locales (e.g., de), 12-hour format for others
   const formatTime = (timeString: string): string => {
     const [hours, minutes] = timeString.split(':').map(Number)
     // Create a date object for today in UTC, then convert to local time
     const date = new Date()
     date.setUTCHours(hours, minutes, 0, 0)
     
+    // Use 24-hour format for European locales (de, etc.), 12-hour for others
+    const isEuropeanLocale = locale === 'de' // Add more European locales as needed
+    const localeString = isEuropeanLocale ? 'de-DE' : 'en-US'
+    
     // Return formatted in user's local timezone
-    return date.toLocaleTimeString('en-US', {
+    return date.toLocaleTimeString(localeString, {
       hour: 'numeric',
       minute: '2-digit',
-      hour12: true,
+      hour12: !isEuropeanLocale, // false for European (24h), true for others (12h)
       timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     })
   }
@@ -160,20 +165,40 @@ export default function PatientBookingScheduler({ therapistId, blockedSlots = []
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
+    // Set custom validation messages before checking validity
+    const nameInput = document.getElementById('patient-name') as HTMLInputElement
+    const emailInput = document.getElementById('patient-email') as HTMLInputElement
+    
+    if (nameInput) {
+      if (!patientName.trim()) {
+        nameInput.setCustomValidity(t('patientForm.errors.fillThisField'))
+      } else {
+        nameInput.setCustomValidity('')
+      }
+    }
+    
+    if (emailInput) {
+      if (!patientEmail.trim()) {
+        emailInput.setCustomValidity(t('patientForm.errors.fillThisField'))
+      } else {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+        if (!emailRegex.test(patientEmail)) {
+          emailInput.setCustomValidity(t('patientForm.errors.invalidEmail'))
+        } else {
+          emailInput.setCustomValidity('')
+        }
+      }
+    }
+    
+    // Check HTML5 validation - this will trigger the browser's validation popover
+    const form = e.currentTarget as HTMLFormElement
+    if (!form.checkValidity()) {
+      form.reportValidity()
+      return
+    }
+    
     if (!selectedSlot || !selectedDate) {
-      setSubmitError('Please select a date and time')
-      return
-    }
-
-    if (!patientName.trim() || !patientEmail.trim()) {
-      setSubmitError('Please fill in all required fields')
-      return
-    }
-
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(patientEmail)) {
-      setSubmitError('Please enter a valid email address')
+      setSubmitError(t('patientForm.errors.selectDateAndTime'))
       return
     }
 
@@ -263,8 +288,8 @@ export default function PatientBookingScheduler({ therapistId, blockedSlots = []
       {/* Treatment Label - Hide when booking is confirmed */}
       {!submitSuccess && (
         <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
-          <p className="text-sm text-indigo-800 font-medium">Treatment</p>
-          <p className="text-lg text-indigo-900 font-semibold">Cranio Sacral Session</p>
+          <p className="text-sm text-indigo-800 font-medium">{t('booking.treatment')}</p>
+          <p className="text-lg text-indigo-900 font-semibold">{t('booking.cranioSacralSession')}</p>
         </div>
       )}
 
@@ -272,7 +297,7 @@ export default function PatientBookingScheduler({ therapistId, blockedSlots = []
       {!submitSuccess && (
         <div className="space-y-2">
           <label className="block text-sm font-medium text-gray-700">
-            Select Date
+            {t('booking.selectDate')}
           </label>
           <DatePickerPopover
             selectedDate={selectedDate}
@@ -286,16 +311,16 @@ export default function PatientBookingScheduler({ therapistId, blockedSlots = []
             }}
             data-testid="appointment-date-picker"
           />
-          <p className="text-xs text-gray-500">Times shown in your local time zone</p>
+          <p className="text-xs text-gray-500">{t('booking.localTimeZone')}</p>
         </div>
       )}
 
       {/* Time Slots - Hide when booking is confirmed */}
       {!submitSuccess && (
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">Select Time</label>
+          <label className="block text-sm font-medium text-gray-700">{t('booking.selectTime')}</label>
           {loading && (
-            <div className="text-center py-8 text-gray-500">Loading available times...</div>
+            <div className="text-center py-8 text-gray-500">{t('booking.loadingAvailableTimes')}</div>
           )}
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-800 text-sm">
@@ -304,7 +329,7 @@ export default function PatientBookingScheduler({ therapistId, blockedSlots = []
           )}
           {!loading && !error && slots.length === 0 && (
             <div className="text-center py-8 text-gray-500">
-              No available time slots for this date
+              {t('booking.noAvailableTimeSlots')}
             </div>
           )}
           {!loading && !error && slots.length > 0 && (
@@ -332,7 +357,7 @@ export default function PatientBookingScheduler({ therapistId, blockedSlots = []
                     `}
                   >
                     <div className="text-sm font-medium">{formatTime(sessionStart)}</div>
-                    <div className="text-xs text-gray-500 mt-1">1 hour session</div>
+                    <div className="text-xs text-gray-500 mt-1">{t('booking.oneHourSession')}</div>
                   </button>
                 )
               })}
@@ -344,15 +369,15 @@ export default function PatientBookingScheduler({ therapistId, blockedSlots = []
       {/* Selected Slot Info */}
       {selectedSlot && (
         <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
-          <p className="text-sm text-green-800 font-medium">Selected Appointment</p>
+          <p className="text-sm text-green-800 font-medium">{t('booking.selectedAppointment')}</p>
           <p className="text-lg text-green-900 font-semibold">
-            {new Date(selectedDate).toLocaleDateString('en-US', {
+            {new Date(selectedDate).toLocaleDateString(locale === 'de' ? 'de-DE' : 'en-US', {
               weekday: 'long',
               year: 'numeric',
               month: 'long',
               day: 'numeric',
             })}
-            {' at '}
+            {` ${t('booking.at')} `}
             {formatTime(
               slots.find((s) => `${s.date}-${s.startTime}` === selectedSlot)?.sessionStart ||
                 '00:00'
@@ -383,7 +408,14 @@ export default function PatientBookingScheduler({ therapistId, blockedSlots = []
                   type="text"
                   required
                   value={patientName}
-                  onChange={(e) => setPatientName(e.target.value)}
+                  onChange={(e) => {
+                    setPatientName(e.target.value)
+                    e.target.setCustomValidity('')
+                  }}
+                  onInvalid={(e) => {
+                    const target = e.target as HTMLInputElement
+                    target.setCustomValidity(t('patientForm.errors.fillThisField'))
+                  }}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-black"
                   placeholder={t('booking.fullNamePlaceholder')}
                 />
@@ -398,7 +430,24 @@ export default function PatientBookingScheduler({ therapistId, blockedSlots = []
                   type="email"
                   required
                   value={patientEmail}
-                  onChange={(e) => setPatientEmail(e.target.value)}
+                  onChange={(e) => {
+                    setPatientEmail(e.target.value)
+                    const target = e.target as HTMLInputElement
+                    target.setCustomValidity('')
+                    // Validate email format on change
+                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+                    if (e.target.value && !emailRegex.test(e.target.value)) {
+                      target.setCustomValidity(t('patientForm.errors.invalidEmail'))
+                    }
+                  }}
+                  onInvalid={(e) => {
+                    const target = e.target as HTMLInputElement
+                    if (target.validity.valueMissing) {
+                      target.setCustomValidity(t('patientForm.errors.fillThisField'))
+                    } else if (target.validity.typeMismatch) {
+                      target.setCustomValidity(t('patientForm.errors.invalidEmail'))
+                    }
+                  }}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-black"
                   placeholder={t('booking.emailPlaceholder')}
                 />

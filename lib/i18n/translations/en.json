@@ -99,10 +99,18 @@
     "selectDate": "Select Date",
     "selectTime": "Select Time",
     "noAvailableSlots": "No available slots for this date",
+    "noAvailableTimeSlots": "No available time slots for this date",
+    "localTimeZone": "Times shown in your local time zone",
+    "loadingAvailableTimes": "Loading available times...",
+    "availableTimeSlots": "Available Time Slots",
+    "loadingAvailableSlots": "Loading available slots...",
     "confirmBooking": "Confirm Booking",
     "bookingInProgress": "Booking in progress...",
     "cranioSacralSession": "Cranio Sacral Session",
-    "oneHour": "1 hour"
+    "oneHour": "1 hour",
+    "oneHourSession": "1 hour session",
+    "selectedAppointment": "Selected Appointment",
+    "at": "at"
   },
   "appointments": {
     "title": "Appointments",
@@ -298,7 +306,13 @@
     "specialRequirementsPlaceholder": "Please let us know about any special requirements, accessibility needs, or other important information for your appointment...",
     "phonePlaceholder": "+1 (555) 123-4567",
     "creatingBooking": "Creating Booking...",
-    "confirmBooking": "Confirm Booking"
+    "confirmBooking": "Confirm Booking",
+    "errors": {
+      "fillThisField": "Please fill in this field.",
+      "fillRequiredFields": "Please fill in all required fields",
+      "selectDateAndTime": "Please select a date and time",
+      "invalidEmail": "Please enter a valid email address"
+    }
   },
   "calendar": {
     "appointmentDetails": "Appointment Details",

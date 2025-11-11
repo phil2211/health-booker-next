@@ -68,7 +68,27 @@ export default function AppointmentsList({
   }
 
   const formatTime = (startTime: string, endTime: string) => {
-    return `${startTime} - ${endTime}`
+    // Format times in 24-hour format for European locales, otherwise keep as-is
+    const isEuropeanLocale = locale === 'de' // Add more European locales as needed
+    
+    if (isEuropeanLocale) {
+      // Times are already in HH:MM format, so just return them
+      return `${startTime} - ${endTime}`
+    }
+    
+    // For non-European locales, convert to 12-hour format if needed
+    const formatTo12Hour = (time: string) => {
+      const [hours, minutes] = time.split(':').map(Number)
+      const date = new Date()
+      date.setHours(hours, minutes, 0, 0)
+      return date.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true,
+      })
+    }
+    
+    return `${formatTo12Hour(startTime)} - ${formatTo12Hour(endTime)}`
   }
 
   if (bookings.length === 0) {

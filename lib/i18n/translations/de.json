@@ -99,10 +99,18 @@
     "selectDate": "Datum auswählen",
     "selectTime": "Zeit auswählen",
     "noAvailableSlots": "Keine verfügbaren Zeiten für dieses Datum",
+    "noAvailableTimeSlots": "Keine verfügbaren Zeitslots für dieses Datum",
+    "localTimeZone": "Zeiten werden in Ihrer lokalen Zeitzone angezeigt",
+    "loadingAvailableTimes": "Verfügbare Zeiten werden geladen...",
+    "availableTimeSlots": "Verfügbare Zeitslots",
+    "loadingAvailableSlots": "Verfügbare Zeitslots werden geladen...",
     "confirmBooking": "Buchung bestätigen",
     "bookingInProgress": "Buchung läuft...",
     "cranioSacralSession": "Kraniosakrale Sitzung",
-    "oneHour": "1 Stunde"
+    "oneHour": "1 Stunde",
+    "oneHourSession": "1 Stunde Sitzung",
+    "selectedAppointment": "Ausgewählter Termin",
+    "at": "um"
   },
   "appointments": {
     "title": "Termine",
@@ -298,7 +306,13 @@
     "specialRequirementsPlaceholder": "Bitte teilen Sie uns alle besonderen Anforderungen, Barrierefreiheitsbedürfnisse oder andere wichtige Informationen für Ihren Termin mit...",
     "phonePlaceholder": "+49 (0) 123 456789",
     "creatingBooking": "Buchung wird erstellt...",
-    "confirmBooking": "Buchung bestätigen"
+    "confirmBooking": "Buchung bestätigen",
+    "errors": {
+      "fillThisField": "Bitte füllen Sie dieses Feld aus.",
+      "fillRequiredFields": "Bitte füllen Sie alle Pflichtfelder aus",
+      "selectDateAndTime": "Bitte wählen Sie ein Datum und eine Uhrzeit aus",
+      "invalidEmail": "Bitte geben Sie eine gültige E-Mail-Adresse ein"
+    }
   },
   "calendar": {
     "appointmentDetails": "Termindetails",
