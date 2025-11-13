@@ -45,3 +45,4 @@ cypress/screenshots
 .idea
 
 .env.local
+.gemini
