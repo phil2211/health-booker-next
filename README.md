@@ -1,5 +1,6 @@
 # Health Worker Booking System
 
+
 A modern, full-stack reservation system for scheduling appointments with health workers, built with Next.js 15, TypeScript, MongoDB Atlas, and deployed on Vercel.
 
 ## Architecture
