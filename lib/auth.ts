@@ -177,7 +177,6 @@ export const authOptions: NextAuthOptions = {
       return session
     },
   },
-  trustHost: true,
 }
 
 /**
