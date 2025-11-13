@@ -201,23 +201,23 @@ END:VCALENDAR`
             <div className="space-y-1.5 sm:space-y-2">
               <div className="flex flex-col sm:flex-row sm:justify-between gap-0.5 sm:gap-0">
                 <span className="text-gray-600 text-xs sm:text-sm">{t('booking.therapist')}:</span>
-                <span className="font-medium text-xs sm:text-sm break-words">{therapistName}</span>
+                <span className="font-bold text-xs sm:text-sm break-words text-gray-800">{therapistName}</span>
               </div>
               <div className="flex flex-col sm:flex-row sm:justify-between gap-0.5 sm:gap-0">
                 <span className="text-gray-600 text-xs sm:text-sm">{t('booking.treatment')}:</span>
-                <span className="font-medium text-xs sm:text-sm">{t('booking.cranioSacralSession')}</span>
+                <span className="font-bold text-xs sm:text-sm text-gray-800">{t('booking.cranioSacralSession')}</span>
               </div>
               <div className="flex flex-col sm:flex-row sm:justify-between gap-0.5 sm:gap-0">
                 <span className="text-gray-600 text-xs sm:text-sm">{t('booking.dateTime')}:</span>
-                <span className="font-medium text-xs sm:text-sm break-words">{formatAppointmentDateTime()}</span>
+                <span className="font-bold text-xs sm:text-sm break-words text-gray-800">{formatAppointmentDateTime()}</span>
               </div>
               <div className="flex flex-col sm:flex-row sm:justify-between gap-0.5 sm:gap-0">
                 <span className="text-gray-600 text-xs sm:text-sm">{t('booking.duration')}:</span>
-                <span className="font-medium text-xs sm:text-sm">{t('booking.oneHour')}</span>
+                <span className="font-bold text-xs sm:text-sm text-gray-800">{t('booking.oneHour')}</span>
               </div>
               <div className="flex flex-col sm:flex-row sm:justify-between gap-0.5 sm:gap-0">
                 <span className="text-gray-600 text-xs sm:text-sm">{t('booking.patient')}:</span>
-                <span className="font-medium text-xs sm:text-sm break-words">{patientName}</span>
+                <span className="font-bold text-xs sm:text-sm break-words text-gray-800">{patientName}</span>
               </div>
             </div>
           </div>
