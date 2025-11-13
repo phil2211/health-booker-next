@@ -1,1 +1,0 @@
-Create a cursor rules file in my project
