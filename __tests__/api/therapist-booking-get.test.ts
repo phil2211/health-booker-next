@@ -6,8 +6,13 @@ import { NextRequest } from 'next/server'
 
 // Mock the authentication
 jest.mock('@/lib/auth', () => ({
+  requireAuth: jest.fn(),
+  getAuthenticatedTherapist: jest.fn(),
   getAuthSession: jest.fn(),
-}))
+}));
+
+// Export the mock functions for individual test cases to use
+const { requireAuth: mockRequireAuth, getAuthenticatedTherapist: mockGetAuthenticatedTherapist, getAuthSession: mockGetAuthSession } = require('@/lib/auth');
 
 // Mock NextResponse
 jest.mock('next/server', () => ({
@@ -41,9 +46,7 @@ describe('GET /api/therapist/bookings/[id]', () => {
 
   describe('Authentication', () => {
     test('should return 401 when not authenticated', async () => {
-      const { getAuthSession } = require('@/lib/auth')
-
-      getAuthSession.mockResolvedValue(null)
+      mockRequireAuth.mockRejectedValue(new Error('Unauthorized - Please login'))
 
       const mockRequest = {} as NextRequest
       const mockParams = { params: Promise.resolve({ id: '6907b83e29b8d58dfc6839cf' }) }
@@ -52,13 +55,11 @@ describe('GET /api/therapist/bookings/[id]', () => {
 
       expect(response.status).toBe(401)
       const jsonResponse = await response.json()
-      expect(jsonResponse.error).toBe('Authentication required')
+      expect(jsonResponse.error).toBe('Unauthorized')
     })
 
     test('should return 401 when session has no user', async () => {
-      const { getAuthSession } = require('@/lib/auth')
-
-      getAuthSession.mockResolvedValue({})
+      mockRequireAuth.mockRejectedValue(new Error('Unauthorized - Please login')) // Session exists but no user
 
       const mockRequest = {} as NextRequest
       const mockParams = { params: Promise.resolve({ id: '6907b83e29b8d58dfc6839cf' }) }
@@ -67,14 +68,12 @@ describe('GET /api/therapist/bookings/[id]', () => {
 
       expect(response.status).toBe(401)
       const jsonResponse = await response.json()
-      expect(jsonResponse.error).toBe('Authentication required')
+      expect(jsonResponse.error).toBe('Unauthorized')
     })
   })
 
   describe('Input Validation', () => {
     test('should return 400 when booking ID is missing', async () => {
-      const { getAuthSession } = require('@/lib/auth')
-
       const mockSession = {
         user: {
           id: 'therapist-123',
@@ -82,7 +81,7 @@ describe('GET /api/therapist/bookings/[id]', () => {
         },
       }
 
-      getAuthSession.mockResolvedValue(mockSession)
+      mockRequireAuth.mockResolvedValue(mockSession)
 
       const mockRequest = {} as NextRequest
       const mockParams = { params: Promise.resolve({ id: '' }) }
@@ -97,7 +96,6 @@ describe('GET /api/therapist/bookings/[id]', () => {
 
   describe('Booking Retrieval', () => {
     test('should return booking successfully', async () => {
-      const { getAuthSession } = require('@/lib/auth')
       const { getBookingById } = require('@/models/Booking')
 
       const mockSession = {
@@ -123,7 +121,7 @@ describe('GET /api/therapist/bookings/[id]', () => {
         updatedAt: new Date('2024-11-01T09:00:00Z'),
       }
 
-      getAuthSession.mockResolvedValue(mockSession)
+      mockRequireAuth.mockResolvedValue(mockSession)
       ;(getBookingById as jest.Mock).mockResolvedValue(mockBooking)
 
       const mockRequest = {} as NextRequest
@@ -139,7 +137,6 @@ describe('GET /api/therapist/bookings/[id]', () => {
     })
 
     test('should return 404 when booking not found', async () => {
-      const { getAuthSession } = require('@/lib/auth')
       const { getBookingById } = require('@/models/Booking')
 
       const mockSession = {
@@ -149,7 +146,7 @@ describe('GET /api/therapist/bookings/[id]', () => {
         },
       }
 
-      getAuthSession.mockResolvedValue(mockSession)
+      mockRequireAuth.mockResolvedValue(mockSession)
       ;(getBookingById as jest.Mock).mockResolvedValue(null)
 
       const mockRequest = {} as NextRequest
@@ -163,7 +160,6 @@ describe('GET /api/therapist/bookings/[id]', () => {
     })
 
     test('should return 404 when therapist does not own the booking', async () => {
-      const { getAuthSession } = require('@/lib/auth')
       const { getBookingById } = require('@/models/Booking')
 
       const mockSession = {
@@ -173,7 +169,7 @@ describe('GET /api/therapist/bookings/[id]', () => {
         },
       }
 
-      getAuthSession.mockResolvedValue(mockSession)
+      mockRequireAuth.mockResolvedValue(mockSession)
       ;(getBookingById as jest.Mock).mockResolvedValue(null) // Another therapist's booking
 
       const mockRequest = {} as NextRequest
@@ -187,7 +183,6 @@ describe('GET /api/therapist/bookings/[id]', () => {
     })
 
     test('should return 400 for invalid booking ID format', async () => {
-      const { getAuthSession } = require('@/lib/auth')
       const { getBookingById } = require('@/models/Booking')
 
       const mockSession = {
@@ -197,7 +192,7 @@ describe('GET /api/therapist/bookings/[id]', () => {
         },
       }
 
-      getAuthSession.mockResolvedValue(mockSession)
+      mockRequireAuth.mockResolvedValue(mockSession)
       ;(getBookingById as jest.Mock).mockRejectedValue(new Error('Invalid booking ID format'))
 
       const mockRequest = {} as NextRequest
@@ -213,7 +208,6 @@ describe('GET /api/therapist/bookings/[id]', () => {
     })
 
     test('should return 500 for internal server error', async () => {
-      const { getAuthSession } = require('@/lib/auth')
       const { getBookingById } = require('@/models/Booking')
 
       const mockSession = {
@@ -223,7 +217,7 @@ describe('GET /api/therapist/bookings/[id]', () => {
         },
       }
 
-      getAuthSession.mockResolvedValue(mockSession)
+      mockRequireAuth.mockResolvedValue(mockSession)
       ;(getBookingById as jest.Mock).mockRejectedValue(new Error('Database connection failed'))
 
       const mockRequest = {} as NextRequest
@@ -239,7 +233,6 @@ describe('GET /api/therapist/bookings/[id]', () => {
 
   describe('Booking ID Parameter', () => {
     test('should use the booking ID from params', async () => {
-      const { getAuthSession } = require('@/lib/auth')
       const { getBookingById } = require('@/models/Booking')
 
       const mockSession = {
@@ -263,7 +256,7 @@ describe('GET /api/therapist/bookings/[id]', () => {
         updatedAt: new Date(),
       }
 
-      getAuthSession.mockResolvedValue(mockSession)
+      mockRequireAuth.mockResolvedValue(mockSession)
       ;(getBookingById as jest.Mock).mockResolvedValue(mockBooking)
 
       const mockRequest = {} as NextRequest

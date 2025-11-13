@@ -193,7 +193,7 @@ export async function getAuthSession() {
  */
 export async function requireAuth() {
   const session = await getAuthSession()
-  if (!session) {
+  if (!session || !session.user) { // Added !session.user check
     throw new Error('Unauthorized - Please login')
   }
   return session

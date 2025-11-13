@@ -6,8 +6,13 @@ import { NextRequest } from 'next/server'
 
 // Mock the authentication
 jest.mock('@/lib/auth', () => ({
+  requireAuth: jest.fn(),
+  getAuthenticatedTherapist: jest.fn(),
   getAuthSession: jest.fn(),
-}))
+}));
+
+// Export the mock functions for individual test cases to use
+const { requireAuth: mockRequireAuth, getAuthenticatedTherapist: mockGetAuthenticatedTherapist, getAuthSession: mockGetAuthSession } = require('@/lib/auth');
 
 // Mock NextResponse
 jest.mock('next/server', () => ({
@@ -41,9 +46,7 @@ describe('DELETE /api/therapist/bookings/[id] (Cancel Booking)', () => {
 
   describe('Authentication', () => {
     test('should return 401 when not authenticated', async () => {
-      const { getAuthSession } = require('@/lib/auth')
-
-      getAuthSession.mockResolvedValue(null)
+      mockRequireAuth.mockRejectedValue(new Error('Unauthorized - Please login'))
 
       const mockRequest = {} as NextRequest
       const mockParams = { params: Promise.resolve({ id: '6907b83e29b8d58dfc6839cf' }) }
@@ -52,13 +55,11 @@ describe('DELETE /api/therapist/bookings/[id] (Cancel Booking)', () => {
 
       expect(response.status).toBe(401)
       const jsonResponse = await response.json()
-      expect(jsonResponse.error).toBe('Authentication required')
+      expect(jsonResponse.error).toBe('Unauthorized')
     })
 
     test('should return 401 when session has no user', async () => {
-      const { getAuthSession } = require('@/lib/auth')
-
-      getAuthSession.mockResolvedValue({})
+      mockRequireAuth.mockRejectedValue(new Error('Unauthorized - Please login')) // Session exists but no user
 
       const mockRequest = {} as NextRequest
       const mockParams = { params: Promise.resolve({ id: '6907b83e29b8d58dfc6839cf' }) }
@@ -67,14 +68,12 @@ describe('DELETE /api/therapist/bookings/[id] (Cancel Booking)', () => {
 
       expect(response.status).toBe(401)
       const jsonResponse = await response.json()
-      expect(jsonResponse.error).toBe('Authentication required')
+      expect(jsonResponse.error).toBe('Unauthorized')
     })
   })
 
   describe('Input Validation', () => {
     test('should return 400 when booking ID is missing', async () => {
-      const { getAuthSession } = require('@/lib/auth')
-
       const mockSession = {
         user: {
           id: 'therapist-123',
@@ -82,7 +81,7 @@ describe('DELETE /api/therapist/bookings/[id] (Cancel Booking)', () => {
         },
       }
 
-      getAuthSession.mockResolvedValue(mockSession)
+      mockRequireAuth.mockResolvedValue(mockSession)
 
       const mockRequest = {} as NextRequest
       const mockParams = { params: Promise.resolve({ id: '' }) }
@@ -97,7 +96,6 @@ describe('DELETE /api/therapist/bookings/[id] (Cancel Booking)', () => {
 
   describe('Booking Cancellation', () => {
     test('should cancel booking successfully', async () => {
-      const { getAuthSession } = require('@/lib/auth')
       const { cancelBookingById } = require('@/models/Booking')
 
       const mockSession = {
@@ -123,7 +121,7 @@ describe('DELETE /api/therapist/bookings/[id] (Cancel Booking)', () => {
         updatedAt: new Date('2024-11-01T10:00:00Z'),
       }
 
-      getAuthSession.mockResolvedValue(mockSession)
+      mockRequireAuth.mockResolvedValue(mockSession)
       ;(cancelBookingById as jest.Mock).mockResolvedValue(mockCancelledBooking)
 
       const mockRequest = {} as NextRequest
@@ -139,7 +137,6 @@ describe('DELETE /api/therapist/bookings/[id] (Cancel Booking)', () => {
     })
 
     test('should return 404 when booking not found', async () => {
-      const { getAuthSession } = require('@/lib/auth')
       const { cancelBookingById } = require('@/models/Booking')
 
       const mockSession = {
@@ -149,7 +146,7 @@ describe('DELETE /api/therapist/bookings/[id] (Cancel Booking)', () => {
         },
       }
 
-      getAuthSession.mockResolvedValue(mockSession)
+      mockRequireAuth.mockResolvedValue(mockSession)
       ;(cancelBookingById as jest.Mock).mockResolvedValue(null)
 
       const mockRequest = {} as NextRequest
@@ -163,7 +160,6 @@ describe('DELETE /api/therapist/bookings/[id] (Cancel Booking)', () => {
     })
 
     test('should return 404 when therapist does not own the booking', async () => {
-      const { getAuthSession } = require('@/lib/auth')
       const { cancelBookingById } = require('@/models/Booking')
 
       const mockSession = {
@@ -173,7 +169,7 @@ describe('DELETE /api/therapist/bookings/[id] (Cancel Booking)', () => {
         },
       }
 
-      getAuthSession.mockResolvedValue(mockSession)
+      mockRequireAuth.mockResolvedValue(mockSession)
       ;(cancelBookingById as jest.Mock).mockResolvedValue(null) // Another therapist's booking
 
       const mockRequest = {} as NextRequest
@@ -187,7 +183,6 @@ describe('DELETE /api/therapist/bookings/[id] (Cancel Booking)', () => {
     })
 
     test('should return 404 when booking is already cancelled', async () => {
-      const { getAuthSession } = require('@/lib/auth')
       const { cancelBookingById } = require('@/models/Booking')
 
       const mockSession = {
@@ -197,7 +192,7 @@ describe('DELETE /api/therapist/bookings/[id] (Cancel Booking)', () => {
         },
       }
 
-      getAuthSession.mockResolvedValue(mockSession)
+      mockRequireAuth.mockResolvedValue(mockSession)
       ;(cancelBookingById as jest.Mock).mockResolvedValue(null) // Already cancelled
 
       const mockRequest = {} as NextRequest
@@ -211,7 +206,6 @@ describe('DELETE /api/therapist/bookings/[id] (Cancel Booking)', () => {
     })
 
     test('should return 400 for invalid booking ID format', async () => {
-      const { getAuthSession } = require('@/lib/auth')
       const { cancelBookingById } = require('@/models/Booking')
 
       const mockSession = {
@@ -221,7 +215,7 @@ describe('DELETE /api/therapist/bookings/[id] (Cancel Booking)', () => {
         },
       }
 
-      getAuthSession.mockResolvedValue(mockSession)
+      mockRequireAuth.mockResolvedValue(mockSession)
       ;(cancelBookingById as jest.Mock).mockRejectedValue(new Error('Invalid booking ID format'))
 
       const mockRequest = {} as NextRequest
@@ -237,7 +231,6 @@ describe('DELETE /api/therapist/bookings/[id] (Cancel Booking)', () => {
     })
 
     test('should return 500 for internal server error', async () => {
-      const { getAuthSession } = require('@/lib/auth')
       const { cancelBookingById } = require('@/models/Booking')
 
       const mockSession = {
@@ -247,7 +240,7 @@ describe('DELETE /api/therapist/bookings/[id] (Cancel Booking)', () => {
         },
       }
 
-      getAuthSession.mockResolvedValue(mockSession)
+      mockRequireAuth.mockResolvedValue(mockSession)
       ;(cancelBookingById as jest.Mock).mockRejectedValue(new Error('Database connection failed'))
 
       const mockRequest = {} as NextRequest
@@ -263,7 +256,6 @@ describe('DELETE /api/therapist/bookings/[id] (Cancel Booking)', () => {
 
   describe('Booking ID Parameter', () => {
     test('should use the booking ID from params', async () => {
-      const { getAuthSession } = require('@/lib/auth')
       const { cancelBookingById } = require('@/models/Booking')
 
       const mockSession = {
@@ -287,7 +279,7 @@ describe('DELETE /api/therapist/bookings/[id] (Cancel Booking)', () => {
         updatedAt: new Date(),
       }
 
-      getAuthSession.mockResolvedValue(mockSession)
+      mockRequireAuth.mockResolvedValue(mockSession)
       ;(cancelBookingById as jest.Mock).mockResolvedValue(mockCancelledBooking)
 
       const mockRequest = {} as NextRequest
@@ -299,7 +291,6 @@ describe('DELETE /api/therapist/bookings/[id] (Cancel Booking)', () => {
     })
 
     test('should cancel booking with cancellation note', async () => {
-      const { getAuthSession } = require('@/lib/auth')
       const { cancelBookingById } = require('@/models/Booking')
 
       const cancellationNote = 'Patient requested cancellation due to illness'
@@ -326,7 +317,7 @@ describe('DELETE /api/therapist/bookings/[id] (Cancel Booking)', () => {
         updatedAt: new Date(),
       }
 
-      getAuthSession.mockResolvedValue(mockSession)
+      mockRequireAuth.mockResolvedValue(mockSession)
       ;(cancelBookingById as jest.Mock).mockResolvedValue(mockCancelledBooking)
 
       const mockRequest = {

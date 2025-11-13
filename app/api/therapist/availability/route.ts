@@ -113,7 +113,7 @@ export async function PUT(request: Request) {
     if (error instanceof Error) {
       if (error.message.includes('Unauthorized')) {
         return NextResponse.json(
-          createErrorResponse(error, 'requireAuth', 401),
+          createErrorResponse(error, 'getAuthenticatedTherapist', 401),
           { status: 401 }
         )
       }
@@ -160,7 +160,7 @@ export async function GET() {
     if (error instanceof Error) {
       if (error.message.includes('Unauthorized')) {
         return NextResponse.json(
-          createErrorResponse(error, 'requireAuth', 401),
+          createErrorResponse(error, 'getAuthenticatedTherapist', 401),
           { status: 401 }
         )
       }
