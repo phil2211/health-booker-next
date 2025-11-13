@@ -56,7 +56,7 @@ export default function AvailabilityManagement() {
     }
 
     loadAvailability()
-  }, [router])
+  }, [router, t])
 
   // Cleanup timeout on unmount
   useEffect(() => {

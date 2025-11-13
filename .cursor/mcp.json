@@ -1,17 +1,22 @@
-  {
-    "mcpServers": {
-      "MongoDB": {
-        "type": "stdio",
-        "command": "npx",
-        "args": [
-          "-y",
-          "mongodb-mcp-server@latest",
-          "--readOnly"
-        ],
-        "env": {
-          "MDB_MCP_CONNECTION_STRING": "mongodb+srv://admin:Passw0rd@healthbooker.dxxqtvv.mongodb.net/"
-        }
+{
+  "mcpServers": {
+    "MongoDB": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "mongodb-mcp-server@latest",
+        "--readOnly"
+      ],
+      "env": {
+        "MDB_MCP_CONNECTION_STRING": "mongodb+srv://admin:[REDACTED]@healthbooker.dxxqtvv.mongodb.net/"
+      }
+    },
+    "github": {
+      "httpUrl": "https://api.githubcopilot.com/mcp/",
+      "headers": {
+        "Authorization": "Bearer [REDACTED]"
       }
     }
   }
-  
+}

@@ -45,4 +45,5 @@ cypress/screenshots
 .idea
 
 .env.local
-.gemini
+.gemini.cursor/mcp.json
+.gemini/
