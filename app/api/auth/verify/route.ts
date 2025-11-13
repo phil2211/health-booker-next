@@ -1,42 +1,6 @@
 import { NextResponse } from 'next/server'
-import { getAuthSession } from '@/lib/auth'
-import { findTherapistById } from '@/models/Therapist'
-
-/**
- * Helper function to create detailed error responses
- */
-function createErrorResponse(error: unknown, functionName: string, statusCode: number = 500): { error: string; details?: { function: string; message?: string; stack?: string } } {
-  let errorMessage: string
-  if (statusCode === 500) {
-    errorMessage = 'Internal server error'
-  } else if (statusCode === 404) {
-    errorMessage = 'Not found'
-  } else if (statusCode === 401) {
-    errorMessage = 'Unauthorized'
-  } else if (statusCode === 400) {
-    errorMessage = 'Bad request'
-  } else {
-    errorMessage = 'Request failed'
-  }
-
-  const baseResponse = {
-    error: errorMessage,
-    details: {
-      function: functionName,
-    } as { function: string; message?: string; stack?: string }
-  }
-
-  if (error instanceof Error) {
-    (baseResponse.details as any).message = error.message
-    if (process.env.NODE_ENV === 'development') {
-      (baseResponse.details as any).stack = error.stack
-    }
-  } else {
-    (baseResponse.details as any).message = String(error)
-  }
-
-  return baseResponse
-}
+import { getAuthenticatedTherapist } from '@/lib/auth'
+import { createErrorResponse } from '@/lib/utils/api';
 
 // Ensure this route runs in Node.js runtime (not Edge) to support MongoDB
 export const runtime = 'nodejs'
@@ -49,24 +13,7 @@ export const runtime = 'nodejs'
  */
 export async function GET() {
   try {
-    const session = await getAuthSession()
-
-    if (!session || !session.user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
-
-    // Get therapist from database to return full profile
-    const therapist = await findTherapistById(session.user.id)
-    
-    if (!therapist) {
-      return NextResponse.json(
-        { error: 'Therapist not found' },
-        { status: 404 }
-      )
-    }
+    const therapist = await getAuthenticatedTherapist();
 
     // Return therapist profile without password
     const { password: _, ...therapistProfile } = therapist
@@ -77,6 +24,20 @@ export async function GET() {
     })
   } catch (error) {
     console.error('Verification error:', error)
+    if (error instanceof Error) {
+      if (error.message.includes('Unauthorized')) {
+        return NextResponse.json(
+          createErrorResponse(error, 'requireAuth', 401),
+          { status: 401 }
+        )
+      }
+      if (error.message.includes('Therapist not found')) {
+        return NextResponse.json(
+          createErrorResponse(error, 'getAuthenticatedTherapist', 404),
+          { status: 404 }
+        )
+      }
+    }
     return NextResponse.json(
       createErrorResponse(error, 'GET /api/auth/verify'),
       { status: 500 }

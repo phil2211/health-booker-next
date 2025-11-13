@@ -1,44 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getAuthSession } from '@/lib/auth'
+import { requireAuth } from '@/lib/auth'
 import { getBookingById, updateBookingById, cancelBookingById } from '@/models/Booking'
 import { BookingStatus } from '@/lib/types'
 
-/**
- * Helper function to create detailed error responses
- */
-function createErrorResponse(error: unknown, functionName: string, statusCode: number = 500): { error: string; details?: { function: string; message?: string; stack?: string } } {
-  let errorMessage: string
-  if (statusCode === 500) {
-    errorMessage = 'Internal server error'
-  } else if (statusCode === 404) {
-    errorMessage = 'Not found'
-  } else if (statusCode === 401) {
-    errorMessage = 'Unauthorized'
-  } else if (statusCode === 400) {
-    errorMessage = 'Bad request'
-  } else {
-    errorMessage = 'Request failed'
-  }
-
-  const baseResponse = {
-    error: errorMessage,
-    details: {
-      function: functionName,
-      message: ''
-    }
-  }
-
-  if (error instanceof Error) {
-    baseResponse.details.message = error.message
-    if (process.env.NODE_ENV === 'development' && error.stack) {
-      (baseResponse.details as any).stack = error.stack
-    }
-  } else {
-    baseResponse.details.message = String(error)
-  }
-
-  return baseResponse
-}
+import { createErrorResponse } from '@/lib/utils/api';
 
 export const runtime = 'nodejs'
 
@@ -61,17 +26,10 @@ interface BookingParams {
  */
 export async function GET(request: NextRequest, { params }: BookingParams) {
   try {
-    const session = await getAuthSession()
-
-    if (!session || !session.user) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      )
-    }
+    const session = await requireAuth()
+    const therapistId = session.user.id
 
     const { id } = await params
-    const therapistId = session.user.id
 
     if (!id) {
       return NextResponse.json(
@@ -97,6 +55,13 @@ export async function GET(request: NextRequest, { params }: BookingParams) {
 
   } catch (error) {
     console.error('Fetch therapist booking error:', error)
+
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      return NextResponse.json(
+        createErrorResponse(error, 'requireAuth', 401),
+        { status: 401 }
+      )
+    }
 
     if (error instanceof Error) {
       if (error.message.includes('not found') || error.message.includes('access denied')) {
@@ -126,17 +91,10 @@ export async function GET(request: NextRequest, { params }: BookingParams) {
  */
 export async function PATCH(request: NextRequest, { params }: BookingParams) {
   try {
-    const session = await getAuthSession()
-
-    if (!session || !session.user) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      )
-    }
+    const session = await requireAuth()
+    const therapistId = session.user.id
 
     const { id } = await params
-    const therapistId = session.user.id
 
     if (!id) {
       return NextResponse.json(
@@ -192,6 +150,13 @@ export async function PATCH(request: NextRequest, { params }: BookingParams) {
   } catch (error) {
     console.error('Update therapist booking error:', error)
 
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      return NextResponse.json(
+        createErrorResponse(error, 'requireAuth', 401),
+        { status: 401 }
+      )
+    }
+
     if (error instanceof Error) {
       if (error.message.includes('not found') || error.message.includes('access denied')) {
         return NextResponse.json(
@@ -220,17 +185,10 @@ export async function PATCH(request: NextRequest, { params }: BookingParams) {
  */
 export async function DELETE(request: NextRequest, { params }: BookingParams) {
   try {
-    const session = await getAuthSession()
-
-    if (!session || !session.user) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      )
-    }
+    const session = await requireAuth()
+    const therapistId = session.user.id
 
     const { id } = await params
-    const therapistId = session.user.id
 
     if (!id) {
       return NextResponse.json(
@@ -268,6 +226,13 @@ export async function DELETE(request: NextRequest, { params }: BookingParams) {
 
   } catch (error) {
     console.error('Cancel therapist booking error:', error)
+
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      return NextResponse.json(
+        createErrorResponse(error, 'requireAuth', 401),
+        { status: 401 }
+      )
+    }
 
     if (error instanceof Error) {
       if (error.message.includes('not found') || error.message.includes('access denied') || error.message.includes('already cancelled')) {

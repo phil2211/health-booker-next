@@ -1,42 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getAuthSession } from '@/lib/auth'
+import { requireAuth } from '@/lib/auth'
 import { rescheduleBooking } from '@/models/Booking'
 
-/**
- * Helper function to create detailed error responses
- */
-function createErrorResponse(error: unknown, functionName: string, statusCode: number = 500): { error: string; details?: { function: string; message?: string; stack?: string } } {
-  let errorMessage: string
-  if (statusCode === 500) {
-    errorMessage = 'Internal server error'
-  } else if (statusCode === 404) {
-    errorMessage = 'Not found'
-  } else if (statusCode === 401) {
-    errorMessage = 'Unauthorized'
-  } else if (statusCode === 400) {
-    errorMessage = 'Bad request'
-  } else {
-    errorMessage = 'Request failed'
-  }
-
-  const baseResponse = {
-    error: errorMessage,
-    details: {
-      function: functionName,
-    } as { function: string; message?: string; stack?: string }
-  }
-
-  if (error instanceof Error) {
-    baseResponse.details.message = error.message
-    if (process.env.NODE_ENV === 'development') {
-      baseResponse.details.stack = error.stack
-    }
-  } else {
-    baseResponse.details.message = String(error)
-  }
-
-  return baseResponse
-}
+import { createErrorResponse } from '@/lib/utils/api';
 
 export const runtime = 'nodejs'
 
@@ -56,17 +22,10 @@ interface BookingParams {
  */
 export async function POST(request: NextRequest, { params }: BookingParams) {
   try {
-    const session = await getAuthSession()
-
-    if (!session || !session.user) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      )
-    }
+    const session = await requireAuth()
+    const therapistId = session.user.id
 
     const { id } = await params
-    const therapistId = session.user.id
 
     if (!id) {
       return NextResponse.json(
@@ -138,6 +97,13 @@ export async function POST(request: NextRequest, { params }: BookingParams) {
 
   } catch (error) {
     console.error('Reschedule therapist booking error:', error)
+
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      return NextResponse.json(
+        createErrorResponse(error, 'requireAuth', 401),
+        { status: 401 }
+      )
+    }
 
     if (error instanceof Error) {
       if (error.message.includes('not found') || error.message.includes('access denied') || error.message.includes('not in confirmed status')) {

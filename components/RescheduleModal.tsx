@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { Booking } from '@/lib/types'
+import { useTranslation } from '@/lib/i18n/useTranslation'
 
 interface RescheduleModalProps {
   booking: Booking
@@ -20,6 +21,7 @@ export default function RescheduleModal({
   onClose,
   onReschedule
 }: RescheduleModalProps) {
+  const { t } = useTranslation()
   const [selectedDate, setSelectedDate] = useState('')
   const [selectedTimeSlot, setSelectedTimeSlot] = useState('')
   const [availableSlots, setAvailableSlots] = useState<AvailableSlot[]>([])
@@ -159,19 +161,19 @@ export default function RescheduleModal({
           {/* Time Slot Selection */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Available Time Slots
+              {t('booking.availableTimeSlots')}
             </label>
 
             {loading ? (
               <div className="text-center py-4">
                 <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600 mx-auto mb-2"></div>
-                <p className="text-sm text-gray-600">Loading available slots...</p>
+                <p className="text-sm text-gray-600">{t('booking.loadingAvailableSlots')}</p>
               </div>
             ) : (
               <div className="max-h-48 overflow-y-auto border border-gray-300 rounded-lg">
                 {availableSlots.length === 0 ? (
                   <div className="p-4 text-center text-gray-500">
-                    No available slots for this date
+                    {t('booking.noAvailableTimeSlots')}
                   </div>
                 ) : (
                   <div className="divide-y divide-gray-200">

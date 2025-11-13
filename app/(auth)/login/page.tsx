@@ -4,8 +4,12 @@ import { useState } from 'react'
 import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { useTranslation } from '@/lib/i18n/useTranslation'
+import { useLocale } from '@/lib/i18n/LocaleProvider'
 
 export default function LoginPage() {
+  const { t } = useTranslation()
+  const locale = useLocale()
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -28,30 +32,34 @@ export default function LoginPage() {
 
       if (result?.error) {
         console.error('Login error:', result.error)
-        setError('Invalid email or password')
+        setError(t('auth.invalidEmailPassword'))
       } else if (result?.ok) {
         // Success - wait a moment for session to be set, then redirect
         console.log('Login successful, waiting for session...')
         setTimeout(() => {
-          window.location.href = '/dashboard'
+          const dashboardPath = locale === 'en' ? '/dashboard' : `/${locale}/dashboard`
+          window.location.href = dashboardPath
         }, 100)
       } else {
         console.error('Unexpected result:', result)
-        setError('An error occurred during login')
+        setError(t('auth.loginError'))
       }
     } catch (err) {
       console.error('Login exception:', err)
-      setError('An error occurred. Please try again.')
+      setError(t('errors.genericError'))
     } finally {
       setLoading(false)
     }
   }
 
+  const homePath = locale === 'en' ? '/' : `/${locale}`
+  const registerPath = locale === 'en' ? '/register' : `/${locale}/register`
+
   return (
     <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 flex items-center justify-center px-4">
       <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back</h1>
-        <p className="text-gray-600 mb-6">Sign in to your therapist account</p>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('auth.welcomeBack')}</h1>
+        <p className="text-gray-600 mb-6">{t('auth.signInToAccount')}</p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
@@ -62,7 +70,7 @@ export default function LoginPage() {
 
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-              Email
+              {t('auth.email')}
             </label>
             <input
               id="email"
@@ -72,13 +80,13 @@ export default function LoginPage() {
               onChange={(e) => setEmail(e.target.value)}
               required
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-black focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-              placeholder="you@example.com"
+              placeholder={t('auth.emailPlaceholder')}
             />
           </div>
 
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-              Password
+              {t('auth.password')}
             </label>
             <input
               id="password"
@@ -88,7 +96,7 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               required
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-black focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-              placeholder="••••••••"
+              placeholder={t('auth.passwordPlaceholder')}
             />
           </div>
 
@@ -97,22 +105,22 @@ export default function LoginPage() {
             disabled={loading}
             className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            {loading ? 'Signing in...' : 'Sign In'}
+            {loading ? t('auth.signingIn') : t('auth.signIn')}
           </button>
         </form>
 
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600">
-            Don't have an account?{' '}
-            <Link href="/register" className="text-indigo-600 hover:text-indigo-700 font-medium">
-              Register here
+            {t('auth.dontHaveAccount')}{' '}
+            <Link href={registerPath} className="text-indigo-600 hover:text-indigo-700 font-medium">
+              {t('auth.registerHere')}
             </Link>
           </p>
         </div>
 
         <div className="mt-4 text-center">
-          <Link href="/" className="text-sm text-gray-500 hover:text-gray-700">
-            ← Back to home
+          <Link href={homePath} className="text-sm text-gray-500 hover:text-gray-700">
+            {t('auth.backToHome')}
           </Link>
         </div>
       </div>

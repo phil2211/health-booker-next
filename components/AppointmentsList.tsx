@@ -2,6 +2,8 @@
 
 import { Booking } from '@/lib/types'
 import AppointmentStatusBadge from './AppointmentStatusBadge'
+import { useTranslation } from '@/lib/i18n/useTranslation'
+import { useLocale } from '@/lib/i18n/LocaleProvider'
 
 interface AppointmentsListProps {
   bookings: Booking[]
@@ -16,6 +18,8 @@ export default function AppointmentsList({
   onCancelBooking,
   onRescheduleBooking
 }: AppointmentsListProps) {
+  const { t, locale } = useTranslation()
+  
   // Group bookings by date sections
   const groupedBookings = bookings.reduce((acc, booking) => {
     const now = new Date()
@@ -48,14 +52,14 @@ export default function AppointmentsList({
   })
 
   const sections = [
-    { key: 'today', title: 'Today', color: 'yellow' },
-    { key: 'upcoming', title: 'Upcoming', color: 'green' },
-    { key: 'past', title: 'Past', color: 'gray' }
+    { key: 'today', title: t('appointments.sections.today'), color: 'yellow' },
+    { key: 'upcoming', title: t('appointments.sections.upcoming'), color: 'green' },
+    { key: 'past', title: t('appointments.sections.past'), color: 'gray' }
   ]
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString + 'T00:00:00')
-    return date.toLocaleDateString('en-US', {
+    return date.toLocaleDateString(locale === 'de' ? 'de-DE' : 'en-US', {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
@@ -64,7 +68,27 @@ export default function AppointmentsList({
   }
 
   const formatTime = (startTime: string, endTime: string) => {
-    return `${startTime} - ${endTime}`
+    // Format times in 24-hour format for European locales, otherwise keep as-is
+    const isEuropeanLocale = locale === 'de' // Add more European locales as needed
+    
+    if (isEuropeanLocale) {
+      // Times are already in HH:MM format, so just return them
+      return `${startTime} - ${endTime}`
+    }
+    
+    // For non-European locales, convert to 12-hour format if needed
+    const formatTo12Hour = (time: string) => {
+      const [hours, minutes] = time.split(':').map(Number)
+      const date = new Date()
+      date.setHours(hours, minutes, 0, 0)
+      return date.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true,
+      })
+    }
+    
+    return `${formatTo12Hour(startTime)} - ${formatTo12Hour(endTime)}`
   }
 
   if (bookings.length === 0) {
@@ -75,8 +99,8 @@ export default function AppointmentsList({
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
           </svg>
         </div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">No Appointments Found</h3>
-        <p className="text-gray-600">Try adjusting your filters to see more appointments.</p>
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('appointments.noAppointments')}</h3>
+        <p className="text-gray-600">{t('appointments.noAppointmentsDescription')}</p>
       </div>
     )
   }
@@ -110,13 +134,13 @@ export default function AppointmentsList({
 
                       <div className="flex flex-col space-y-2 text-sm text-gray-600">
                         <div>
-                          <span className="font-medium">Date:</span> {formatDate(booking.appointmentDate instanceof Date ? booking.appointmentDate.toISOString().split('T')[0] : booking.appointmentDate)}
+                          <span className="font-medium">{t('common.date')}:</span> {formatDate(booking.appointmentDate instanceof Date ? booking.appointmentDate.toISOString().split('T')[0] : booking.appointmentDate)}
                         </div>
                         <div>
-                          <span className="font-medium">Time:</span> {formatTime(booking.startTime, booking.endTime)}
+                          <span className="font-medium">{t('common.time')}:</span> {formatTime(booking.startTime, booking.endTime)}
                         </div>
                         <div>
-                          <span className="font-medium">Contact:</span> {booking.patientEmail}
+                          <span className="font-medium">{t('appointments.contact')}:</span> {booking.patientEmail}
                           {booking.patientPhone && (
                             <span className="block sm:inline sm:ml-2">• {booking.patientPhone}</span>
                           )}
@@ -125,7 +149,7 @@ export default function AppointmentsList({
 
                       {booking.notes && (
                         <div className="mt-3 text-sm text-gray-600">
-                          <span className="font-medium">Notes:</span> {booking.notes}
+                          <span className="font-medium">{t('appointments.notes')}:</span> {booking.notes}
                         </div>
                       )}
                     </div>
@@ -135,7 +159,7 @@ export default function AppointmentsList({
                         onClick={() => onViewBooking(booking)}
                         className="px-4 py-2 text-sm bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors font-medium"
                       >
-                        View Details
+                        {t('appointments.viewDetails')}
                       </button>
 
                       {booking.status === 'confirmed' && (
@@ -144,14 +168,14 @@ export default function AppointmentsList({
                             onClick={() => onRescheduleBooking(booking)}
                             className="px-4 py-2 text-sm bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 transition-colors font-medium"
                           >
-                            Reschedule
+                            {t('appointments.reschedule')}
                           </button>
 
                           <button
                             onClick={() => onCancelBooking(booking._id!)}
                             className="px-4 py-2 text-sm bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors font-medium"
                           >
-                            Cancel
+                            {t('common.cancel')}
                           </button>
                         </>
                       )}

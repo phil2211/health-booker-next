@@ -3,8 +3,12 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { useTranslation } from '@/lib/i18n/useTranslation'
+import { useLocale } from '@/lib/i18n/LocaleProvider'
 
 export default function RegisterPage() {
+  const { t } = useTranslation()
+  const locale = useLocale()
   const router = useRouter()
   const [formData, setFormData] = useState({
     email: '',
@@ -23,13 +27,13 @@ export default function RegisterPage() {
 
     // Validate passwords match
     if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match')
+      setError(t('auth.passwordsDoNotMatch'))
       return
     }
 
     // Validate password length
     if (formData.password.length < 8) {
-      setError('Password must be at least 8 characters long')
+      setError(t('auth.passwordMinLength'))
       return
     }
 
@@ -51,13 +55,14 @@ export default function RegisterPage() {
       const data = await response.json()
 
       if (!response.ok) {
-        setError(data.error || 'Registration failed')
+        setError(data.error || t('auth.registrationFailed'))
       } else {
         // Registration successful, redirect to login
-        router.push('/login?registered=true')
+        const loginPath = locale === 'en' ? '/login?registered=true' : `/${locale}/login?registered=true`
+        router.push(loginPath)
       }
     } catch (err) {
-      setError('An error occurred. Please try again.')
+      setError(t('errors.genericError'))
     } finally {
       setLoading(false)
     }
@@ -70,11 +75,14 @@ export default function RegisterPage() {
     })
   }
 
+  const homePath = locale === 'en' ? '/' : `/${locale}`
+  const loginPath = locale === 'en' ? '/login' : `/${locale}/login`
+
   return (
     <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 flex items-center justify-center px-4 py-12">
       <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Your Account</h1>
-        <p className="text-gray-600 mb-6">Join HealthBooker as a therapist</p>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('auth.createAccount')}</h1>
+        <p className="text-gray-600 mb-6">{t('auth.joinAsTherapist')}</p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
@@ -85,7 +93,7 @@ export default function RegisterPage() {
 
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-              Email *
+              {t('auth.email')} <span className="text-red-500">*</span>
             </label>
             <input
               id="email"
@@ -95,13 +103,13 @@ export default function RegisterPage() {
               onChange={handleChange}
               required
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-black focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-              placeholder="you@example.com"
+              placeholder={t('auth.emailPlaceholder')}
             />
           </div>
 
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-              Password *
+              {t('auth.password')} <span className="text-red-500">*</span>
             </label>
             <input
               id="password"
@@ -111,13 +119,13 @@ export default function RegisterPage() {
               onChange={handleChange}
               required
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-black focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-              placeholder="At least 8 characters"
+              placeholder={t('auth.passwordPlaceholderMin')}
             />
           </div>
 
           <div>
             <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
-              Confirm Password *
+              {t('auth.confirmPassword')} <span className="text-red-500">*</span>
             </label>
             <input
               id="confirmPassword"
@@ -127,13 +135,13 @@ export default function RegisterPage() {
               onChange={handleChange}
               required
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-black focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-              placeholder="Re-enter your password"
+              placeholder={t('auth.confirmPasswordPlaceholder')}
             />
           </div>
 
           <div>
             <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-              Full Name *
+              {t('auth.fullName')} <span className="text-red-500">*</span>
             </label>
             <input
               id="name"
@@ -143,13 +151,13 @@ export default function RegisterPage() {
               onChange={handleChange}
               required
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-black focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-              placeholder="Dr. Jane Smith"
+              placeholder={t('auth.fullNamePlaceholder')}
             />
           </div>
 
           <div>
             <label htmlFor="specialization" className="block text-sm font-medium text-gray-700 mb-1">
-              Specialization *
+              {t('auth.specialization')} <span className="text-red-500">*</span>
             </label>
             <input
               id="specialization"
@@ -159,13 +167,13 @@ export default function RegisterPage() {
               onChange={handleChange}
               required
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-black focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-              placeholder="e.g., Craniosacral Therapist"
+              placeholder={t('auth.specializationPlaceholder')}
             />
           </div>
 
           <div>
             <label htmlFor="bio" className="block text-sm font-medium text-gray-700 mb-1">
-              Bio/Description *
+              {t('auth.bio')} <span className="text-red-500">*</span>
             </label>
             <textarea
               id="bio"
@@ -175,7 +183,7 @@ export default function RegisterPage() {
               required
               rows={4}
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-black focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-              placeholder="Tell us about your background and approach..."
+              placeholder={t('auth.bioPlaceholder')}
             />
           </div>
 
@@ -184,22 +192,22 @@ export default function RegisterPage() {
             disabled={loading}
             className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            {loading ? 'Creating Account...' : 'Create Account'}
+            {loading ? t('auth.creatingAccount') : t('auth.createAccount')}
           </button>
         </form>
 
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600">
-            Already have an account?{' '}
-            <Link href="/login" className="text-indigo-600 hover:text-indigo-700 font-medium">
-              Sign in here
+            {t('auth.alreadyHaveAccount')}{' '}
+            <Link href={loginPath} className="text-indigo-600 hover:text-indigo-700 font-medium">
+              {t('auth.signInHere')}
             </Link>
           </p>
         </div>
 
         <div className="mt-4 text-center">
-          <Link href="/" className="text-sm text-gray-500 hover:text-gray-700">
-            ← Back to home
+          <Link href={homePath} className="text-sm text-gray-500 hover:text-gray-700">
+            {t('auth.backToHome')}
           </Link>
         </div>
       </div>

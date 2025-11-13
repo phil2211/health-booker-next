@@ -8,6 +8,8 @@ const inter = Inter({ subsets: ['latin'] })
 export const metadata: Metadata = {
   title: 'Health Worker Booking System',
   description: 'Schedule appointments with health workers',
+  // Note: For dynamic i18n metadata, consider using generateMetadata function
+  // in individual page components or a middleware-based approach
 }
 
 export default function RootLayout({

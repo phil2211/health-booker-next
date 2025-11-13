@@ -5,8 +5,10 @@ import { useRouter } from 'next/navigation'
 import { AvailabilityEntry, BlockedSlot } from '@/lib/types'
 import WeeklyAvailabilityEditor from './WeeklyAvailabilityEditor'
 import BlockedSlotsEditor from './BlockedSlotsEditor'
+import { useTranslation } from '@/lib/i18n/useTranslation'
 
 export default function AvailabilityManagement() {
+  const { t } = useTranslation()
   const router = useRouter()
   const successTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const [weeklyAvailability, setWeeklyAvailability] = useState<AvailabilityEntry[]>([])
@@ -35,7 +37,7 @@ export default function AvailabilityManagement() {
             router.push('/login')
             return
           }
-          throw new Error('Failed to load availability')
+          throw new Error(t('availability.failedToLoad'))
         }
 
         const data = await response.json()
@@ -47,14 +49,14 @@ export default function AvailabilityManagement() {
         setInitialState({ weeklyAvailability: weeklyAvail, blockedSlots: blocked })
       } catch (err) {
         console.error('Error loading availability:', err)
-        setError('Failed to load availability. Please try again.')
+        setError(t('availability.failedToLoad'))
       } finally {
         setLoading(false)
       }
     }
 
     loadAvailability()
-  }, [router])
+  }, [router, t])
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -137,13 +139,13 @@ export default function AvailabilityManagement() {
       })
 
       if (!response.ok) {
-        let errorMessage = 'Failed to save availability'
+        let errorMessage = t('availability.failedToSave')
         try {
           const errorData = await response.json()
           errorMessage = errorData.error || errorMessage
         } catch (parseError) {
           // If response is not JSON, use status text
-          errorMessage = `Failed to save availability: ${response.status} ${response.statusText}`
+          errorMessage = `${t('availability.failedToSave')}: ${response.status} ${response.statusText}`
         }
         throw new Error(errorMessage)
       }
@@ -155,7 +157,7 @@ export default function AvailabilityManagement() {
         weeklyAvailability: data.weeklyAvailability || [],
         blockedSlots: data.blockedSlots || [],
       })
-      setSuccess('Availability updated successfully!')
+      setSuccess(t('availability.availabilityUpdated'))
       setHasChanges(false)
 
       // Clear any existing timeout
@@ -175,7 +177,7 @@ export default function AvailabilityManagement() {
       } else if (err instanceof Error) {
         setError(err.message)
       } else {
-        setError('Failed to save availability. Please try again.')
+        setError(t('availability.failedToSave'))
       }
     } finally {
       setSaving(false)
@@ -269,7 +271,7 @@ export default function AvailabilityManagement() {
   }
 
   const handleCancel = () => {
-    if (hasChanges && !confirm('You have unsaved changes. Are you sure you want to leave?')) {
+    if (hasChanges && !confirm(t('appointments.unsavedChanges'))) {
       return
     }
     router.push('/dashboard')
@@ -299,7 +301,7 @@ export default function AvailabilityManagement() {
               d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
             ></path>
           </svg>
-          <p className="text-gray-600">Loading availability...</p>
+          <p className="text-gray-600">{t('availability.loadingAvailability')}</p>
         </div>
       </div>
     )
@@ -373,11 +375,11 @@ export default function AvailabilityManagement() {
           onClick={handleCancel}
           className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
         >
-          {hasChanges ? 'Cancel' : 'Return'}
+          {hasChanges ? t('common.cancel') : t('common.return')}
         </button>
         <div className="flex items-center gap-3">
           {hasChanges && (
-            <span className="text-sm text-gray-500">You have unsaved changes</span>
+            <span className="text-sm text-gray-500">{t('availability.unsavedChanges')}</span>
           )}
           <button
             onClick={handleSave}
@@ -406,7 +408,7 @@ export default function AvailabilityManagement() {
                 ></path>
               </svg>
             )}
-            {saving ? 'Saving...' : 'Save Changes'}
+            {saving ? t('availability.saving') : t('availability.saveChanges')}
           </button>
         </div>
       </div>

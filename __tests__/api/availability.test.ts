@@ -44,11 +44,10 @@ jest.mock('@/lib/mongodb', () => ({
 }))
 
 // Mock authentication
-const mockRequireAuthAvailability = jest.fn()
+const mockGetAuthenticatedTherapist = jest.fn();
 jest.mock('@/lib/auth', () => ({
-  requireAuth: (...args: any[]) => mockRequireAuthAvailability(...args),
-  getAuthSession: jest.fn(),
-}))
+  getAuthenticatedTherapist: mockGetAuthenticatedTherapist,
+}));
 
 // Mock NextResponse
 const mockNextResponse = {
@@ -120,8 +119,7 @@ describe('Availability API', () => {
         blockedSlots: [],
       }
 
-      mockRequireAuthAvailability.mockResolvedValue(mockSession)
-      mockFindTherapistById.mockResolvedValue(mockTherapist)
+      mockGetAuthenticatedTherapist.mockResolvedValue(mockTherapist)
       mockUpdateTherapistAvailability.mockResolvedValue({
         ...mockTherapist,
         weeklyAvailability: [
@@ -144,8 +142,7 @@ describe('Availability API', () => {
       const response = await PUT(request)
       const responseData = await response.json()
 
-      expect(mockRequireAuthAvailability).toHaveBeenCalled()
-      expect(mockFindTherapistById).toHaveBeenCalledWith('therapist-id-123')
+      expect(mockGetAuthenticatedTherapist).toHaveBeenCalled()
       expect(mockUpdateTherapistAvailability).toHaveBeenCalledWith(
         'therapist-id-123',
         expect.any(Array),
@@ -156,20 +153,13 @@ describe('Availability API', () => {
     })
 
     test('should successfully update blocked slots', async () => {
-      const mockSession = {
-        user: {
-          id: 'therapist-id-123',
-        },
-      }
-
       const mockTherapist = {
         _id: 'therapist-id-123',
         weeklyAvailability: [],
         blockedSlots: [],
       }
 
-      mockRequireAuthAvailability.mockResolvedValue(mockSession)
-      mockFindTherapistById.mockResolvedValue(mockTherapist)
+      mockGetAuthenticatedTherapist.mockResolvedValue(mockTherapist)
       mockUpdateTherapistAvailability.mockResolvedValue({
         ...mockTherapist,
         blockedSlots: [
@@ -194,12 +184,9 @@ describe('Availability API', () => {
     })
 
     test('should update both weekly availability and blocked slots', async () => {
-      const mockSession = {
-        user: { id: 'therapist-id-123' },
-      }
+      const mockTherapist = { _id: 'therapist-id-123' };
 
-      mockRequireAuthAvailability.mockResolvedValue(mockSession)
-      mockFindTherapistById.mockResolvedValue({ _id: 'therapist-id-123' })
+      mockGetAuthenticatedTherapist.mockResolvedValue(mockTherapist)
       mockUpdateTherapistAvailability.mockResolvedValue({
         _id: 'therapist-id-123',
         weeklyAvailability: [{ dayOfWeek: 1, startTime: '09:00', endTime: '17:00' }],
@@ -228,11 +215,9 @@ describe('Availability API', () => {
     })
 
     test('should reject invalid availability entry', async () => {
-      const mockSession = {
-        user: { id: 'therapist-id-123' },
-      }
+      const mockTherapist = { _id: 'therapist-id-123' };
 
-      mockRequireAuthAvailability.mockResolvedValue(mockSession)
+      mockGetAuthenticatedTherapist.mockResolvedValue(mockTherapist)
       mockValidateAvailabilityEntry.mockReturnValue(false)
 
       const { PUT } = require('@/app/api/therapist/availability/route')
@@ -254,11 +239,9 @@ describe('Availability API', () => {
     })
 
     test('should reject invalid blocked slot', async () => {
-      const mockSession = {
-        user: { id: 'therapist-id-123' },
-      }
+      const mockTherapist = { _id: 'therapist-id-123' };
 
-      mockRequireAuthAvailability.mockResolvedValue(mockSession)
+      mockGetAuthenticatedTherapist.mockResolvedValue(mockTherapist)
       mockValidateBlockedSlot.mockReturnValue(false)
 
       const { PUT } = require('@/app/api/therapist/availability/route')
@@ -280,7 +263,7 @@ describe('Availability API', () => {
     })
 
     test('should reject unauthenticated requests', async () => {
-      mockRequireAuthAvailability.mockRejectedValue(new Error('Unauthorized - Please login'))
+      mockGetAuthenticatedTherapist.mockRejectedValue(new Error('Unauthorized - Please login'))
 
       const { PUT } = require('@/app/api/therapist/availability/route')
       const request = new Request('http://localhost/api/therapist/availability', {
@@ -295,16 +278,14 @@ describe('Availability API', () => {
       expect(response.status).toBe(401)
       const responseData = await response.json()
       expect(responseData.error).toBe('Unauthorized')
-      expect(responseData.details.function).toBe('requireAuth')
+      expect(responseData.details.function).toBe('getAuthenticatedTherapist')
       expect(responseData.details.message).toBe('Unauthorized - Please login')
     })
 
     test('should reject requests without any data', async () => {
-      const mockSession = {
-        user: { id: 'therapist-id-123' },
-      }
+      const mockTherapist = { _id: 'therapist-id-123' };
 
-      mockRequireAuthAvailability.mockResolvedValue(mockSession)
+      mockGetAuthenticatedTherapist.mockResolvedValue(mockTherapist)
 
       const { PUT } = require('@/app/api/therapist/availability/route')
       const request = new Request('http://localhost/api/therapist/availability', {
@@ -323,10 +304,6 @@ describe('Availability API', () => {
 
   describe('GET /api/therapist/availability', () => {
     test('should return current availability for authenticated therapist', async () => {
-      const mockSession = {
-        user: { id: 'therapist-id-123' },
-      }
-
       const mockTherapist = {
         _id: 'therapist-id-123',
         weeklyAvailability: [
@@ -337,21 +314,19 @@ describe('Availability API', () => {
         ],
       }
 
-      mockRequireAuthAvailability.mockResolvedValue(mockSession)
-      mockFindTherapistById.mockResolvedValue(mockTherapist)
+      mockGetAuthenticatedTherapist.mockResolvedValue(mockTherapist)
 
       const { GET } = require('@/app/api/therapist/availability/route')
       const response = await GET()
       const responseData = await response.json()
 
-      expect(mockRequireAuthAvailability).toHaveBeenCalled()
-      expect(mockFindTherapistById).toHaveBeenCalledWith('therapist-id-123')
+      expect(mockGetAuthenticatedTherapist).toHaveBeenCalled()
       expect(responseData.weeklyAvailability).toEqual(mockTherapist.weeklyAvailability)
       expect(responseData.blockedSlots).toEqual(mockTherapist.blockedSlots)
     })
 
     test('should reject unauthenticated requests', async () => {
-      mockRequireAuthAvailability.mockRejectedValue(new Error('Unauthorized - Please login'))
+      mockGetAuthenticatedTherapist.mockRejectedValue(new Error('Unauthorized - Please login'))
 
       const { GET } = require('@/app/api/therapist/availability/route')
       const response = await GET()
@@ -359,7 +334,7 @@ describe('Availability API', () => {
       expect(response.status).toBe(401)
       const responseData = await response.json()
       expect(responseData.error).toBe('Unauthorized')
-      expect(responseData.details.function).toBe('requireAuth')
+      expect(responseData.details.function).toBe('getAuthenticatedTherapist')
       expect(responseData.details.message).toBe('Unauthorized - Please login')
     })
   })

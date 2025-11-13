@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useTranslation } from '@/lib/i18n/useTranslation'
 
 interface Booking {
   _id: string
@@ -20,20 +21,21 @@ interface CancellationFormProps {
 }
 
 export default function CancellationForm({ booking, token }: CancellationFormProps) {
+  const { t, locale } = useTranslation()
   const [isCancelling, setIsCancelling] = useState(false)
   const [isCancelled, setIsCancelled] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const formatAppointmentDateTime = () => {
     const date = new Date(booking.appointmentDate)
-    const dateStr = date.toLocaleDateString('en-US', {
+    const dateStr = date.toLocaleDateString(locale === 'de' ? 'de-DE' : 'en-US', {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
       day: 'numeric',
     })
 
-    const timeStr = new Date(`${booking.appointmentDate}T${booking.startTime}:00`).toLocaleTimeString('en-US', {
+    const timeStr = new Date(`${booking.appointmentDate}T${booking.startTime}:00`).toLocaleTimeString(locale === 'de' ? 'de-DE' : 'en-US', {
       hour: 'numeric',
       minute: '2-digit',
       hour12: true,
@@ -43,7 +45,7 @@ export default function CancellationForm({ booking, token }: CancellationFormPro
   }
 
   const handleCancel = async () => {
-    if (!confirm('Are you sure you want to cancel this appointment? This action cannot be undone.')) {
+    if (!confirm(t('appointments.confirmCancelQuestion'))) {
       return
     }
 
@@ -89,22 +91,22 @@ export default function CancellationForm({ booking, token }: CancellationFormPro
               d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
             />
           </svg>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Appointment Cancelled</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('appointments.appointmentCancelled')}</h2>
           <p className="text-gray-600 mb-6">
-            Your appointment has been successfully cancelled. You will receive a confirmation email shortly.
+            {t('appointments.cancelledSuccess')}
           </p>
           <div className="space-y-3">
             <Link
               href="/"
               className="inline-flex items-center px-6 py-3 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors mr-4"
             >
-              Book Another Appointment
+              {t('appointments.bookAnotherAppointment')}
             </Link>
             <button
               onClick={() => window.close()}
               className="inline-flex items-center px-6 py-3 bg-gray-200 text-gray-800 rounded-lg font-medium hover:bg-gray-300 transition-colors"
             >
-              Close Window
+              {t('appointments.closeWindow')}
             </button>
           </div>
         </div>
@@ -132,7 +134,7 @@ export default function CancellationForm({ booking, token }: CancellationFormPro
               />
             </svg>
             <div>
-              <h3 className="text-sm font-medium text-red-800">Cancellation Failed</h3>
+              <h3 className="text-sm font-medium text-red-800">{t('appointments.cancellationFailed')}</h3>
               <p className="text-sm text-red-700 mt-1">{error}</p>
             </div>
           </div>
@@ -141,28 +143,28 @@ export default function CancellationForm({ booking, token }: CancellationFormPro
 
       {/* Appointment Details */}
       <div className="mb-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Appointment Details</h2>
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">{t('appointments.appointmentDetails')}</h2>
         <div className="bg-gray-50 rounded-lg p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <span className="block text-sm font-medium text-gray-600">Patient Name</span>
+              <span className="block text-sm font-medium text-gray-600">{t('appointments.patientName')}</span>
               <span className="block text-lg text-gray-900">{booking.patientName}</span>
             </div>
             <div>
-              <span className="block text-sm font-medium text-gray-600">Email</span>
+              <span className="block text-sm font-medium text-gray-600">{t('common.email')}</span>
               <span className="block text-lg text-gray-900">{booking.patientEmail}</span>
             </div>
             <div className="md:col-span-2">
-              <span className="block text-sm font-medium text-gray-600">Appointment Date & Time</span>
+              <span className="block text-sm font-medium text-gray-600">{t('appointments.appointmentDateTime')}</span>
               <span className="block text-lg text-gray-900">{formatAppointmentDateTime()}</span>
             </div>
             <div>
-              <span className="block text-sm font-medium text-gray-600">Duration</span>
-              <span className="block text-lg text-gray-900">1 hour</span>
+              <span className="block text-sm font-medium text-gray-600">{t('appointments.duration')}</span>
+              <span className="block text-lg text-gray-900">{t('booking.oneHour')}</span>
             </div>
             <div>
-              <span className="block text-sm font-medium text-gray-600">Treatment</span>
-              <span className="block text-lg text-gray-900">Cranio Sacral Session</span>
+              <span className="block text-sm font-medium text-gray-600">{t('appointments.treatment')}</span>
+              <span className="block text-lg text-gray-900">{t('booking.cranioSacralSession')}</span>
             </div>
           </div>
         </div>
@@ -185,10 +187,9 @@ export default function CancellationForm({ booking, token }: CancellationFormPro
             />
           </svg>
           <div>
-            <h3 className="text-sm font-medium text-yellow-800">Cancellation Policy</h3>
+            <h3 className="text-sm font-medium text-yellow-800">{t('appointments.cancellationPolicy')}</h3>
             <p className="text-sm text-yellow-700 mt-1">
-              Please note that cancelling appointments with less than 24 hours notice may incur a cancellation fee.
-              Contact your therapist directly for more information.
+              {t('appointments.cancellationPolicyText')}
             </p>
           </div>
         </div>
@@ -223,10 +224,10 @@ export default function CancellationForm({ booking, token }: CancellationFormPro
                   d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                 ></path>
               </svg>
-              Cancelling...
+              {t('appointments.cancelling')}
             </>
           ) : (
-            'Cancel Appointment'
+            t('appointments.cancelAppointment')
           )}
         </button>
 
@@ -234,14 +235,14 @@ export default function CancellationForm({ booking, token }: CancellationFormPro
           onClick={() => window.history.back()}
           className="flex-1 px-6 py-3 bg-gray-200 text-gray-800 rounded-lg font-medium hover:bg-gray-300 transition-colors"
         >
-          Keep Appointment
+          {t('appointments.keepAppointment')}
         </button>
       </div>
 
       {/* Alternative Contact */}
       <div className="mt-6 text-center">
         <p className="text-sm text-gray-600">
-          Need help? Contact us at{' '}
+          {t('appointments.needHelp')}{' '}
           <a href="mailto:support@healthbooker.app" className="text-indigo-600 hover:text-indigo-700">
             support@healthbooker.app
           </a>
