@@ -1,43 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getAuthSession } from '@/lib/auth'
+import { requireAuth } from '@/lib/auth'
 import { getBookingsByTherapistAndDateRange, getAppointmentStats } from '@/models/Booking'
 import { BookingStatus } from '@/lib/types'
 
-/**
- * Helper function to create detailed error responses
- */
-function createErrorResponse(error: unknown, functionName: string, statusCode: number = 500): { error: string; details?: { function: string; message?: string; stack?: string } } {
-  let errorMessage: string
-  if (statusCode === 500) {
-    errorMessage = 'Internal server error'
-  } else if (statusCode === 404) {
-    errorMessage = 'Not found'
-  } else if (statusCode === 401) {
-    errorMessage = 'Unauthorized'
-  } else if (statusCode === 400) {
-    errorMessage = 'Bad request'
-  } else {
-    errorMessage = 'Request failed'
-  }
-
-  const baseResponse = {
-    error: errorMessage,
-    details: {
-      function: functionName,
-    } as { function: string; message?: string; stack?: string }
-  }
-
-  if (error instanceof Error) {
-    baseResponse.details.message = error.message
-    if (process.env.NODE_ENV === 'development') {
-      baseResponse.details.stack = error.stack
-    }
-  } else {
-    baseResponse.details.message = String(error)
-  }
-
-  return baseResponse
-}
+import { createErrorResponse } from '@/lib/utils/api';
 
 export const runtime = 'nodejs'
 
@@ -53,15 +19,7 @@ export const runtime = 'nodejs'
  */
 export async function GET(request: NextRequest) {
   try {
-    const session = await getAuthSession()
-
-    if (!session || !session.user) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      )
-    }
-
+    const session = await requireAuth()
     const therapistId = session.user.id
     const { searchParams } = new URL(request.url)
 
@@ -146,6 +104,12 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     console.error('Fetch therapist bookings error:', error)
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      return NextResponse.json(
+        createErrorResponse(error, 'requireAuth', 401),
+        { status: 401 }
+      )
+    }
     return NextResponse.json(
       createErrorResponse(error, 'GET /api/therapist/bookings'),
       { status: 500 }

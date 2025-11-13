@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
-import { requireAuth } from '@/lib/auth'
+import { getAuthenticatedTherapist, requireAuth } from '@/lib/auth'
 import {
-  findTherapistById,
   updateTherapistAvailability,
   validateAvailabilityEntry,
   validateBlockedSlot,
@@ -9,41 +8,7 @@ import {
 import { AvailabilityEntry, BlockedSlot } from '@/lib/types'
 import { ObjectId } from 'mongodb'
 
-/**
- * Helper function to create detailed error responses
- */
-function createErrorResponse(error: unknown, functionName: string, statusCode: number = 500): { error: string; details?: { function: string; message?: string; stack?: string } } {
-  let errorMessage: string
-  if (statusCode === 500) {
-    errorMessage = 'Internal server error'
-  } else if (statusCode === 404) {
-    errorMessage = 'Not found'
-  } else if (statusCode === 401) {
-    errorMessage = 'Unauthorized'
-  } else if (statusCode === 400) {
-    errorMessage = 'Bad request'
-  } else {
-    errorMessage = 'Request failed'
-  }
-
-  const baseResponse = {
-    error: errorMessage,
-    details: {
-      function: functionName,
-    } as { function: string; message?: string; stack?: string }
-  }
-
-  if (error instanceof Error) {
-    baseResponse.details.message = error.message
-    if (process.env.NODE_ENV === 'development') {
-      baseResponse.details.stack = error.stack
-    }
-  } else {
-    baseResponse.details.message = String(error)
-  }
-
-  return baseResponse
-}
+import { createErrorResponse } from '@/lib/utils/api';
 
 export const runtime = 'nodejs'
 
@@ -56,18 +21,8 @@ export const runtime = 'nodejs'
  */
 export async function PUT(request: Request) {
   try {
-    // Require authentication
-    const session = await requireAuth()
-    const therapistId = session.user.id
-
-    // Validate therapist ID format
-    if (!ObjectId.isValid(therapistId)) {
-      console.error('Invalid therapist ID format:', therapistId)
-      return NextResponse.json(
-        createErrorResponse(new Error('Invalid therapist ID format'), 'PUT /api/therapist/availability', 400),
-        { status: 400 }
-      )
-    }
+    const therapist = await getAuthenticatedTherapist();
+    const therapistId = therapist._id.toString();
 
     // Parse request body
     let body
@@ -132,15 +87,6 @@ export async function PUT(request: Request) {
       }
     }
 
-    // Verify therapist exists
-    const therapist = await findTherapistById(therapistId)
-    if (!therapist) {
-      return NextResponse.json(
-        createErrorResponse(new Error('Therapist not found'), 'PUT /api/therapist/availability', 404),
-        { status: 404 }
-      )
-    }
-
     // Update availability
     const updatedTherapist = await updateTherapistAvailability(
       therapistId,
@@ -164,19 +110,25 @@ export async function PUT(request: Request) {
   } catch (error) {
     console.error('Update availability error:', error)
 
-    // Check if it's an authentication error
-    if (error instanceof Error && error.message.includes('Unauthorized')) {
-      return NextResponse.json(
-        createErrorResponse(error, 'requireAuth', 401),
-        { status: 401 }
-      )
-    }
-    // Check if it's an ObjectId error
-    if (error instanceof Error && (error.message.includes('ObjectId') || error.message.includes('BSON'))) {
-      return NextResponse.json(
-        createErrorResponse(error, 'PUT /api/therapist/availability', 400),
-        { status: 400 }
-      )
+    if (error instanceof Error) {
+      if (error.message.includes('Unauthorized')) {
+        return NextResponse.json(
+          createErrorResponse(error, 'requireAuth', 401),
+          { status: 401 }
+        )
+      }
+      if (error.message.includes('Therapist not found')) {
+        return NextResponse.json(
+          createErrorResponse(error, 'getAuthenticatedTherapist', 404),
+          { status: 404 }
+        )
+      }
+      if (error.message.includes('ObjectId') || error.message.includes('BSON')) {
+        return NextResponse.json(
+          createErrorResponse(error, 'PUT /api/therapist/availability', 400),
+          { status: 400 }
+        )
+      }
     }
 
     return NextResponse.json(
@@ -195,19 +147,7 @@ export async function PUT(request: Request) {
  */
 export async function GET() {
   try {
-    // Require authentication
-    const session = await requireAuth()
-    const therapistId = session.user.id
-
-    // Get therapist
-    const therapist = await findTherapistById(therapistId)
-
-    if (!therapist) {
-      return NextResponse.json(
-        createErrorResponse(new Error('Therapist not found'), 'GET /api/therapist/availability', 404),
-        { status: 404 }
-      )
-    }
+    const therapist = await getAuthenticatedTherapist();
 
     // Return availability
     return NextResponse.json({
@@ -217,12 +157,19 @@ export async function GET() {
   } catch (error) {
     console.error('Get availability error:', error)
 
-    // Check if it's an authentication error
-    if (error instanceof Error && error.message.includes('Unauthorized')) {
-      return NextResponse.json(
-        createErrorResponse(error, 'requireAuth', 401),
-        { status: 401 }
-      )
+    if (error instanceof Error) {
+      if (error.message.includes('Unauthorized')) {
+        return NextResponse.json(
+          createErrorResponse(error, 'requireAuth', 401),
+          { status: 401 }
+        )
+      }
+      if (error.message.includes('Therapist not found')) {
+        return NextResponse.json(
+          createErrorResponse(error, 'getAuthenticatedTherapist', 404),
+          { status: 404 }
+        )
+      }
     }
 
     return NextResponse.json(

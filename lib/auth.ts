@@ -199,3 +199,16 @@ export async function requireAuth() {
   return session
 }
 
+/**
+ * Gets the authenticated therapist, throwing an error if not found.
+ */
+export async function getAuthenticatedTherapist() {
+  const session = await requireAuth();
+  const therapist = await findTherapistById(session.user.id);
+  if (!therapist) {
+    throw new Error('Therapist not found');
+  }
+  return therapist;
+}
+
+
