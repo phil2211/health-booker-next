@@ -1,5 +1,11 @@
-import NextAuth from 'next-auth'
-import { authConfig } from '@/lib/auth'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 
-export const { auth, handlers, signIn, signOut } = NextAuth(authConfig)
+/**
+ * Get the current server session (NextAuth v4 compatible)
+ * Use this in server components and API routes
+ */
+export async function auth() {
+  return await getServerSession(authOptions)
+}
 

@@ -1,7 +1,10 @@
-import { handlers } from '@/lib/utils/auth-client'
+import NextAuth from 'next-auth'
+import { authOptions } from '@/lib/auth'
 
 // Ensure this route runs in Node.js runtime (not Edge) to support MongoDB
 export const runtime = 'nodejs'
 
-export const { GET, POST } = handlers
+const handler = NextAuth(authOptions)
+
+export { handler as GET, handler as POST }
 
