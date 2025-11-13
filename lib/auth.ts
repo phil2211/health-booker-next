@@ -2,7 +2,7 @@ import CredentialsProvider from 'next-auth/providers/credentials'
 import { findTherapistByEmail, findTherapistById, comparePassword } from '@/models/Therapist'
 import { getDatabase } from '@/lib/mongodb'
 import { randomBytes } from 'crypto'
-import type { NextAuthConfig } from 'next-auth'
+import type { NextAuthOptions } from 'next-auth'
 
 declare module 'next-auth' {
   interface Session {
@@ -81,7 +81,7 @@ async function deleteSession(sessionToken: string) {
   await db.collection('sessions').deleteOne({ sessionToken })
 }
 
-export const authConfig: NextAuthConfig = {
+export const authOptions: NextAuthOptions = {
   // adapter: MongoDBAdapter(clientPromise), // Temporarily disable adapter
   providers: [
     CredentialsProvider({
@@ -177,7 +177,6 @@ export const authConfig: NextAuthConfig = {
       return session
     },
   },
-  trustHost: true,
 }
 
 /**
