@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import { getDatabase } from '@/lib/mongodb'
-import { BookingStatus } from '@/lib/types'
+import { BookingStatus, Patient } from '@/lib/types'
+import { findTherapistById } from '@/models/Therapist'
+import { sendCancellationEmail } from '@/lib/email'
 
 import { createErrorResponse } from '@/lib/utils/api';
 
@@ -72,6 +74,18 @@ export async function POST(request: Request, { params }: CancelBookingParams) {
       ]
     )
 
+    // Send cancellation email
+    const therapist = await findTherapistById(booking.therapistId.toString())
+    if (therapist) {
+        const patient: Patient = {
+            name: booking.patientName,
+            email: booking.patientEmail,
+            phone: booking.patientPhone || '',
+        }
+        await sendCancellationEmail(booking, therapist, patient)
+    }
+
+
     return NextResponse.json({
       message: 'Booking cancelled successfully',
       booking: {
@@ -94,7 +108,6 @@ export async function POST(request: Request, { params }: CancelBookingParams) {
     )
   }
 }
-
 // GET endpoint to show cancellation confirmation page
 export async function GET(request: Request, { params }: CancelBookingParams) {
   try {

@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/auth'
 import { rescheduleBooking } from '@/models/Booking'
+import { findTherapistById } from '@/models/Therapist'
+import { sendRescheduleEmail } from '@/lib/email'
+import { Patient } from '@/lib/types'
 
 import { createErrorResponse } from '@/lib/utils/api';
 
@@ -88,6 +91,17 @@ export async function POST(request: NextRequest, { params }: BookingParams) {
         { error: 'Booking not found, access denied, or not in confirmed status' },
         { status: 404 }
       )
+    }
+
+    // Send reschedule email
+    const therapist = await findTherapistById(therapistId)
+    if (therapist) {
+        const patient: Patient = {
+            name: rescheduledBooking.patientName,
+            email: rescheduledBooking.patientEmail,
+            phone: rescheduledBooking.patientPhone || '',
+        }
+        await sendRescheduleEmail(rescheduledBooking, therapist, patient)
     }
 
     return NextResponse.json({

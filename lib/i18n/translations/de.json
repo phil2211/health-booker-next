@@ -29,7 +29,11 @@
     "info": "Information",
     "selectDate": "Datum auswählen",
     "clear": "Löschen",
-    "apply": "Anwenden"
+    "apply": "Anwenden",
+    "dearPatient": "Sehr geehrte/r Patient/in",
+    "dearTherapist": "Sehr geehrte/r Therapeut/in",
+    "dear": "Sehr geehrte/r {{name}}",
+    "regards": "Mit freundlichen Grüßen"
   },
   "auth": {
     "signIn": "Anmelden",
@@ -328,7 +332,9 @@
     "reminderOneHour": "Erinnerung: Ihre Kraniosakrale Sitzung mit {{therapistName}} beginnt in 1 Stunde",
     "contactUsToCancel": "Kontaktieren Sie uns zum Absagen",
     "cranioSacralSessionWith": "Kraniosakrale Sitzung mit {{therapistName}}",
-    "appointmentWith": "Termin mit {{therapistName}}"
+    "appointmentWith": "Termin mit {{therapistName}}",
+    "appointmentTitle": "Termin mit {{therapistName}}",
+    "appointmentDescription": "Ihre bevorstehenden Termindetails."
   },
   "availabilityEditor": {
     "days": {
@@ -370,6 +376,38 @@
     "pleaseLogIn": "Bitte melden Sie sich an, um Ihren Buchungs-URL anzuzeigen",
     "failedToFetch": "Buchungs-URL konnte nicht abgerufen werden",
     "failedToFetchFallback": "Buchungs-URL konnte nicht abgerufen werden. Fallback wird verwendet."
+  },
+  "bookingConfirmation": {
+    "preview": "Ihre Buchungsbestätigung",
+    "subject": "Ihr Termin ist bestätigt!",
+    "body": "Dies ist eine Bestätigung, dass Ihr Termin mit {{therapistName}} am {{bookingDate}} um {{bookingTime}} geplant ist.",
+    "rescheduleAppointment": "Termin verschieben",
+    "cancelAppointment": "Termin absagen"
+  },
+  "bookingConfirmationTherapist": {
+    "preview": "Neue Buchung",
+    "subject": "Neue Buchung mit {{patientName}}",
+    "body": "Sie haben eine neue Buchung mit {{patientName}} für den {{bookingDate}} um {{bookingTime}}."
+  },
+  "appointmentReminder": {
+    "preview": "Terminerinnerung",
+    "subject": "Erinnerung: Ihr Termin ist morgen",
+    "body": "Dies ist eine Erinnerung, dass Ihr Termin mit {{therapistName}} morgen um {{bookingTime}} stattfindet."
+  },
+  "appointmentReminderTherapist": {
+    "preview": "Terminerinnerung",
+    "subject": "Erinnerung: Termin mit {{patientName}} morgen",
+    "body": "Dies ist eine Erinnerung, dass Sie morgen einen Termin mit {{patientName}} um {{bookingTime}} haben."
+  },
+  "cancellationNotification": {
+    "preview": "Terminabsage",
+    "subject": "Ein Termin wurde abgesagt",
+    "body": "Der Termin zwischen {{therapistName}} und {{patientName}} am {{bookingDate}} um {{bookingTime}} wurde abgesagt."
+  },
+  "rescheduleNotification": {
+    "preview": "Termin verschoben",
+    "subject": "Ein Termin wurde verschoben",
+    "body": "Der Termin zwischen {{therapistName}} und {{patientName}} wurde auf den {{newBookingDate}} um {{newBookingTime}} verschoben."
   }
 }
 

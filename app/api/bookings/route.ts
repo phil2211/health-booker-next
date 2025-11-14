@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server'
 import { ObjectId } from 'mongodb'
-import { BookingStatus } from '@/lib/types'
+import { BookingStatus, Patient } from '@/lib/types'
 import { createBooking, checkBookingConflict } from '@/models/Booking'
 import { findTherapistById } from '@/models/Therapist'
-import { v4 as uuidv4 } from 'uuid'
+import { generateSecureToken } from '@/lib/utils/tokens'
+import { sendBookingConfirmationEmails } from '@/lib/email'
 
 import { createErrorResponse } from '@/lib/utils/api';
 
@@ -18,6 +19,7 @@ interface CreateBookingRequest {
   appointmentDate: string // YYYY-MM-DD format
   startTime: string // HH:MM format
   endTime: string // HH:MM format
+  locale?: string
 }
 
 /**
@@ -110,7 +112,7 @@ export async function POST(request: Request) {
     }
 
     // Generate cancellation token
-    const cancellationToken = uuidv4()
+    const cancellationToken = generateSecureToken()
 
     // Create booking
     const booking = await createBooking({
@@ -124,7 +126,17 @@ export async function POST(request: Request) {
       status: BookingStatus.CONFIRMED,
       cancellationToken,
       notes: body.patientComment,
+      locale: body.locale,
     })
+
+    // Send confirmation emails
+    const patient: Patient = {
+        name: body.patientName,
+        email: body.patientEmail,
+        phone: body.patientPhone || '',
+    }
+    await sendBookingConfirmationEmails(booking, therapist, patient)
+
 
     return NextResponse.json({
       booking: {
