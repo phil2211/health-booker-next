@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { Resend } from 'resend';
+import { render } from '@react-email/render';
 import { getTranslations } from '@/lib/i18n/server';
 import { BookingConfirmationPatientEmail } from '@/components/emails/BookingConfirmationPatient';
 import { BookingConfirmationTherapistEmail } from '@/components/emails/BookingConfirmationTherapist';
@@ -34,18 +35,21 @@ export async function sendBookingConfirmationEmails(booking: Booking, therapist:
     const rescheduleLink = `${baseUrl}/reschedule/${booking.cancellationToken}`;
 
     // Email to Patient
-    const patientEmailResponse = await resend.emails.send({
-      from: fromEmail,
-      to: patient.email,
-      subject: t('bookingConfirmation.subject'),
-      react: <BookingConfirmationPatientEmail
+    const patientEmailHtml = await render(
+      <BookingConfirmationPatientEmail
         t={t}
         therapistName={therapist.name}
         bookingDate={new Date(booking.appointmentDate).toLocaleDateString(locale)}
         bookingTime={new Date(booking.appointmentDate + 'T' + booking.startTime).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}
         cancellationLink={cancellationLink}
         rescheduleLink={rescheduleLink}
-      />,
+      />
+    );
+    const patientEmailResponse = await resend.emails.send({
+      from: fromEmail,
+      to: patient.email,
+      subject: t('bookingConfirmation.subject'),
+      html: patientEmailHtml,
       attachments: [
         {
           filename: 'appointment.ics',
@@ -55,16 +59,19 @@ export async function sendBookingConfirmationEmails(booking: Booking, therapist:
     });
 
     // Email to Therapist
+    const therapistEmailHtml = await render(
+      <BookingConfirmationTherapistEmail
+        t={t}
+        patientName={patient.name}
+        bookingDate={new Date(booking.appointmentDate).toLocaleDateString(locale)}
+        bookingTime={new Date(booking.appointmentDate + 'T' + booking.startTime).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}
+      />
+    );
     const therapistEmailResponse = await resend.emails.send({
         from: fromEmail,
         to: therapist.email,
         subject: t('bookingConfirmationTherapist.subject', { patientName: patient.name }),
-        react: <BookingConfirmationTherapistEmail
-          t={t}
-          patientName={patient.name}
-          bookingDate={new Date(booking.appointmentDate).toLocaleDateString(locale)}
-          bookingTime={new Date(booking.appointmentDate + 'T' + booking.startTime).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}
-        />,
+        html: therapistEmailHtml,
         attachments: [
             {
               filename: 'appointment.ics',
@@ -92,33 +99,39 @@ export async function sendCancellationEmail(booking: Booking, therapist: Therapi
         const t = await getTranslations(locale);
 
         // Email to Patient
-        const patientEmailResponse = await resend.emails.send({
-            from: fromEmail,
-            to: patient.email,
-            subject: t('cancellationNotification.subject'),
-            react: <CancellationNotificationEmail
+        const patientEmailHtml = await render(
+            <CancellationNotificationEmail
                 t={t}
                 recipientName={patient.name}
                 therapistName={therapist.name}
                 patientName={patient.name}
                 bookingDate={new Date(booking.appointmentDate).toLocaleDateString(locale)}
                 bookingTime={new Date(booking.appointmentDate + 'T' + booking.startTime).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}
-            />,
+            />
+        );
+        const patientEmailResponse = await resend.emails.send({
+            from: fromEmail,
+            to: patient.email,
+            subject: t('cancellationNotification.subject'),
+            html: patientEmailHtml,
         });
 
         // Email to Therapist
-        const therapistEmailResponse = await resend.emails.send({
-            from: fromEmail,
-            to: therapist.email,
-            subject: t('cancellationNotification.subject'),
-            react: <CancellationNotificationEmail
+        const therapistEmailHtml = await render(
+            <CancellationNotificationEmail
                 t={t}
                 recipientName={therapist.name}
                 therapistName={therapist.name}
                 patientName={patient.name}
                 bookingDate={new Date(booking.appointmentDate).toLocaleDateString(locale)}
                 bookingTime={new Date(booking.appointmentDate + 'T' + booking.startTime).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}
-            />,
+            />
+        );
+        const therapistEmailResponse = await resend.emails.send({
+            from: fromEmail,
+            to: therapist.email,
+            subject: t('cancellationNotification.subject'),
+            html: therapistEmailHtml,
         });
 
         return {
@@ -150,11 +163,8 @@ export async function sendRescheduleEmail(booking: Booking, therapist: Therapist
         const rescheduleLink = `${baseUrl}/reschedule/${booking.cancellationToken}`;
 
         // Email to Patient
-        const patientEmailResponse = await resend.emails.send({
-            from: fromEmail,
-            to: patient.email,
-            subject: t('rescheduleNotification.subject'),
-            react: <RescheduleNotificationEmail
+        const patientEmailHtml = await render(
+            <RescheduleNotificationEmail
                 t={t}
                 recipientName={patient.name}
                 therapistName={therapist.name}
@@ -163,7 +173,13 @@ export async function sendRescheduleEmail(booking: Booking, therapist: Therapist
                 newBookingTime={new Date(booking.appointmentDate + 'T' + booking.startTime).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}
                 cancellationLink={cancellationLink}
                 rescheduleLink={rescheduleLink}
-            />,
+            />
+        );
+        const patientEmailResponse = await resend.emails.send({
+            from: fromEmail,
+            to: patient.email,
+            subject: t('rescheduleNotification.subject'),
+            html: patientEmailHtml,
             attachments: [
                 {
                     filename: 'appointment.ics',
@@ -173,11 +189,8 @@ export async function sendRescheduleEmail(booking: Booking, therapist: Therapist
         });
 
         // Email to Therapist
-        const therapistEmailResponse = await resend.emails.send({
-            from: fromEmail,
-            to: therapist.email,
-            subject: t('rescheduleNotification.subject'),
-            react: <RescheduleNotificationEmail
+        const therapistEmailHtml = await render(
+            <RescheduleNotificationEmail
                 t={t}
                 recipientName={therapist.name}
                 therapistName={therapist.name}
@@ -186,7 +199,13 @@ export async function sendRescheduleEmail(booking: Booking, therapist: Therapist
                 newBookingTime={new Date(booking.appointmentDate + 'T' + booking.startTime).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}
                 cancellationLink={cancellationLink}
                 rescheduleLink={rescheduleLink}
-            />,
+            />
+        );
+        const therapistEmailResponse = await resend.emails.send({
+            from: fromEmail,
+            to: therapist.email,
+            subject: t('rescheduleNotification.subject'),
+            html: therapistEmailHtml,
             attachments: [
                 {
                     filename: 'appointment.ics',
@@ -224,18 +243,21 @@ export async function sendReminderEmails(booking: Booking, therapist: Therapist,
         const rescheduleLink = `${baseUrl}/reschedule/${booking.cancellationToken}`;
 
         // Email to Patient
-        const patientEmailResponse = await resend.emails.send({
-            from: fromEmail,
-            to: patient.email,
-            subject: t('appointmentReminder.subject'),
-            react: <AppointmentReminderPatientEmail
+        const patientEmailHtml = await render(
+            <AppointmentReminderPatientEmail
                 t={t}
                 therapistName={therapist.name}
                 bookingDate={new Date(booking.appointmentDate).toLocaleDateString(locale)}
                 bookingTime={new Date(booking.appointmentDate + 'T' + booking.startTime).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}
                 cancellationLink={cancellationLink}
                 rescheduleLink={rescheduleLink}
-            />,
+            />
+        );
+        const patientEmailResponse = await resend.emails.send({
+            from: fromEmail,
+            to: patient.email,
+            subject: t('appointmentReminder.subject'),
+            html: patientEmailHtml,
             attachments: [
                 {
                     filename: 'appointment.ics',
@@ -245,16 +267,19 @@ export async function sendReminderEmails(booking: Booking, therapist: Therapist,
         });
 
         // Email to Therapist
-        const therapistEmailResponse = await resend.emails.send({
-            from: fromEmail,
-            to: therapist.email,
-            subject: t('appointmentReminderTherapist.subject', { patientName: patient.name }),
-            react: <AppointmentReminderTherapistEmail
+        const therapistEmailHtml = await render(
+            <AppointmentReminderTherapistEmail
                 t={t}
                 patientName={patient.name}
                 bookingDate={new Date(booking.appointmentDate).toLocaleDateString(locale)}
                 bookingTime={new Date(booking.appointmentDate + 'T' + booking.startTime).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}
-            />,
+            />
+        );
+        const therapistEmailResponse = await resend.emails.send({
+            from: fromEmail,
+            to: therapist.email,
+            subject: t('appointmentReminderTherapist.subject', { patientName: patient.name }),
+            html: therapistEmailHtml,
             attachments: [
                 {
                     filename: 'appointment.ics',
