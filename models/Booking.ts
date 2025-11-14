@@ -40,8 +40,7 @@ export function validateBooking(booking: Partial<Booking>): boolean {
     booking.startTime &&
     booking.endTime &&
     booking.status &&
-    booking.cancellationToken &&
-    booking.locale
+    booking.cancellationToken
   )
 }
 
