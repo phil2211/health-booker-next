@@ -228,13 +228,16 @@ export default function PatientBookingScheduler({ therapistId, blockedSlots = []
           appointmentDate: selectedDate,
           startTime: sessionStart,
           endTime: sessionEnd,
+          locale,
         }),
       })
 
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to create booking')
+        // Extract error message from response
+        const errorMessage = data.error || 'Failed to create booking'
+        throw new Error(errorMessage)
       }
 
       // Store booking details for confirmation

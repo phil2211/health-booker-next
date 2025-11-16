@@ -12,8 +12,13 @@ import { createIcsFile } from '@/lib/utils/calendar';
 import { generateSecureToken } from '@/lib/utils/tokens';
 import { Booking, Therapist, Patient } from '@/lib/types';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-const fromEmail = 'onboarding@resend.dev';
+// Initialize Resend client
+const resendApiKey = process.env.RESEND_API_KEY;
+if (!resendApiKey) {
+  console.warn('⚠️  RESEND_API_KEY is not set. Email sending will fail.');
+}
+const resend = new Resend(resendApiKey);
+const fromEmail = process.env.RESEND_FROM_EMAIL;
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
 
 export async function sendBookingConfirmationEmails(booking: Booking, therapist: Therapist, patient: Patient) {
@@ -53,10 +58,17 @@ export async function sendBookingConfirmationEmails(booking: Booking, therapist:
       attachments: [
         {
           filename: 'appointment.ics',
-          content: Buffer.from(icsContent),
+          content: Buffer.from(icsContent).toString('base64'),
         },
       ],
     });
+
+    if (patientEmailResponse.error) {
+      console.error('Resend API error (patient email):', patientEmailResponse.error);
+      throw new Error(`Failed to send patient email: ${JSON.stringify(patientEmailResponse.error)}`);
+    }
+
+    console.log('Patient email sent successfully:', patientEmailResponse.data?.id);
 
     // Email to Therapist
     const therapistEmailHtml = await render(
@@ -75,10 +87,17 @@ export async function sendBookingConfirmationEmails(booking: Booking, therapist:
         attachments: [
             {
               filename: 'appointment.ics',
-              content: Buffer.from(icsContent),
+              content: Buffer.from(icsContent).toString('base64'),
             },
         ],
       });
+
+    if (therapistEmailResponse.error) {
+      console.error('Resend API error (therapist email):', therapistEmailResponse.error);
+      throw new Error(`Failed to send therapist email: ${JSON.stringify(therapistEmailResponse.error)}`);
+    }
+
+    console.log('Therapist email sent successfully:', therapistEmailResponse.data?.id);
 
     return {
       patientEmail: patientEmailResponse,
@@ -116,6 +135,13 @@ export async function sendCancellationEmail(booking: Booking, therapist: Therapi
             html: patientEmailHtml,
         });
 
+        if (patientEmailResponse.error) {
+          console.error('Resend API error (patient cancellation email):', patientEmailResponse.error);
+          throw new Error(`Failed to send patient cancellation email: ${JSON.stringify(patientEmailResponse.error)}`);
+        }
+
+        console.log('Patient cancellation email sent successfully:', patientEmailResponse.data?.id);
+
         // Email to Therapist
         const therapistEmailHtml = await render(
             <CancellationNotificationEmail
@@ -133,6 +159,13 @@ export async function sendCancellationEmail(booking: Booking, therapist: Therapi
             subject: t('cancellationNotification.subject'),
             html: therapistEmailHtml,
         });
+
+        if (therapistEmailResponse.error) {
+          console.error('Resend API error (therapist cancellation email):', therapistEmailResponse.error);
+          throw new Error(`Failed to send therapist cancellation email: ${JSON.stringify(therapistEmailResponse.error)}`);
+        }
+
+        console.log('Therapist cancellation email sent successfully:', therapistEmailResponse.data?.id);
 
         return {
             patientEmail: patientEmailResponse,
@@ -183,10 +216,17 @@ export async function sendRescheduleEmail(booking: Booking, therapist: Therapist
             attachments: [
                 {
                     filename: 'appointment.ics',
-                    content: Buffer.from(icsContent),
+                    content: Buffer.from(icsContent).toString('base64'),
                 },
             ],
         });
+
+        if (patientEmailResponse.error) {
+          console.error('Resend API error (patient reschedule email):', patientEmailResponse.error);
+          throw new Error(`Failed to send patient reschedule email: ${JSON.stringify(patientEmailResponse.error)}`);
+        }
+
+        console.log('Patient reschedule email sent successfully:', patientEmailResponse.data?.id);
 
         // Email to Therapist
         const therapistEmailHtml = await render(
@@ -209,10 +249,17 @@ export async function sendRescheduleEmail(booking: Booking, therapist: Therapist
             attachments: [
                 {
                     filename: 'appointment.ics',
-                    content: Buffer.from(icsContent),
+                    content: Buffer.from(icsContent).toString('base64'),
                 },
             ],
         });
+
+        if (therapistEmailResponse.error) {
+          console.error('Resend API error (therapist reschedule email):', therapistEmailResponse.error);
+          throw new Error(`Failed to send therapist reschedule email: ${JSON.stringify(therapistEmailResponse.error)}`);
+        }
+
+        console.log('Therapist reschedule email sent successfully:', therapistEmailResponse.data?.id);
 
         return {
             patientEmail: patientEmailResponse,
@@ -261,10 +308,17 @@ export async function sendReminderEmails(booking: Booking, therapist: Therapist,
             attachments: [
                 {
                     filename: 'appointment.ics',
-                    content: Buffer.from(icsContent),
+                    content: Buffer.from(icsContent).toString('base64'),
                 },
             ],
         });
+
+        if (patientEmailResponse.error) {
+          console.error('Resend API error (patient reminder email):', patientEmailResponse.error);
+          throw new Error(`Failed to send patient reminder email: ${JSON.stringify(patientEmailResponse.error)}`);
+        }
+
+        console.log('Patient reminder email sent successfully:', patientEmailResponse.data?.id);
 
         // Email to Therapist
         const therapistEmailHtml = await render(
@@ -283,10 +337,17 @@ export async function sendReminderEmails(booking: Booking, therapist: Therapist,
             attachments: [
                 {
                     filename: 'appointment.ics',
-                    content: Buffer.from(icsContent),
+                    content: Buffer.from(icsContent).toString('base64'),
                 },
             ],
         });
+
+        if (therapistEmailResponse.error) {
+          console.error('Resend API error (therapist reminder email):', therapistEmailResponse.error);
+          throw new Error(`Failed to send therapist reminder email: ${JSON.stringify(therapistEmailResponse.error)}`);
+        }
+
+        console.log('Therapist reminder email sent successfully:', therapistEmailResponse.data?.id);
 
         return {
             patientEmail: patientEmailResponse,

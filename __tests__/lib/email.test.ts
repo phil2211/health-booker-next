@@ -29,6 +29,15 @@ if (!process.env.RESEND_API_KEY) {
   );
 }
 
+if (!process.env.TEST_RECIPIENT_EMAIL) {
+  console.warn(
+    '\n⚠️  WARNING: TEST_RECIPIENT_EMAIL is not set.\n' +
+    'These integration tests will send emails to a default address.\n' +
+    'Add TEST_RECIPIENT_EMAIL to your .env.local file or set it as an environment variable.\n' +
+    'Example: TEST_RECIPIENT_EMAIL=your-test-email@example.com\n'
+  );
+}
+
 if (!process.env.NEXT_PUBLIC_BASE_URL) {
   process.env.NEXT_PUBLIC_BASE_URL = 'https://test.example.com';
 }
@@ -64,6 +73,8 @@ describe('Email Sending Functions (Real Resend API)', () => {
   let sendRescheduleEmail: any;
   let sendReminderEmails: any;
   
+  const testRecipientEmail = process.env.TEST_RECIPIENT_EMAIL || 'philip@eschenbacher.ch';
+
   // Helper to check if tests should run
   const shouldSkipTests = () => {
     return !process.env.RESEND_API_KEY || !sendBookingConfirmationEmails;
@@ -82,7 +93,7 @@ describe('Email Sending Functions (Real Resend API)', () => {
     _id: 'booking-123',
     therapistId: 'therapist-123',
     patientName: 'John Doe',
-    patientEmail: 'philip@eschenbacher.ch',
+    patientEmail: testRecipientEmail,
     patientPhone: '+1234567890',
     appointmentDate: '2024-12-15',
     startTime: '10:00',
@@ -95,7 +106,7 @@ describe('Email Sending Functions (Real Resend API)', () => {
 
   const mockTherapist: Therapist = {
     _id: 'therapist-123',
-    email: 'philip@eschenbacher.ch',
+    email: testRecipientEmail,
     password: 'hashed-password',
     name: 'Dr. Jane Smith',
     specialization: 'Physical Therapy',
@@ -107,7 +118,7 @@ describe('Email Sending Functions (Real Resend API)', () => {
   const mockPatient: Patient = {
     _id: 'patient-123',
     name: 'John Doe',
-    email: 'philip@eschenbacher.ch',
+    email: testRecipientEmail,
     phone: '+1234567890',
   };
 
@@ -155,7 +166,7 @@ describe('Email Sending Functions (Real Resend API)', () => {
     }
     
     console.log('\n📧 Running integration tests with real Resend API');
-    console.log(`📬 Emails will be sent to: philip@eschenbacher.ch`);
+    console.log(`📬 Emails will be sent to: ${testRecipientEmail}`);
     console.log(`🔑 Using API key: ${process.env.RESEND_API_KEY.substring(0, 10)}...\n`);
   });
 

@@ -5,6 +5,7 @@ import { createBooking, checkBookingConflict } from '@/models/Booking'
 import { findTherapistById } from '@/models/Therapist'
 import { generateSecureToken } from '@/lib/utils/tokens'
 import { sendBookingConfirmationEmails } from '@/lib/email'
+import { getDatabase } from '@/lib/mongodb'
 
 import { createErrorResponse } from '@/lib/utils/api';
 
@@ -129,13 +130,47 @@ export async function POST(request: Request) {
       locale: body.locale,
     })
 
-    // Send confirmation emails
+    // Send confirmation emails - if this fails, rollback the booking
     const patient: Patient = {
         name: body.patientName,
         email: body.patientEmail,
         phone: body.patientPhone || '',
     }
-    await sendBookingConfirmationEmails(booking, therapist, patient)
+    
+    try {
+      await sendBookingConfirmationEmails(booking, therapist, patient)
+    } catch (emailError) {
+      // Email sending failed - delete the booking to rollback
+      console.error('Email sending failed, rolling back booking:', emailError)
+      
+      try {
+        const db = await getDatabase()
+        await db.collection('bookings').deleteOne({ _id: new ObjectId(booking._id) })
+        console.log('Booking rolled back successfully')
+      } catch (rollbackError) {
+        console.error('Failed to rollback booking after email error:', rollbackError)
+        // Continue to throw the original email error
+      }
+      
+      // Return a user-friendly error message
+      const errorMessage = emailError instanceof Error 
+        ? emailError.message 
+        : 'Failed to send confirmation email'
+      
+      // Check if it's a Resend API error
+      if (errorMessage.includes('Resend API error') || errorMessage.includes('Failed to send')) {
+        return NextResponse.json(
+          { 
+            error: 'Unable to send confirmation email. Please check your email address and try again. If the problem persists, please contact support.',
+            details: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+          },
+          { status: 503 } // Service Unavailable
+        )
+      }
+      
+      // Generic email error
+      throw emailError
+    }
 
 
     return NextResponse.json({
@@ -156,22 +191,42 @@ export async function POST(request: Request) {
     console.error('Create booking error:', error)
     
     if (error instanceof Error) {
+      // Email sending errors (already handled above, but catch any that slip through)
+      if (error.message.includes('Resend API error') || error.message.includes('Failed to send')) {
+        return NextResponse.json(
+          { 
+            error: 'Unable to send confirmation email. Please check your email address and try again. If the problem persists, please contact support.',
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined
+          },
+          { status: 503 }
+        )
+      }
+      
+      // Booking conflict errors
       if (error.message.includes('conflict') || error.message.includes('already booked')) {
         return NextResponse.json(
-          createErrorResponse(error, 'createBooking', 409),
+          { error: 'This time slot is already booked. Please select another time.' },
           { status: 409 }
         )
       }
+      
+      // Validation errors
       if (error.message.includes('Invalid booking data')) {
         return NextResponse.json(
-          createErrorResponse(error, 'createBooking', 400),
+          { error: 'Invalid booking information. Please check your details and try again.' },
           { status: 400 }
         )
       }
     }
 
+    // Generic error - return user-friendly message
     return NextResponse.json(
-      createErrorResponse(error, 'POST /api/bookings'),
+      { 
+        error: 'Failed to create booking. Please try again or contact support if the problem persists.',
+        details: process.env.NODE_ENV === 'development' 
+          ? (error instanceof Error ? error.message : String(error))
+          : undefined
+      },
       { status: 500 }
     )
   }
