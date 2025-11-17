@@ -138,7 +138,7 @@ export async function POST(request: Request) {
     }
     
     try {
-      await sendBookingConfirmationEmails(booking, therapist, patient)
+    await sendBookingConfirmationEmails(booking, therapist, patient)
     } catch (emailError) {
       // Email sending failed - delete the booking to rollback
       console.error('Email sending failed, rolling back booking:', emailError)
