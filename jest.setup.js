@@ -162,3 +162,91 @@ if (typeof global.Request === 'undefined') {
   }
 }
 
+// Polyfill MessageChannel for React/React Email components in Jest environment
+// MessageChannel is needed by some libraries in the React Email stack
+if (typeof global.MessageChannel === 'undefined') {
+  // Use a minimal polyfill that doesn't create real MessagePorts
+  // This prevents Jest from detecting open handles
+  global.MessageChannel = class MessageChannel {
+    constructor() {
+      // Create mock ports that don't leave handles open
+      this.port1 = {
+        postMessage: jest.fn(),
+        onmessage: null,
+        addEventListener: jest.fn(),
+        removeEventListener: jest.fn(),
+        close: jest.fn(),
+        start: jest.fn(),
+      };
+      this.port2 = {
+        postMessage: jest.fn(),
+        onmessage: null,
+        addEventListener: jest.fn(),
+        removeEventListener: jest.fn(),
+        close: jest.fn(),
+        start: jest.fn(),
+      };
+    }
+  };
+}
+
+// Polyfill ReadableStream for React DOM server rendering in Jest environment
+// React DOM uses ReadableStream when rendering to a stream in browser-like environments
+if (typeof global.ReadableStream === 'undefined') {
+  try {
+    const { ReadableStream } = require('web-streams-polyfill');
+    global.ReadableStream = ReadableStream;
+  } catch (error) {
+    // Fallback minimal ReadableStream polyfill if web-streams-polyfill is not available
+    console.warn('web-streams-polyfill not available, using minimal ReadableStream polyfill');
+    global.ReadableStream = class ReadableStream {
+      constructor() {
+        // Minimal implementation for React DOM's needs
+        this.locked = false;
+        this.getReader = jest.fn(() => ({
+          read: jest.fn().mockResolvedValue({ done: true, value: undefined }),
+          releaseLock: jest.fn(),
+        }));
+      }
+
+      // Add pipeTo method needed by @react-email/render
+      pipeTo(destination, options = {}) {
+        // Simplified implementation for testing - just resolve immediately
+        return Promise.resolve();
+      }
+    };
+  }
+}
+
+// Polyfill WritableStream for @react-email/render in Jest environment
+// @react-email/render uses WritableStream for processing email templates
+if (typeof global.WritableStream === 'undefined') {
+  try {
+    const { WritableStream } = require('web-streams-polyfill');
+    global.WritableStream = WritableStream;
+  } catch (error) {
+    // Fallback minimal WritableStream polyfill if web-streams-polyfill is not available
+    console.warn('web-streams-polyfill not available, using minimal WritableStream polyfill');
+    global.WritableStream = class WritableStream {
+      constructor() {
+        this.locked = false;
+        this.abort = jest.fn();
+        this.close = jest.fn().mockResolvedValue();
+        this.getWriter = jest.fn(() => ({
+          write: jest.fn().mockResolvedValue(),
+          close: jest.fn().mockResolvedValue(),
+          abort: jest.fn(),
+          desiredSize: null,
+          ready: Promise.resolve(),
+        }));
+      }
+
+      // Add pipeTo method needed by @react-email/render
+      pipeTo(destination, options = {}) {
+        // Simplified implementation for testing - just resolve immediately
+        return Promise.resolve();
+      }
+    };
+  }
+}
+
