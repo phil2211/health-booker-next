@@ -12,6 +12,7 @@ export default function Home() {
   const router = useRouter()
   const { t } = useTranslation()
   const locale = useLocale()
+  const test = "hello";
 
   useEffect(() => {
     if (status === 'authenticated' && session) {
