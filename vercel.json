@@ -3,12 +3,6 @@
   "devCommand": "npm run dev",
   "installCommand": "npm ci",
   "framework": "nextjs",
-  "regions": ["fra1"],
-  "crons": [
-    {
-      "path": "/api/reminders/send",
-      "schedule": "0 * * * *"
-    }
-  ]
+  "regions": ["fra1"]
 }
 
