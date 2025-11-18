@@ -10,14 +10,13 @@ export const runtime = 'nodejs';
 export async function GET() {
   const db = await getDatabase();
   const now = new Date();
-  const twentyFourHoursFromNow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
-  const twentyFiveHoursFromNow = new Date(now.getTime() + 25 * 60 * 60 * 1000);
+  // Get tomorrow's date
+  const tomorrow = new Date(now);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const tomorrowDateString = tomorrow.toISOString().split('T')[0];
 
   const upcomingBookings = await db.collection('bookings').find({
-    appointmentDate: {
-      $gte: twentyFourHoursFromNow.toISOString().split('T')[0],
-      $lt: twentyFiveHoursFromNow.toISOString().split('T')[0],
-    },
+    appointmentDate: tomorrowDateString,
     status: BookingStatus.CONFIRMED,
     reminderSent: { $ne: true }
   }).toArray();
