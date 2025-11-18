@@ -4,10 +4,22 @@ import { Booking, BookingStatus, Patient, Therapist } from '@/lib/types';
 import { sendReminderEmails } from '@/lib/email';
 import { findTherapistById } from '@/models/Therapist';
 import { ObjectId } from 'mongodb';
+import { NextRequest } from 'next/server';
 
 export const runtime = 'nodejs';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  // Security check: Verify cron secret
+  const authHeader = request.headers.get('authorization')
+  const expectedSecret = process.env.CRON_SECRET
+  
+  if (!expectedSecret || authHeader !== `Bearer ${expectedSecret}`) {
+    return NextResponse.json(
+      { error: 'Unauthorized - Invalid or missing cron secret' },
+      { status: 401 }
+    )
+  }
+
   const db = await getDatabase();
   const now = new Date();
   // Get tomorrow's date
