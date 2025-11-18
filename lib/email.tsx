@@ -2,6 +2,7 @@ import * as React from 'react';
 import { Resend } from 'resend';
 import { render } from '@react-email/render';
 import { getTranslations } from '@/lib/i18n/server';
+import { type Locale, defaultLocale, locales } from '@/lib/i18n';
 import { BookingConfirmationPatientEmail } from '@/components/emails/BookingConfirmationPatient';
 import { BookingConfirmationTherapistEmail } from '@/components/emails/BookingConfirmationTherapist';
 import { AppointmentReminderPatientEmail } from '@/components/emails/AppointmentReminderPatient';
@@ -12,6 +13,14 @@ import { createIcsFile } from '@/lib/utils/calendar';
 import { generateSecureToken } from '@/lib/utils/tokens';
 import { Booking, Therapist, Patient } from '@/lib/types';
 
+// Helper function to validate and normalize locale
+function getValidLocale(locale?: string): Locale {
+  if (locale && locales.includes(locale as Locale)) {
+    return locale as Locale;
+  }
+  return defaultLocale;
+}
+
 // Initialize Resend client
 const resendApiKey = process.env.RESEND_API_KEY;
 if (!resendApiKey) {
@@ -19,11 +28,17 @@ if (!resendApiKey) {
 }
 const resend = new Resend(resendApiKey);
 const fromEmail = process.env.RESEND_FROM_EMAIL;
+if (!fromEmail) {
+  console.warn('⚠️  RESEND_FROM_EMAIL is not set. Email sending will fail.');
+}
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
 
 export async function sendBookingConfirmationEmails(booking: Booking, therapist: Therapist, patient: Patient) {
+  if (!fromEmail) {
+    throw new Error('RESEND_FROM_EMAIL is not configured');
+  }
   try {
-    const locale = booking.locale || 'en';
+    const locale = getValidLocale(booking.locale);
     const t = await getTranslations(locale);
 
     // Generate ICS file content
@@ -51,7 +66,7 @@ export async function sendBookingConfirmationEmails(booking: Booking, therapist:
       />
     );
     const patientEmailResponse = await resend.emails.send({
-      from: fromEmail,
+      from: fromEmail!,
       to: patient.email,
       subject: t('bookingConfirmation.subject'),
       html: patientEmailHtml,
@@ -80,7 +95,7 @@ export async function sendBookingConfirmationEmails(booking: Booking, therapist:
       />
     );
     const therapistEmailResponse = await resend.emails.send({
-        from: fromEmail,
+        from: fromEmail!,
         to: therapist.email,
         subject: t('bookingConfirmationTherapist.subject', { patientName: patient.name }),
         html: therapistEmailHtml,
@@ -113,8 +128,11 @@ export async function sendBookingConfirmationEmails(booking: Booking, therapist:
 //    each function should accept the booking object to access the locale and generate links/calendar.
 
 export async function sendCancellationEmail(booking: Booking, therapist: Therapist, patient: Patient) {
+    if (!fromEmail) {
+        throw new Error('RESEND_FROM_EMAIL is not configured');
+    }
     try {
-        const locale = booking.locale || 'en';
+        const locale = getValidLocale(booking.locale);
         const t = await getTranslations(locale);
 
         // Email to Patient
@@ -129,7 +147,7 @@ export async function sendCancellationEmail(booking: Booking, therapist: Therapi
             />
         );
         const patientEmailResponse = await resend.emails.send({
-            from: fromEmail,
+            from: fromEmail!,
             to: patient.email,
             subject: t('cancellationNotification.subject'),
             html: patientEmailHtml,
@@ -154,7 +172,7 @@ export async function sendCancellationEmail(booking: Booking, therapist: Therapi
             />
         );
         const therapistEmailResponse = await resend.emails.send({
-            from: fromEmail,
+            from: fromEmail!,
             to: therapist.email,
             subject: t('cancellationNotification.subject'),
             html: therapistEmailHtml,
@@ -178,8 +196,11 @@ export async function sendCancellationEmail(booking: Booking, therapist: Therapi
 }
 
 export async function sendRescheduleEmail(booking: Booking, therapist: Therapist, patient: Patient) {
+    if (!fromEmail) {
+        throw new Error('RESEND_FROM_EMAIL is not configured');
+    }
     try {
-        const locale = booking.locale || 'en';
+        const locale = getValidLocale(booking.locale);
         const t = await getTranslations(locale);
 
         // Generate ICS file content
@@ -209,7 +230,7 @@ export async function sendRescheduleEmail(booking: Booking, therapist: Therapist
             />
         );
         const patientEmailResponse = await resend.emails.send({
-            from: fromEmail,
+            from: fromEmail!,
             to: patient.email,
             subject: t('rescheduleNotification.subject'),
             html: patientEmailHtml,
@@ -242,7 +263,7 @@ export async function sendRescheduleEmail(booking: Booking, therapist: Therapist
             />
         );
         const therapistEmailResponse = await resend.emails.send({
-            from: fromEmail,
+            from: fromEmail!,
             to: therapist.email,
             subject: t('rescheduleNotification.subject'),
             html: therapistEmailHtml,
@@ -272,8 +293,11 @@ export async function sendRescheduleEmail(booking: Booking, therapist: Therapist
 }
 
 export async function sendReminderEmails(booking: Booking, therapist: Therapist, patient: Patient) {
+    if (!fromEmail) {
+        throw new Error('RESEND_FROM_EMAIL is not configured');
+    }
     try {
-        const locale = booking.locale || 'en';
+        const locale = getValidLocale(booking.locale);
         const t = await getTranslations(locale);
 
         // Generate ICS file content
@@ -301,7 +325,7 @@ export async function sendReminderEmails(booking: Booking, therapist: Therapist,
             />
         );
         const patientEmailResponse = await resend.emails.send({
-            from: fromEmail,
+            from: fromEmail!,
             to: patient.email,
             subject: t('appointmentReminder.subject'),
             html: patientEmailHtml,
@@ -330,7 +354,7 @@ export async function sendReminderEmails(booking: Booking, therapist: Therapist,
             />
         );
         const therapistEmailResponse = await resend.emails.send({
-            from: fromEmail,
+            from: fromEmail!,
             to: therapist.email,
             subject: t('appointmentReminderTherapist.subject', { patientName: patient.name }),
             html: therapistEmailHtml,

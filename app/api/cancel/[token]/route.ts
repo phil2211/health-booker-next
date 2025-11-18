@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server'
 import { getDatabase } from '@/lib/mongodb'
-import { BookingStatus, Patient } from '@/lib/types'
+import { BookingStatus, Patient, Booking } from '@/lib/types'
 import { findTherapistById } from '@/models/Therapist'
 import { sendCancellationEmail } from '@/lib/email'
+import { ObjectId } from 'mongodb'
 
 import { createErrorResponse } from '@/lib/utils/api';
 
@@ -75,14 +76,38 @@ export async function POST(request: Request, { params }: CancelBookingParams) {
     )
 
     // Send cancellation email
-    const therapist = await findTherapistById(booking.therapistId.toString())
+    const therapistIdStr = booking.therapistId instanceof ObjectId 
+      ? booking.therapistId.toString() 
+      : String(booking.therapistId)
+    const therapist = await findTherapistById(therapistIdStr)
     if (therapist) {
         const patient: Patient = {
             name: booking.patientName,
             email: booking.patientEmail,
             phone: booking.patientPhone || '',
         }
-        await sendCancellationEmail(booking, therapist, patient)
+        // Convert MongoDB document to Booking type
+        const bookingForEmail: Booking = {
+            _id: booking._id.toString(),
+            therapistId: therapistIdStr,
+            patientName: booking.patientName,
+            patientEmail: booking.patientEmail,
+            patientPhone: booking.patientPhone || undefined,
+            appointmentDate: booking.appointmentDate instanceof Date 
+              ? booking.appointmentDate.toISOString().split('T')[0] 
+              : booking.appointmentDate,
+            startTime: booking.startTime,
+            endTime: booking.endTime,
+            status: booking.status as BookingStatus,
+            cancellationToken: booking.cancellationToken,
+            reason: booking.reason || undefined,
+            notes: booking.notes || undefined,
+            locale: booking.locale || undefined,
+            reminderSent: booking.reminderSent || undefined,
+            createdAt: booking.createdAt || undefined,
+            updatedAt: booking.updatedAt || undefined,
+        }
+        await sendCancellationEmail(bookingForEmail, therapist, patient)
     }
 
 

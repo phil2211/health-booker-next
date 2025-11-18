@@ -15,7 +15,7 @@ export async function getServerLocale(): Promise<Locale> {
 export async function getTranslations(locale: Locale) {
     const translations = await import(`./translations/${locale}.json`);
 
-    return (key: string, params?: { [key: string]: string | number }) => {
+    return (key: string, params?: object) => {
         const keys = key.split('.');
         let value = translations.default;
 
@@ -28,7 +28,10 @@ export async function getTranslations(locale: Locale) {
         }
 
         if (typeof value === 'string' && params) {
-            return value.replace(/{{(\w+)}}/g, (_, g) => String(params[g] || g));
+            return value.replace(/{{(\w+)}}/g, (_, g) => {
+                const paramValue = (params as { [key: string]: string | number | undefined })[g];
+                return String(paramValue !== undefined ? paramValue : g);
+            });
         }
 
         return typeof value === 'string' ? value : key;
