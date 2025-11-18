@@ -40,9 +40,15 @@ export async function setupEmailData(
   const locale = getValidLocale(booking.locale);
   const t = await getTranslations(locale);
 
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+  let baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+
+  // Auto-detect base URL if not explicitly configured
   if (!baseUrl) {
-    throw new Error('NEXT_PUBLIC_BASE_URL is not configured');
+    if (process.env.NODE_ENV === 'development') {
+      baseUrl = 'http://localhost:3000';
+    } else {
+      throw new Error('NEXT_PUBLIC_BASE_URL is not configured. Please set it in your environment variables.');
+    }
   }
 
   const setupData: EmailSetupData = {

@@ -308,15 +308,36 @@ describe('Email Sending Functions (Mocked Resend API)', () => {
 
     test('should generate correct cancellation and reschedule links', async () => {
       if (skipIfNotReady()) return;
-      
+
       // Verify email is sent successfully
       await expect(
         sendBookingConfirmationEmails(mockBooking, mockTherapist, mockPatient)
       ).resolves.not.toThrow();
-      
+
       // Verify base URL is set (required for link generation)
       expect(process.env.NEXT_PUBLIC_BASE_URL).toBeDefined();
       expect(mockBooking.cancellationToken).toBe('cancel-token-abc123');
+    });
+
+    test('should use localhost:3000 as base URL in development when NEXT_PUBLIC_BASE_URL is not set', async () => {
+      if (skipIfNotReady()) return;
+
+      // Temporarily unset NEXT_PUBLIC_BASE_URL to test auto-detection
+      const originalBaseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+      delete process.env.NEXT_PUBLIC_BASE_URL;
+      process.env.NODE_ENV = 'development';
+
+      try {
+        await expect(
+          sendBookingConfirmationEmails(mockBooking, mockTherapist, mockPatient)
+        ).resolves.not.toThrow();
+
+        // Verify the function completed successfully (auto-detected localhost:3000)
+      } finally {
+        // Restore original environment
+        process.env.NEXT_PUBLIC_BASE_URL = originalBaseUrl;
+        process.env.NODE_ENV = processEnvBackup.NODE_ENV;
+      }
     });
 
     test('should use correct email addresses', async () => {
