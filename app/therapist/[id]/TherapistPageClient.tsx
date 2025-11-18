@@ -4,6 +4,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useTranslation } from '@/lib/i18n/useTranslation'
 import { useLocale } from '@/lib/i18n/LocaleProvider'
+import ResponsiveHeader from '@/components/ResponsiveHeader'
 
 interface TherapistPageClientProps {
   therapist: {
@@ -26,24 +27,12 @@ export default function TherapistPageClient({ therapist }: TherapistPageClientPr
   return (
     <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100">
       {/* Navigation Bar */}
-      <nav className="bg-white shadow-lg border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-4">
-              <Link href={homePath} className="text-xl font-bold text-indigo-600 hover:text-indigo-700">
-                {t('booking.healthBooker')}
-              </Link>
-              <span className="text-gray-400">|</span>
-              <span className="text-sm text-gray-600">{t('therapist.therapistProfile')}</span>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Link href={homePath} className="text-sm text-gray-600 hover:text-gray-800">
-                {t('booking.home')}
-              </Link>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <ResponsiveHeader
+        pageTitle={t('therapist.therapistProfile')}
+        showBackToDashboard={false}
+        showHomeLink={false}
+        showLogoutButton={false}
+      />
 
       {/* Main Content */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -71,7 +60,7 @@ export default function TherapistPageClient({ therapist }: TherapistPageClientPr
           {/* Bio Section */}
           <div className="space-y-6">
             <div>
-              <h2 className="text-lg font-semibold text-gray-900 mb-3">{t('therapist.about')} {therapist.name.split(' ')[0]}</h2>
+              <h2 className="text-lg font-semibold text-gray-900 mb-3">{t('therapist.about')} {therapist.name}</h2>
               <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{therapist.bio}</p>
             </div>
 
@@ -101,18 +90,6 @@ export default function TherapistPageClient({ therapist }: TherapistPageClientPr
           </div>
         </div>
 
-        {/* Back to Home */}
-        <div className="mt-8 text-center">
-          <Link
-            href={homePath}
-            className="text-indigo-600 hover:text-indigo-700 font-medium inline-flex items-center gap-2"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            {t('therapist.backToHome')}
-          </Link>
-        </div>
       </div>
     </div>
   )

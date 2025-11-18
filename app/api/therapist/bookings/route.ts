@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/auth'
 import { getBookingsByTherapistAndDateRange, getAppointmentStats } from '@/models/Booking'
 import { BookingStatus } from '@/lib/types'
+import { isValidDate } from '@/lib/utils/validation'
 
 import { createErrorResponse } from '@/lib/utils/api';
 
@@ -38,14 +39,13 @@ export async function GET(request: NextRequest) {
     }
 
     // Validate date formats if provided
-    const dateRegex = /^\d{4}-\d{2}-\d{2}$/
-    if (startDate && !dateRegex.test(startDate)) {
+    if (startDate && !isValidDate(startDate)) {
       return NextResponse.json(
         { error: 'Invalid startDate format. Use YYYY-MM-DD' },
         { status: 400 }
       )
     }
-    if (endDate && !dateRegex.test(endDate)) {
+    if (endDate && !isValidDate(endDate)) {
       return NextResponse.json(
         { error: 'Invalid endDate format. Use YYYY-MM-DD' },
         { status: 400 }

@@ -6,6 +6,7 @@ import { findTherapistById } from '@/models/Therapist'
 import { generateSecureToken } from '@/lib/utils/tokens'
 import { sendBookingConfirmationEmails } from '@/lib/email'
 import { getDatabase } from '@/lib/mongodb'
+import { isValidEmail, isValidDate, isValidTime, isDateInPast } from '@/lib/utils/validation'
 
 import { createErrorResponse } from '@/lib/utils/api';
 
@@ -42,8 +43,7 @@ export async function POST(request: Request) {
     }
 
     // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(body.patientEmail)) {
+    if (!isValidEmail(body.patientEmail)) {
       return NextResponse.json(
         { error: 'Invalid email format' },
         { status: 400 }
@@ -59,8 +59,7 @@ export async function POST(request: Request) {
     }
 
     // Validate date format
-    const dateRegex = /^\d{4}-\d{2}-\d{2}$/
-    if (!dateRegex.test(body.appointmentDate)) {
+    if (!isValidDate(body.appointmentDate)) {
       return NextResponse.json(
         { error: 'Invalid date format. Use YYYY-MM-DD' },
         { status: 400 }
@@ -68,11 +67,7 @@ export async function POST(request: Request) {
     }
 
     // Validate date is not in the past
-    const appointmentDate = new Date(body.appointmentDate + 'T00:00:00.000Z')
-    const today = new Date()
-    today.setUTCHours(0, 0, 0, 0)
-    
-    if (appointmentDate < today) {
+    if (isDateInPast(body.appointmentDate)) {
       return NextResponse.json(
         { error: 'Cannot book appointments in the past' },
         { status: 400 }
@@ -80,8 +75,7 @@ export async function POST(request: Request) {
     }
 
     // Validate time format
-    const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/
-    if (!timeRegex.test(body.startTime) || !timeRegex.test(body.endTime)) {
+    if (!isValidTime(body.startTime) || !isValidTime(body.endTime)) {
       return NextResponse.json(
         { error: 'Invalid time format. Use HH:MM' },
         { status: 400 }

@@ -11,12 +11,14 @@ interface ResponsiveHeaderProps {
   pageTitle: string
   showBackToDashboard?: boolean
   showHomeLink?: boolean
+  showLogoutButton?: boolean
 }
 
 export default function ResponsiveHeader({
   pageTitle,
   showBackToDashboard = true,
-  showHomeLink = false
+  showHomeLink = false,
+  showLogoutButton = true
 }: ResponsiveHeaderProps) {
   const { t } = useTranslation()
   const locale = useLocale()
@@ -33,9 +35,9 @@ export default function ResponsiveHeader({
         <div className="flex justify-between items-center h-16">
           {/* Left side - Logo and title */}
           <div className="flex items-center space-x-4 min-w-0 flex-1">
-            <Link href={dashboardPath} className="text-xl font-bold text-indigo-600 hover:text-indigo-700 flex-shrink-0">
+            <span className="text-xl font-bold text-indigo-600 flex-shrink-0">
               {t('booking.healthBooker')}
-            </Link>
+            </span>
             <span className="text-gray-400 hidden sm:block">|</span>
             <span className="text-sm text-gray-600 truncate hidden sm:block">{pageTitle}</span>
           </div>
@@ -59,7 +61,7 @@ export default function ResponsiveHeader({
               </Link>
             )}
             <LanguageSwitcher />
-            {!showHomeLink && <LogoutButton />}
+            {showLogoutButton && <LogoutButton />}
           </div>
 
           {/* Mobile menu button */}
@@ -132,8 +134,8 @@ export default function ResponsiveHeader({
               </div>
             </div>
 
-            {/* Logout button in mobile menu - only show if not showing home link */}
-            {!showHomeLink && (
+            {/* Logout button in mobile menu */}
+            {showLogoutButton && (
               <div className="px-3 py-2 border-t border-gray-200">
                 <LogoutButton />
               </div>

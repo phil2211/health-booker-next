@@ -24,7 +24,8 @@ export default function BookingPageClient({ therapistId, therapistName, blockedS
       <ResponsiveHeader
         pageTitle={t('booking.bookAppointment')}
         showBackToDashboard={false}
-        showHomeLink={true}
+        showHomeLink={false}
+        showLogoutButton={false}
       />
 
       {/* Main Content */}

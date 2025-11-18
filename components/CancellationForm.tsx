@@ -231,12 +231,12 @@ export default function CancellationForm({ booking, token }: CancellationFormPro
           )}
         </button>
 
-        <button
-          onClick={() => window.history.back()}
-          className="flex-1 px-6 py-3 bg-gray-200 text-gray-800 rounded-lg font-medium hover:bg-gray-300 transition-colors"
+        <Link
+          href={`/therapist/${booking.therapistId}`}
+          className="flex-1 px-6 py-3 bg-gray-200 text-gray-800 rounded-lg font-medium hover:bg-gray-300 transition-colors text-center inline-block"
         >
           {t('appointments.keepAppointment')}
-        </button>
+        </Link>
       </div>
 
       {/* Alternative Contact */}

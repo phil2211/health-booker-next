@@ -6,6 +6,7 @@ import { BlockedSlot } from '@/lib/types'
 import DatePickerPopover from './DatePickerPopover'
 import BookingConfirmation from './BookingConfirmation'
 import { useTranslation } from '@/lib/i18n/useTranslation'
+import { isValidEmail } from '@/lib/utils/validation'
 
 interface PatientBookingSchedulerProps {
   therapistId: string
@@ -180,8 +181,7 @@ export default function PatientBookingScheduler({ therapistId, blockedSlots = []
       if (!patientEmail.trim()) {
         emailInput.setCustomValidity(t('patientForm.errors.fillThisField'))
       } else {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-        if (!emailRegex.test(patientEmail)) {
+        if (!isValidEmail(patientEmail)) {
           emailInput.setCustomValidity(t('patientForm.errors.invalidEmail'))
         } else {
           emailInput.setCustomValidity('')
@@ -437,8 +437,7 @@ export default function PatientBookingScheduler({ therapistId, blockedSlots = []
                     const target = e.target as HTMLInputElement
                     target.setCustomValidity('')
                     // Validate email format on change
-                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-                    if (e.target.value && !emailRegex.test(e.target.value)) {
+                    if (e.target.value && !isValidEmail(e.target.value)) {
                       target.setCustomValidity(t('patientForm.errors.invalidEmail'))
                     }
                   }}
