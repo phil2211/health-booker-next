@@ -83,8 +83,8 @@ export default function ResponsiveHeader({ pageTitle, showBackToDashboard = true
 
       {/* Mobile menu overlay */}
       {isMenuOpen && (
-        <div className="md:hidden">
-          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white border-t border-gray-200 shadow-lg">
+        <div className="md:hidden fixed inset-x-0 top-16 z-50 bg-white border-t border-gray-200 shadow-lg">
+          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
             {/* Mobile page title - shown when menu is open on small screens */}
             <div className="px-3 py-2 border-b border-gray-200 sm:hidden">
               <span className="text-sm text-gray-600">{pageTitle}</span>
