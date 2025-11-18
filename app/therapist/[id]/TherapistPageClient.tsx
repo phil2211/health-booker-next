@@ -60,7 +60,7 @@ export default function TherapistPageClient({ therapist }: TherapistPageClientPr
           {/* Bio Section */}
           <div className="space-y-6">
             <div>
-              <h2 className="text-lg font-semibold text-gray-900 mb-3">{t('therapist.about')} {therapist.name.split(' ')[0]}</h2>
+              <h2 className="text-lg font-semibold text-gray-900 mb-3">{t('therapist.about')} {therapist.name}</h2>
               <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{therapist.bio}</p>
             </div>
 
