@@ -19,7 +19,7 @@ export interface TimeSlot {
 /**
  * Convert time string (HH:MM) to minutes since midnight
  */
-function timeToMinutes(time: string): number {
+export function timeToMinutes(time: string): number {
   const [hours, minutes] = time.split(':').map(Number)
   return hours * 60 + minutes
 }
@@ -157,25 +157,25 @@ function findBookingForSlot(
  * Generate 90-minute slots from weekly availability
  * Each slot is 90 minutes: 60 min session + 30 min break
  */
-function generateSlotsFromAvailability(
+export function generateSlotsFromAvailability(
   date: string,
   availabilityEntry: AvailabilityEntry
 ): TimeSlot[] {
   const slots: TimeSlot[] = []
   const availabilityStart = timeToMinutes(availabilityEntry.startTime)
   const availabilityEnd = timeToMinutes(availabilityEntry.endTime)
-  
+
   // Generate slots every 90 minutes
   let currentStart = availabilityStart
-  
-  while (currentStart + 90 <= availabilityEnd) {
+
+  while (currentStart + 60 <= availabilityEnd) {
     const slotStart = minutesToTime(currentStart)
     const slotEnd = minutesToTime(currentStart + 90)
     const sessionStart = slotStart
     const sessionEnd = minutesToTime(currentStart + 60)
     const breakStart = sessionEnd
     const breakEnd = slotEnd
-    
+
     slots.push({
       date,
       startTime: slotStart,
@@ -186,10 +186,10 @@ function generateSlotsFromAvailability(
       breakStart,
       breakEnd,
     })
-    
+
     currentStart += 90
   }
-  
+
   return slots
 }
 
@@ -205,16 +205,16 @@ export function calculateAvailableSlots(
   const allSlots: TimeSlot[] = []
   const dates = generateDateRange(startDate, endDate)
   const isNow = new Date()
-  
+
   for (const date of dates) {
     const dayOfWeek = getDayOfWeek(date)
     const pastDate = isPastDate(date)
-    
+
     // Find weekly availability for this day of week
     const dayAvailability = therapist.weeklyAvailability.filter(
       (avail) => avail.dayOfWeek === dayOfWeek
     )
-    
+
     if (dayAvailability.length === 0) {
       // No availability for this day
       if (!pastDate) {

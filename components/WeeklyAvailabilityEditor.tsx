@@ -19,6 +19,7 @@ function TimeInput({ value, onChange }: { value: string; onChange: (value: strin
         type="time"
         value={value}
         onChange={(e) => onChange(e.target.value)}
+        step="300"
         className="w-full min-w-0 px-3 py-2 pr-14 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-black"
         required
       />

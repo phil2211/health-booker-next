@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { DayPicker, DateRange, Matcher } from 'react-day-picker'
 import { format, parseISO, startOfToday, isWithinInterval, startOfDay } from 'date-fns'
 import { de, enUS } from 'date-fns/locale'
@@ -122,25 +122,65 @@ export default function DateRangePickerPopover({
     return () => clearTimeout(timeoutId)
   }, [startTime, endTime])
 
+  // Position popover relative to trigger button
+  const positionPopover = useCallback(() => {
+    const popover = popoverRef.current
+    const trigger = triggerRef.current
+    if (!popover || !trigger) return
+
+    const triggerRect = trigger.getBoundingClientRect()
+    const popoverRect = popover.getBoundingClientRect()
+    const viewportWidth = window.innerWidth
+    const viewportHeight = window.innerHeight
+    const spacing = 8 // Space between button and popover
+    
+    // Calculate position below the button, aligned to left edge
+    let top = triggerRect.bottom + spacing
+    let left = triggerRect.left
+    
+    // Adjust if popover would go off the right edge
+    if (left + popoverRect.width > viewportWidth) {
+      left = viewportWidth - popoverRect.width - 16 // 16px padding from edge
+    }
+    
+    // Adjust if popover would go off the left edge
+    if (left < 16) {
+      left = 16
+    }
+    
+    // If popover would go off the bottom, position it above instead
+    if (top + popoverRect.height > viewportHeight) {
+      top = triggerRect.top - popoverRect.height - spacing
+      // If it still doesn't fit above, position at top of viewport
+      if (top < 16) {
+        top = 16
+      }
+    }
+    
+    popover.style.position = 'fixed'
+    popover.style.top = `${top}px`
+    popover.style.left = `${left}px`
+    popover.style.transform = 'none'
+    popover.style.zIndex = '50'
+  }, [])
+
   // Handle popover events
   useEffect(() => {
     const popover = popoverRef.current
-    if (!popover) return
+    const trigger = triggerRef.current
+    if (!popover || !trigger) return
 
     const handleToggle = (e: ToggleEvent) => {
       setIsOpen(e.newState === 'open')
-      // Center the popover when it's opened
+      // Position the popover relative to the trigger button when it's opened
       if (e.newState === 'open') {
-        // Use setTimeout to ensure the popover is rendered before repositioning
-        setTimeout(() => {
-          if (popover) {
-            popover.style.position = 'fixed'
-            popover.style.top = '50%'
-            popover.style.left = '50%'
-            popover.style.transform = 'translate(-50%, -50%)'
-            popover.style.zIndex = '50'
-          }
-        }, 0)
+        // Use requestAnimationFrame to ensure the popover is rendered before repositioning
+        requestAnimationFrame(() => {
+          // Use setTimeout to ensure dimensions are calculated
+          setTimeout(() => {
+            positionPopover()
+          }, 0)
+        })
       }
     }
 
@@ -148,7 +188,21 @@ export default function DateRangePickerPopover({
     return () => {
       popover.removeEventListener('toggle', handleToggle)
     }
-  }, [])
+  }, [positionPopover])
+
+  // Reposition popover on window resize when it's open
+  useEffect(() => {
+    if (!isOpen) return
+
+    const handleResize = () => {
+      positionPopover()
+    }
+
+    window.addEventListener('resize', handleResize)
+    return () => {
+      window.removeEventListener('resize', handleResize)
+    }
+  }, [isOpen, positionPopover])
 
   // Handle keyboard: Esc closes popover
   useEffect(() => {
@@ -313,6 +367,7 @@ export default function DateRangePickerPopover({
                   type="time"
                   value={selectedStartTime}
                   onChange={(e) => setSelectedStartTime(e.target.value)}
+                  step="300"
                   className="w-full min-w-0 px-3 py-2 pr-14 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-black"
                 />
                 <button
@@ -347,6 +402,7 @@ export default function DateRangePickerPopover({
                   type="time"
                   value={selectedEndTime}
                   onChange={(e) => setSelectedEndTime(e.target.value)}
+                  step="300"
                   className="w-full min-w-0 px-3 py-2 pr-14 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-black"
                 />
                 <button

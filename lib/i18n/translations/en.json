@@ -29,7 +29,12 @@
     "info": "Info",
     "selectDate": "Select date",
     "clear": "Clear",
-    "apply": "Apply"
+    "apply": "Apply",
+    "dearPatient": "Dear Patient",
+    "dearTherapist": "Dear Therapist",
+    "dear": "Dear {{name}}",
+    "regards": "Regards",
+    "language": "Language"
   },
   "auth": {
     "signIn": "Sign In",
@@ -328,7 +333,9 @@
     "reminderOneHour": "Reminder: Your Cranio Sacral Session with {{therapistName}} starts in 1 hour",
     "contactUsToCancel": "Contact us to cancel",
     "cranioSacralSessionWith": "Cranio Sacral Session with {{therapistName}}",
-    "appointmentWith": "Appointment with {{therapistName}}"
+    "appointmentWith": "Appointment with {{therapistName}}",
+    "appointmentTitle": "Appointment with {{therapistName}}",
+    "appointmentDescription": "Your upcoming appointment details."
   },
   "availabilityEditor": {
     "days": {
@@ -370,6 +377,38 @@
     "pleaseLogIn": "Please log in to view your booking URL",
     "failedToFetch": "Failed to fetch booking URL",
     "failedToFetchFallback": "Failed to fetch booking URL. Using fallback."
+  },
+  "bookingConfirmation": {
+    "preview": "Your Booking Confirmation",
+    "subject": "Your Appointment is Confirmed!",
+    "body": "This is a confirmation that your appointment with {{therapistName}} is scheduled for {{bookingDate}} at {{bookingTime}}.",
+    "rescheduleAppointment": "Reschedule Appointment",
+    "cancelAppointment": "Cancel Appointment"
+  },
+  "bookingConfirmationTherapist": {
+    "preview": "New Booking",
+    "subject": "New Booking with {{patientName}}",
+    "body": "You have a new booking with {{patientName}} for {{bookingDate}} at {{bookingTime}}."
+  },
+  "appointmentReminder": {
+    "preview": "Appointment Reminder",
+    "subject": "Reminder: Your Appointment is Tomorrow",
+    "body": "This is a reminder that your appointment with {{therapistName}} is tomorrow at {{bookingTime}}."
+  },
+  "appointmentReminderTherapist": {
+    "preview": "Appointment Reminder",
+    "subject": "Reminder: Appointment with {{patientName}} Tomorrow",
+    "body": "This is a reminder that you have an appointment with {{patientName}} tomorrow at {{bookingTime}}."
+  },
+  "cancellationNotification": {
+    "preview": "Appointment Cancellation",
+    "subject": "An Appointment has been Cancelled",
+    "body": "The appointment between {{therapistName}} and {{patientName}} on {{bookingDate}} at {{bookingTime}} has been cancelled."
+  },
+  "rescheduleNotification": {
+    "preview": "Appointment Rescheduled",
+    "subject": "An Appointment has been Rescheduled",
+    "body": "The appointment between {{therapistName}} and {{patientName}} has been rescheduled to {{newBookingDate}} at {{newBookingTime}}."
   }
 }
 

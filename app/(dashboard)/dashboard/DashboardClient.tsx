@@ -3,8 +3,7 @@
 import Link from 'next/link'
 import { useTranslation } from '@/lib/i18n/useTranslation'
 import { useLocale } from '@/lib/i18n/LocaleProvider'
-import LogoutButton from '@/components/LogoutButton'
-import LanguageSwitcher from '@/components/LanguageSwitcher'
+import ResponsiveHeader from '@/components/ResponsiveHeader'
 import BookingUrlSection from '@/components/BookingUrlSection'
 
 interface DashboardClientProps {
@@ -24,29 +23,14 @@ interface DashboardClientProps {
 export default function DashboardClient({ therapist, bookingUrl, baseUrl }: DashboardClientProps) {
   const { t } = useTranslation()
   const locale = useLocale()
-  
+
   const availabilityPath = locale === 'en' ? '/dashboard/availability' : `/${locale}/dashboard/availability`
   const appointmentsPath = locale === 'en' ? '/dashboard/appointments' : `/${locale}/dashboard/appointments`
 
   return (
     <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100">
       {/* Navigation Bar */}
-      <nav className="bg-white shadow-lg border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-4">
-              <h1 className="text-xl font-bold text-indigo-600">{t('booking.healthBooker')}</h1>
-              <span className="text-gray-400">|</span>
-              <span className="text-sm text-gray-600">{t('dashboard.title')}</span>
-            </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-600 hidden sm:inline">{t('dashboard.welcomeUser', { name: therapist.name })}</span>
-              <LanguageSwitcher />
-              <LogoutButton />
-            </div>
-          </div>
-        </div>
-      </nav>
+      <ResponsiveHeader pageTitle={t('dashboard.title')} showBackToDashboard={false} />
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

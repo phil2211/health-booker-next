@@ -78,22 +78,7 @@ jest.mock('@/models/Booking', () => ({
   getBookingsByTherapistAndDateRange: (...args: any[]) => mockGetBookingsByTherapistAndDateRange(...args),
 }))
 
-jest.mock('@/lib/utils/availability', () => ({
-  calculateAvailableSlots: jest.fn((therapist, startDate, endDate, bookings) => {
-    return [
-      {
-        date: '2024-01-15',
-        startTime: '09:00',
-        endTime: '10:30',
-        status: 'available',
-        sessionStart: '09:00',
-        sessionEnd: '10:00',
-        breakStart: '10:00',
-        breakEnd: '10:30',
-      },
-    ]
-  }),
-}))
+// Don't mock calculateAvailableSlots for this specific test - let it use the real implementation
 
 describe('Availability API', () => {
   beforeEach(() => {
@@ -441,21 +426,62 @@ describe('Availability API', () => {
       mockFindTherapistById.mockResolvedValue(null)
 
       const { GET } = require('@/app/api/therapist/[id]/availability/route')
-      
+
       // Use a valid ObjectId format (24 hex characters)
       const validObjectId = '507f1f77bcf86cd799439011'
       const url = new URL(`http://localhost/api/therapist/${validObjectId}/availability`)
       url.searchParams.set('startDate', '2024-01-15')
       url.searchParams.set('endDate', '2024-01-20')
-      
+
       const request = new Request(url.toString())
       const params = Promise.resolve({ id: validObjectId })
-      
+
       const response = await GET(request, { params })
 
       expect(response.status).toBe(404)
       const responseData = await response.json()
       expect(responseData.error).toBe('Therapist not found')
+    })
+
+    test('should NOT return 17:30 slot when therapist availability ends at 18:00', async () => {
+      // Test the exact scenario from the user: therapist ends at 18:00, should not allow 17:30
+      const mockTherapistWith1800End = {
+        _id: 'therapist-18-00-end',
+        weeklyAvailability: [
+          { dayOfWeek: 1, startTime: '09:00', endTime: '18:00' }, // Monday 9-6
+        ],
+        blockedSlots: [],
+      }
+
+      mockFindTherapistById.mockResolvedValue(mockTherapistWith1800End)
+      mockGetBookingsByTherapistAndDateRange.mockResolvedValue([])
+
+      const { GET } = require('@/app/api/therapist/[id]/availability/route')
+
+      // Test for a Monday (dayOfWeek = 1) - use a future date
+      const mondayDate = '2025-12-15' // This is a Monday in December 2025
+      const url = new URL(`http://localhost/api/therapist/therapist-18-00-end/availability`)
+      url.searchParams.set('startDate', mondayDate)
+      url.searchParams.set('endDate', mondayDate)
+
+      const request = new Request(url.toString())
+      const params = Promise.resolve({ id: 'therapist-18-00-end' })
+
+      const response = await GET(request, { params })
+      const responseData = await response.json()
+
+      expect(responseData.slots).toBeDefined()
+
+      // Find any slot that starts at 17:30
+      const slot1730 = responseData.slots.find((slot: any) => slot.startTime === '17:30')
+      expect(slot1730).toBeUndefined()
+
+      // Verify the last slot is 16:30
+      const availableSlots = responseData.slots.filter((slot: any) => slot.status === 'available')
+      expect(availableSlots.length).toBeGreaterThan(0)
+      const lastSlot = availableSlots[availableSlots.length - 1]
+      expect(lastSlot.startTime).toBe('16:30')
+      expect(lastSlot.sessionEnd).toBe('17:30')
     })
   })
 })

@@ -86,6 +86,8 @@ export interface Booking {
   cancellationToken: string // UUID for cancellation
   reason?: string
   notes?: string
+  locale?: string // Language preference for notifications
+  reminderSent?: boolean // Flag to track if a reminder has been sent
   createdAt?: Date
   updatedAt?: Date
 }

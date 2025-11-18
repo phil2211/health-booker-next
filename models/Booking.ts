@@ -235,6 +235,8 @@ export async function createBooking(booking: Omit<Booking, '_id' | 'createdAt' |
     cancellationToken: booking.cancellationToken,
     reason: booking.reason || null,
     notes: booking.notes || null,
+    locale: booking.locale || 'en', // Add locale
+    reminderSent: false, // Initialize reminderSent to false
     createdAt: now,
     updatedAt: now,
   }
@@ -255,6 +257,8 @@ export async function createBooking(booking: Omit<Booking, '_id' | 'createdAt' |
     _id: createdBooking._id.toString(),
     therapistId: booking.therapistId,
     appointmentDate: appointmentDateStr,
+    locale: createdBooking.locale,
+    reminderSent: createdBooking.reminderSent,
     createdAt: now,
     updatedAt: now,
   } as BookingDocument

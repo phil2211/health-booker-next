@@ -6,9 +6,11 @@ import { AvailabilityEntry, BlockedSlot } from '@/lib/types'
 import WeeklyAvailabilityEditor from './WeeklyAvailabilityEditor'
 import BlockedSlotsEditor from './BlockedSlotsEditor'
 import { useTranslation } from '@/lib/i18n/useTranslation'
+import { useLocale } from '@/lib/i18n/LocaleProvider'
 
 export default function AvailabilityManagement() {
   const { t } = useTranslation()
+  const locale = useLocale()
   const router = useRouter()
   const successTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const [weeklyAvailability, setWeeklyAvailability] = useState<AvailabilityEntry[]>([])
@@ -25,6 +27,8 @@ export default function AvailabilityManagement() {
 
   // Load current availability on mount
   useEffect(() => {
+    let isMounted = true
+    
     async function loadAvailability() {
       try {
         setLoading(true)
@@ -32,9 +36,12 @@ export default function AvailabilityManagement() {
         
         const response = await fetch('/api/therapist/availability')
         
+        if (!isMounted) return
+        
         if (!response.ok) {
           if (response.status === 401) {
-            router.push('/login')
+            const loginPath = locale === 'en' ? '/login' : `/${locale}/login`
+            router.push(loginPath)
             return
           }
           throw new Error(t('availability.failedToLoad'))
@@ -44,19 +51,28 @@ export default function AvailabilityManagement() {
         const weeklyAvail = data.weeklyAvailability || []
         const blocked = data.blockedSlots || []
         
+        if (!isMounted) return
+        
         setWeeklyAvailability(weeklyAvail)
         setBlockedSlots(blocked)
         setInitialState({ weeklyAvailability: weeklyAvail, blockedSlots: blocked })
       } catch (err) {
+        if (!isMounted) return
         console.error('Error loading availability:', err)
         setError(t('availability.failedToLoad'))
       } finally {
-        setLoading(false)
+        if (isMounted) {
+          setLoading(false)
+        }
       }
     }
 
     loadAvailability()
-  }, [router, t])
+    
+    return () => {
+      isMounted = false
+    }
+  }, [router, t, locale])
 
   // Cleanup timeout on unmount
   useEffect(() => {
