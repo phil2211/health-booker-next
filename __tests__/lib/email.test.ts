@@ -116,7 +116,7 @@ describe('Email Sending Functions (Mocked Resend API)', () => {
       'bookingConfirmation.subject': 'Booking Confirmation',
       'bookingConfirmation.preview': 'Your appointment is confirmed',
       'bookingConfirmation.body': `Your appointment with {{therapistName}} on {{bookingDate}} at {{bookingTime}} is confirmed.`,
-      'bookingConfirmation.rescheduleAppointment': 'Reschedule Appointment',
+      'bookingConfirmation.rescheduleExplanation': 'If you need to reschedule your appointment, please cancel this appointment and book a new one.',
       'bookingConfirmation.cancelAppointment': 'Cancel Appointment',
       'bookingConfirmationTherapist.subject': 'New Booking: {{patientName}}',
       'appointmentReminder.subject': 'Appointment Reminder',
@@ -293,7 +293,7 @@ describe('Email Sending Functions (Mocked Resend API)', () => {
       expect(mockCreateIcsFile).toHaveBeenCalled();
     });
 
-    test('should include cancellation and reschedule links in patient email', async () => {
+    test('should include cancellation link in patient email', async () => {
       if (skipIfNotReady()) return;
       
       // Verify email is sent successfully (links are included in the real email)
@@ -306,7 +306,7 @@ describe('Email Sending Functions (Mocked Resend API)', () => {
       expect(mockBooking.cancellationToken).toBe('cancel-token-abc123');
     });
 
-    test('should generate correct cancellation and reschedule links', async () => {
+    test('should generate correct cancellation link', async () => {
       if (skipIfNotReady()) return;
 
       // Verify email is sent successfully

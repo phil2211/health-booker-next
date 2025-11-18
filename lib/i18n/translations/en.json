@@ -382,7 +382,7 @@
     "preview": "Your Booking Confirmation",
     "subject": "Your Appointment is Confirmed!",
     "body": "This is a confirmation that your appointment with {{therapistName}} is scheduled for {{bookingDate}} at {{bookingTime}}.",
-    "rescheduleAppointment": "Reschedule Appointment",
+    "rescheduleExplanation": "If you need to reschedule your appointment, please cancel this appointment and book a new one.",
     "cancelAppointment": "Cancel Appointment"
   },
   "bookingConfirmationTherapist": {

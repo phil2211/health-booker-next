@@ -40,7 +40,6 @@ export async function sendBookingConfirmationEmails(booking: Booking, therapist:
         bookingDate={new Date(booking.appointmentDate).toLocaleDateString(emailSetup.locale)}
         bookingTime={new Date(booking.appointmentDate + 'T' + booking.startTime).toLocaleTimeString(emailSetup.locale, { hour: '2-digit', minute: '2-digit' })}
         cancellationLink={emailSetup.cancellationLink!}
-        rescheduleLink={emailSetup.rescheduleLink!}
       />
     );
     const patientEmailResponse = await getResendClient().emails.send({

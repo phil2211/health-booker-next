@@ -382,7 +382,7 @@
     "preview": "Ihre Buchungsbestätigung",
     "subject": "Ihr Termin ist bestätigt!",
     "body": "Dies ist eine Bestätigung, dass Ihr Termin mit {{therapistName}} am {{bookingDate}} um {{bookingTime}} geplant ist.",
-    "rescheduleAppointment": "Termin verschieben",
+    "rescheduleExplanation": "Falls Sie Ihren Termin verschieben möchten, sagen Sie bitte diesen Termin ab und buchen Sie einen neuen.",
     "cancelAppointment": "Termin absagen"
   },
   "bookingConfirmationTherapist": {

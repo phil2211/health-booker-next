@@ -7,7 +7,6 @@ interface BookingConfirmationPatientEmailProps {
   bookingDate: string;
   bookingTime: string;
   cancellationLink: string;
-  rescheduleLink: string;
 }
 
 export const BookingConfirmationPatientEmail: React.FC<Readonly<BookingConfirmationPatientEmailProps>> = ({
@@ -16,7 +15,6 @@ export const BookingConfirmationPatientEmail: React.FC<Readonly<BookingConfirmat
   bookingDate,
   bookingTime,
   cancellationLink,
-  rescheduleLink,
 }) => (
   <Html>
     <Head />
@@ -28,7 +26,7 @@ export const BookingConfirmationPatientEmail: React.FC<Readonly<BookingConfirmat
           {t('bookingConfirmation.body', { therapistName, bookingDate, bookingTime })}
         </Text>
         <Text>
-          <Link href={rescheduleLink}>{t('bookingConfirmation.rescheduleAppointment')}</Link>
+          {t('bookingConfirmation.rescheduleExplanation')}
         </Text>
         <Text>
           <Link href={cancellationLink}>{t('bookingConfirmation.cancelAppointment')}</Link>
