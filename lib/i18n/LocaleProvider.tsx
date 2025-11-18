@@ -53,13 +53,27 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
   }, [hasMounted, pathname])
 
   const setLocale = (newLocale: Locale) => {
-    // This function is now simpler, as it only needs to handle manual locale changes.
-    // The actual state is derived from the URL, so we just need to navigate.
-    // For this implementation, we'll just set the cookie and let the middleware handle the redirect.
+    // Set the cookie
     document.cookie = `NEXT_LOCALE=${newLocale}; path=/; max-age=31536000` // 1 year
-    // In a real app, you might want to use router.push() to change the URL
-    // and trigger a re-render with the new locale.
-    // For now, we assume the middleware will handle the redirect on the next navigation.
+
+    // Navigate to the new locale URL
+    const pathSegments = pathname.split('/').filter(Boolean)
+    const firstSegment = pathSegments[0]
+
+    let currentPath = pathname
+    // If current path starts with a locale, remove it
+    if (locales.includes(firstSegment as Locale)) {
+      const remainingPath = pathSegments.slice(1).join('/')
+      currentPath = remainingPath ? `/${remainingPath}` : '/'
+    }
+
+    // Build new URL with locale prefix
+    const newPath = newLocale === defaultLocale
+      ? currentPath
+      : `/${newLocale}${currentPath === '/' ? '' : currentPath}`
+
+    // Navigate to new URL
+    window.location.href = newPath
   }
 
   return (
