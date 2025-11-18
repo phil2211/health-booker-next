@@ -21,12 +21,15 @@ function getValidLocale(locale?: string): Locale {
   return defaultLocale;
 }
 
-// Initialize Resend client
-const resendApiKey = process.env.RESEND_API_KEY;
-if (!resendApiKey) {
-  console.warn('⚠️  RESEND_API_KEY is not set. Email sending will fail.');
+// Instead, create a function to get Resend instance
+function getResendClient() {
+  const resendApiKey = process.env.RESEND_API_KEY;
+  if (!resendApiKey) {
+    throw new Error('RESEND_API_KEY is not configured');
+  }
+  return new Resend(resendApiKey);
 }
-const resend = new Resend(resendApiKey);
+
 const fromEmail = process.env.RESEND_FROM_EMAIL;
 if (!fromEmail) {
   console.warn('⚠️  RESEND_FROM_EMAIL is not set. Email sending will fail.');
@@ -65,7 +68,7 @@ export async function sendBookingConfirmationEmails(booking: Booking, therapist:
         rescheduleLink={rescheduleLink}
       />
     );
-    const patientEmailResponse = await resend.emails.send({
+    const patientEmailResponse = await getResendClient().emails.send({
       from: fromEmail!,
       to: patient.email,
       subject: t('bookingConfirmation.subject'),
@@ -94,7 +97,7 @@ export async function sendBookingConfirmationEmails(booking: Booking, therapist:
         bookingTime={new Date(booking.appointmentDate + 'T' + booking.startTime).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}
       />
     );
-    const therapistEmailResponse = await resend.emails.send({
+    const therapistEmailResponse = await getResendClient().emails.send({
         from: fromEmail!,
         to: therapist.email,
         subject: t('bookingConfirmationTherapist.subject', { patientName: patient.name }),
@@ -146,7 +149,7 @@ export async function sendCancellationEmail(booking: Booking, therapist: Therapi
                 bookingTime={new Date(booking.appointmentDate + 'T' + booking.startTime).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}
             />
         );
-        const patientEmailResponse = await resend.emails.send({
+        const patientEmailResponse = await getResendClient().emails.send({
             from: fromEmail!,
             to: patient.email,
             subject: t('cancellationNotification.subject'),
@@ -171,7 +174,7 @@ export async function sendCancellationEmail(booking: Booking, therapist: Therapi
                 bookingTime={new Date(booking.appointmentDate + 'T' + booking.startTime).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}
             />
         );
-        const therapistEmailResponse = await resend.emails.send({
+        const therapistEmailResponse = await getResendClient().emails.send({
             from: fromEmail!,
             to: therapist.email,
             subject: t('cancellationNotification.subject'),
@@ -229,7 +232,7 @@ export async function sendRescheduleEmail(booking: Booking, therapist: Therapist
                 rescheduleLink={rescheduleLink}
             />
         );
-        const patientEmailResponse = await resend.emails.send({
+        const patientEmailResponse = await getResendClient().emails.send({
             from: fromEmail!,
             to: patient.email,
             subject: t('rescheduleNotification.subject'),
@@ -262,7 +265,7 @@ export async function sendRescheduleEmail(booking: Booking, therapist: Therapist
                 rescheduleLink={rescheduleLink}
             />
         );
-        const therapistEmailResponse = await resend.emails.send({
+        const therapistEmailResponse = await getResendClient().emails.send({
             from: fromEmail!,
             to: therapist.email,
             subject: t('rescheduleNotification.subject'),
@@ -324,7 +327,7 @@ export async function sendReminderEmails(booking: Booking, therapist: Therapist,
                 rescheduleLink={rescheduleLink}
             />
         );
-        const patientEmailResponse = await resend.emails.send({
+        const patientEmailResponse = await getResendClient().emails.send({
             from: fromEmail!,
             to: patient.email,
             subject: t('appointmentReminder.subject'),
@@ -353,7 +356,7 @@ export async function sendReminderEmails(booking: Booking, therapist: Therapist,
                 bookingTime={new Date(booking.appointmentDate + 'T' + booking.startTime).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}
             />
         );
-        const therapistEmailResponse = await resend.emails.send({
+        const therapistEmailResponse = await getResendClient().emails.send({
             from: fromEmail!,
             to: therapist.email,
             subject: t('appointmentReminderTherapist.subject', { patientName: patient.name }),
