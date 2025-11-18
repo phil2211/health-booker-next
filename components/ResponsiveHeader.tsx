@@ -10,14 +10,20 @@ import LanguageSwitcher from '@/components/LanguageSwitcher'
 interface ResponsiveHeaderProps {
   pageTitle: string
   showBackToDashboard?: boolean
+  showHomeLink?: boolean
 }
 
-export default function ResponsiveHeader({ pageTitle, showBackToDashboard = true }: ResponsiveHeaderProps) {
+export default function ResponsiveHeader({
+  pageTitle,
+  showBackToDashboard = true,
+  showHomeLink = false
+}: ResponsiveHeaderProps) {
   const { t } = useTranslation()
   const locale = useLocale()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   const dashboardPath = locale === 'en' ? '/dashboard' : `/${locale}/dashboard`
+  const homePath = locale === 'en' ? '/' : `/${locale}`
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen)
 
@@ -44,8 +50,16 @@ export default function ResponsiveHeader({ pageTitle, showBackToDashboard = true
                 {t('dashboard.backToDashboard')}
               </Link>
             )}
+            {showHomeLink && (
+              <Link
+                href={homePath}
+                className="text-sm text-gray-600 hover:text-gray-800 whitespace-nowrap"
+              >
+                {t('booking.home')}
+              </Link>
+            )}
             <LanguageSwitcher />
-            <LogoutButton />
+            {!showHomeLink && <LogoutButton />}
           </div>
 
           {/* Mobile menu button */}
@@ -100,6 +114,15 @@ export default function ResponsiveHeader({ pageTitle, showBackToDashboard = true
                 ← {t('dashboard.backToDashboard')}
               </Link>
             )}
+            {showHomeLink && (
+              <Link
+                href={homePath}
+                className="block px-3 py-2 text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50 rounded-md transition-colors"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                {t('booking.home')}
+              </Link>
+            )}
 
             {/* Language switcher in mobile menu */}
             <div className="px-3 py-2 border-t border-gray-200 mt-2">
@@ -109,10 +132,12 @@ export default function ResponsiveHeader({ pageTitle, showBackToDashboard = true
               </div>
             </div>
 
-            {/* Logout button in mobile menu */}
-            <div className="px-3 py-2 border-t border-gray-200">
-              <LogoutButton />
-            </div>
+            {/* Logout button in mobile menu - only show if not showing home link */}
+            {!showHomeLink && (
+              <div className="px-3 py-2 border-t border-gray-200">
+                <LogoutButton />
+              </div>
+            )}
           </div>
         </div>
       )}

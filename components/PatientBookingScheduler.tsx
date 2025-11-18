@@ -120,25 +120,24 @@ export default function PatientBookingScheduler({ therapistId, blockedSlots = []
     fetchAvailability()
   }, [therapistId, selectedDate])
 
-  // Format time from HH:MM to browser's local timezone
-  // Assumes the time string is in UTC and converts to user's local timezone
-  // Uses 24-hour format for European locales (e.g., de), 12-hour format for others
+  // Format time from HH:MM string to localized time format
+  // Slot times are already in business timezone, just format them nicely
   const formatTime = (timeString: string): string => {
     const [hours, minutes] = timeString.split(':').map(Number)
-    // Create a date object for today in UTC, then convert to local time
-    const date = new Date()
-    date.setUTCHours(hours, minutes, 0, 0)
-    
+
     // Use 24-hour format for European locales (de, etc.), 12-hour for others
     const isEuropeanLocale = locale === 'de' // Add more European locales as needed
     const localeString = isEuropeanLocale ? 'de-DE' : 'en-US'
-    
-    // Return formatted in user's local timezone
+
+    // Create a date object for today at the specified time (in local timezone)
+    const date = new Date()
+    date.setHours(hours, minutes, 0, 0)
+
+    // Format in user's locale without timezone conversion
     return date.toLocaleTimeString(localeString, {
       hour: 'numeric',
       minute: '2-digit',
       hour12: !isEuropeanLocale, // false for European (24h), true for others (12h)
-      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     })
   }
 

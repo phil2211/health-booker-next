@@ -66,13 +66,14 @@ export async function GET(
 
     // Get therapist
     const therapist = await findTherapistById(id)
-    
+
     if (!therapist) {
       return NextResponse.json(
         { error: 'Therapist not found' },
         { status: 404 }
       )
     }
+
 
     // Get existing bookings for the date range
     const existingBookings = await getBookingsByTherapistAndDateRange(
