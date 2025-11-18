@@ -33,7 +33,8 @@
     "dearPatient": "Sehr geehrte/r Patient/in",
     "dearTherapist": "Sehr geehrte/r Therapeut/in",
     "dear": "Sehr geehrte/r {{name}}",
-    "regards": "Mit freundlichen Grüßen"
+    "regards": "Mit freundlichen Grüßen",
+    "language": "Sprache"
   },
   "auth": {
     "signIn": "Anmelden",

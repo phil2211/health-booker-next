@@ -33,7 +33,8 @@
     "dearPatient": "Dear Patient",
     "dearTherapist": "Dear Therapist",
     "dear": "Dear {{name}}",
-    "regards": "Regards"
+    "regards": "Regards",
+    "language": "Language"
   },
   "auth": {
     "signIn": "Sign In",
