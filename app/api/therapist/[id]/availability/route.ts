@@ -3,6 +3,7 @@ import { ObjectId } from 'mongodb'
 import { findTherapistById } from '@/models/Therapist'
 import { getBookingsByTherapistAndDateRange } from '@/models/Booking'
 import { calculateAvailableSlots } from '@/lib/utils/availability'
+import { isValidDate } from '@/lib/utils/validation'
 
 import { createErrorResponse } from '@/lib/utils/api';
 
@@ -45,8 +46,7 @@ export async function GET(
     }
 
     // Validate date format
-    const dateRegex = /^\d{4}-\d{2}-\d{2}$/
-    if (!dateRegex.test(startDate) || !dateRegex.test(endDate)) {
+    if (!isValidDate(startDate) || !isValidDate(endDate)) {
       return NextResponse.json(
         { error: 'Invalid date format. Use YYYY-MM-DD' },
         { status: 400 }
