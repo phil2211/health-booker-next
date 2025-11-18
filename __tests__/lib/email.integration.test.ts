@@ -90,7 +90,7 @@ if (!RUN_INTEGRATION) {
     beforeAll(async () => {
       console.log('\n🚨 RUNNING INTEGRATION TESTS WITH REAL RESEND API 🚨');
       console.log(`📧 Emails will be sent to: ${testRecipientEmail}`);
-      console.log(`🔑 Using API key: ${process.env.RESEND_API_KEY.substring(0, 10)}...`);
+      console.log(`🔑 Using API key: ${process.env.RESEND_API_KEY ? `${process.env.RESEND_API_KEY.substring(0, 10)}...` : 'NOT SET'}`);
       console.log('💰 This may incur real costs!\n');
 
       // Import email functions - Resend will be initialized with real API key
