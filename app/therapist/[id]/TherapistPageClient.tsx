@@ -10,8 +10,8 @@ interface TherapistPageClientProps {
   therapist: {
     _id: string
     name: string
-    specialization: string
-    bio: string
+    specialization: string | { en: string; de: string }
+    bio: string | { en: string; de: string }
     photoUrl?: string
     email: string
   }
@@ -20,9 +20,18 @@ interface TherapistPageClientProps {
 export default function TherapistPageClient({ therapist }: TherapistPageClientProps) {
   const { t } = useTranslation()
   const locale = useLocale()
-  
+
   const homePath = locale === 'en' ? '/' : `/${locale}`
   const bookPath = locale === 'en' ? `/book/${therapist._id}` : `/${locale}/book/${therapist._id}`
+
+  // Helper to get localized content
+  const getLocalizedContent = (content: string | { en: string; de: string }, lang: string) => {
+    if (typeof content === 'string') return content
+    return content[lang as 'en' | 'de'] || content['en'] || content['de'] || ''
+  }
+
+  const displayBio = getLocalizedContent(therapist.bio, locale)
+  const displaySpecialization = getLocalizedContent(therapist.specialization, locale)
 
   return (
     <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100">
@@ -41,7 +50,7 @@ export default function TherapistPageClient({ therapist }: TherapistPageClientPr
           {/* Header */}
           <div className="text-center mb-8 pb-8 border-b">
             <h1 className="text-4xl font-bold text-gray-900 mb-2">{therapist.name}</h1>
-            <p className="text-xl text-indigo-600 font-medium">{therapist.specialization}</p>
+            <p className="text-xl text-indigo-600 font-medium">{displaySpecialization}</p>
           </div>
 
           {/* Profile Photo (if available) */}
@@ -61,7 +70,7 @@ export default function TherapistPageClient({ therapist }: TherapistPageClientPr
           <div className="space-y-6">
             <div>
               <h2 className="text-lg font-semibold text-gray-900 mb-3">{t('therapist.about')} {therapist.name}</h2>
-              <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{therapist.bio}</p>
+              <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{displayBio}</p>
             </div>
 
             {/* Contact Information */}

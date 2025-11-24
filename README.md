@@ -56,7 +56,10 @@ This project follows a cloud-native architecture designed for developer velocity
    NEXT_PUBLIC_BASE_URL=http://localhost:3000
    NEXTAUTH_URL=http://localhost:3000
    NEXTAUTH_SECRET=your-secret-key-here
+   GEMINI_API_KEY=your-gemini-api-key-here  # Required for auto-translation feature
    ```
+   
+   **Note**: To use the auto-translation feature in the profile editor, you need a Google Gemini API key. Get one from [Google AI Studio](https://makersuite.google.com/app/apikey).
 
 5. **Run the development server**
    ```bash
@@ -64,6 +67,27 @@ This project follows a cloud-native architecture designed for developer velocity
    ```
    
    Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+## Features
+
+### Multi-Language Profile Management
+
+The system supports **English** and **German** languages with intelligent auto-translation:
+
+- **Therapist Profile Editing**: Therapists can edit their profile information in both languages
+- **Auto-Translation**: Powered by Google Gemini API, therapists can:
+  - Write their bio in one language and automatically translate to the other
+  - Translate their specialization between English and German
+  - Edit translations manually for fine-tuning
+- **Locale-Aware Display**: The dashboard automatically displays content in the user's preferred language
+- **Backward Compatibility**: Existing profiles without translations will fall back to the original `bio` and `specialization` fields
+
+To access the profile editor:
+1. Log in to the therapist dashboard
+2. Click the "Edit" link in the profile section
+3. Edit your information in both languages
+4. Use the translation buttons to auto-translate content
+5. Save your changes
 
 ## Project Structure
 

@@ -5,13 +5,15 @@ import { useTranslation } from '@/lib/i18n/useTranslation'
 import { useLocale } from '@/lib/i18n/LocaleProvider'
 import ResponsiveHeader from '@/components/ResponsiveHeader'
 import BookingUrlSection from '@/components/BookingUrlSection'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 
 interface DashboardClientProps {
   therapist: {
     _id: string
     name: string
-    specialization: string
-    bio: string
+    specialization: string | { en: string; de: string }
+    bio: string | { en: string; de: string }
     email: string
     weeklyAvailability: any[]
     blockedSlots: any[]
@@ -23,9 +25,29 @@ interface DashboardClientProps {
 export default function DashboardClient({ therapist, bookingUrl, baseUrl }: DashboardClientProps) {
   const { t } = useTranslation()
   const locale = useLocale()
+  const router = useRouter()
+  const [sanitizedBio, setSanitizedBio] = useState<string>('')
+
+  // Helper to get localized content
+  const getLocalizedContent = (content: string | { en: string; de: string }, lang: string) => {
+    if (typeof content === 'string') return content
+    return content[lang as 'en' | 'de'] || content['en'] || content['de'] || ''
+  }
+
+  // Get localized content
+  const displayBio = getLocalizedContent(therapist.bio, locale)
+  const displaySpecialization = getLocalizedContent(therapist.specialization, locale)
+
+  // Sanitize bio on client side only
+  useEffect(() => {
+    import('dompurify').then((DOMPurify) => {
+      setSanitizedBio(DOMPurify.default.sanitize(displayBio))
+    })
+  }, [displayBio])
 
   const availabilityPath = locale === 'en' ? '/dashboard/availability' : `/${locale}/dashboard/availability`
   const appointmentsPath = locale === 'en' ? '/dashboard/appointments' : `/${locale}/dashboard/appointments`
+  const profileEditPath = locale === 'en' ? '/dashboard/profile' : `/${locale}/dashboard/profile`
 
   return (
     <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100">
@@ -100,9 +122,12 @@ export default function DashboardClient({ therapist, bookingUrl, baseUrl }: Dash
           <div className="bg-white rounded-xl shadow-md border p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xl font-semibold text-gray-900">{t('dashboard.yourProfile')}</h3>
-              <button className="text-sm text-indigo-600 hover:text-indigo-700 font-medium">
+              <Link
+                href={profileEditPath}
+                className="text-sm text-indigo-600 hover:text-indigo-700 font-medium"
+              >
                 {t('common.edit')}
-              </button>
+              </Link>
             </div>
             <div className="space-y-4">
               <div className="pb-4 border-b">
@@ -111,7 +136,7 @@ export default function DashboardClient({ therapist, bookingUrl, baseUrl }: Dash
               </div>
               <div className="pb-4 border-b">
                 <p className="text-sm text-gray-500 mb-1">{t('dashboard.specialization')}</p>
-                <p className="text-gray-900 font-medium">{therapist.specialization}</p>
+                <p className="text-gray-900 font-medium">{displaySpecialization}</p>
               </div>
               <div className="pb-4 border-b">
                 <p className="text-sm text-gray-500 mb-1">{t('dashboard.email')}</p>
@@ -119,14 +144,19 @@ export default function DashboardClient({ therapist, bookingUrl, baseUrl }: Dash
               </div>
               <div>
                 <p className="text-sm text-gray-500 mb-2">{t('dashboard.bio')}</p>
-                <p className="text-gray-700 leading-relaxed">{therapist.bio}</p>
+                <div
+                  className="text-gray-700 leading-relaxed prose max-w-none"
+                  dangerouslySetInnerHTML={{
+                    __html: sanitizedBio
+                  }}
+                />
               </div>
             </div>
           </div>
 
           {/* Booking URL Card */}
-          <BookingUrlSection 
-            fallbackUrl={`${baseUrl}${bookingUrl}`} 
+          <BookingUrlSection
+            fallbackUrl={`${baseUrl}${bookingUrl}`}
             therapistId={therapist._id}
           />
         </div>
@@ -169,5 +199,3 @@ export default function DashboardClient({ therapist, bookingUrl, baseUrl }: Dash
     </div>
   )
 }
-
-

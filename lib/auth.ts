@@ -10,8 +10,8 @@ declare module 'next-auth' {
       id: string
       email: string
       name: string
-      specialization: string
-      bio: string
+      specialization: string | { en: string; de: string }
+      bio: string | { en: string; de: string }
     }
   }
 
@@ -19,14 +19,14 @@ declare module 'next-auth' {
     id: string
     email: string
     name: string
-    specialization: string
-    bio: string
+    specialization: string | { en: string; de: string }
+    bio: string | { en: string; de: string }
   }
 
   interface JWT {
     id: string
-    specialization: string
-    bio: string
+    specialization: string | { en: string; de: string }
+    bio: string | { en: string; de: string }
   }
 }
 
@@ -101,14 +101,14 @@ export const authOptions: NextAuthOptions = {
         try {
           // Find therapist by email
           const therapist = await findTherapistByEmail(email)
-          
+
           if (!therapist) {
             return null
           }
 
           // Compare passwords
           const passwordMatch = await comparePassword(password, therapist.password)
-          
+
           if (!passwordMatch) {
             return null
           }
@@ -160,8 +160,8 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.id as string
         session.user.email = token.email as string
         session.user.name = token.name as string
-        session.user.specialization = token.specialization as string
-        session.user.bio = token.bio as string
+        session.user.specialization = token.specialization as string | { en: string; de: string }
+        session.user.bio = token.bio as string | { en: string; de: string }
 
         // Verify session exists in database and update last seen
         if (token.sessionToken) {
