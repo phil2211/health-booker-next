@@ -13,7 +13,7 @@ export async function translateText(text: string, targetLanguage: 'en' | 'de'): 
 
     try {
         const genAI = new GoogleGenerativeAI(apiKey)
-        const model = genAI.getGenerativeModel({ model: 'gemini-pro' })
+        const model = genAI.getGenerativeModel({ model: 'gemini-flash-latest' })
 
         const languageName = targetLanguage === 'en' ? 'English' : 'German'
         const prompt = `Translate the following text to ${languageName}. Only provide the translation, no explanations or additional text: \n\n${text} `
