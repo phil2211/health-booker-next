@@ -24,6 +24,21 @@ export interface ProviderAvailability {
 }
 
 /**
+ * Therapy offering configuration
+ * Defines different types of therapy sessions with configurable durations
+ */
+export interface TherapyOffering {
+  _id?: string // Optional ID for tracking
+  name: string | { en: string; de: string } // Name/title of the therapy offering
+  description: string | { en: string; de: string } // Description of the therapy type
+  duration: number // Session duration in minutes
+  breakDuration: number // Break duration after session in minutes
+  isActive: boolean // Whether this offering is currently available for booking
+  createdAt?: Date
+  updatedAt?: Date
+}
+
+/**
  * Therapist model as per Requirements.md
  * Healthcare professionals who manage appointments
  */
@@ -39,6 +54,7 @@ export interface Therapist {
   photoUrl?: string
   weeklyAvailability: AvailabilityEntry[]
   blockedSlots: BlockedSlot[]
+  therapyOfferings?: TherapyOffering[] // Configurable therapy session types
   bookings?: Array<{
     _id: string
     patientName: string
@@ -78,6 +94,7 @@ export interface BlockedSlot {
 export interface Booking {
   _id?: string
   therapistId: string // Changed from providerId per requirements
+  therapyOfferingId?: string // Reference to the therapy offering used for this booking
   patientName: string
   patientEmail: string
   patientPhone?: string // Optional phone number

@@ -1,4 +1,4 @@
-import { Therapist, AvailabilityEntry, BlockedSlot } from '@/lib/types'
+import { Therapist, AvailabilityEntry, BlockedSlot, TherapyOffering } from '@/lib/types'
 import bcrypt from 'bcryptjs'
 import { getDatabase } from '@/lib/mongodb'
 import { ObjectId } from 'mongodb'
@@ -276,7 +276,8 @@ export async function updateTherapistBlockedSlots(
 export async function updateTherapistAvailability(
   therapistId: string,
   weeklyAvailability?: AvailabilityEntry[],
-  blockedSlots?: BlockedSlot[]
+  blockedSlots?: BlockedSlot[],
+  therapyOfferings?: TherapyOffering[]
 ): Promise<TherapistDocument | null> {
   try {
     const db = await getDatabase()
@@ -298,6 +299,10 @@ export async function updateTherapistAvailability(
 
     if (blockedSlots !== undefined) {
       updateFields.blockedSlots = blockedSlots
+    }
+
+    if (therapyOfferings !== undefined) {
+      updateFields.therapyOfferings = therapyOfferings
     }
 
     // Use updateOne instead of findOneAndUpdate for more reliable results

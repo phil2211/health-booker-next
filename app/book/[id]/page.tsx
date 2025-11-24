@@ -31,6 +31,7 @@ async function getTherapistProfile(id: string) {
       email: therapist.email,
       weeklyAvailability: therapist.weeklyAvailability,
       blockedSlots: therapist.blockedSlots,
+      therapyOfferings: therapist.therapyOfferings, // Include therapy offerings
       createdAt: therapist.createdAt,
       updatedAt: therapist.updatedAt,
     },
@@ -52,6 +53,7 @@ export default async function BookingPage({ params }: BookingPageProps) {
       therapistId={therapist._id}
       therapistName={therapist.name}
       blockedSlots={therapist.blockedSlots}
+      therapyOfferings={therapist.therapyOfferings}
     />
   )
 }

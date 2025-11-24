@@ -115,7 +115,20 @@
     "oneHour": "1 Stunde",
     "oneHourSession": "1 Stunde Sitzung",
     "selectedAppointment": "Ausgewählter Termin",
-    "at": "um"
+    "at": "um",
+    "stepSession": "Sitzung",
+    "stepDate": "Datum",
+    "stepTime": "Zeit",
+    "stepInfo": "Info",
+    "selectTreatment": "Behandlung wählen",
+    "chooseDifferentDate": "Anderes Datum wählen",
+    "currentSelection": "Aktuelle Auswahl",
+    "sentence": {
+      "prefix": "Sie buchen",
+      "treatment": "eine {{treatment}}",
+      "date": "am {{date}}",
+      "time": "um {{time}}"
+    }
   },
   "appointments": {
     "title": "Termine",
@@ -223,6 +236,25 @@
       "friday": "Freitag",
       "saturday": "Samstag"
     }
+  },
+  "therapyOfferings": {
+    "title": "Therapieangebote",
+    "description": "Konfigurieren Sie verschiedene Arten von Therapiesitzungen mit individuellen Dauern und Pausenzeiten.",
+    "addNew": "Neues Angebot hinzufügen",
+    "noOfferings": "Noch keine Therapieangebote konfiguriert.",
+    "clickAddToStart": "Klicken Sie auf 'Neues Angebot hinzufügen', um Ihren ersten Sitzungstyp zu erstellen.",
+    "active": "Aktiv",
+    "inactive": "Inaktiv",
+    "name": "Name",
+    "namePlaceholder": "z.B. Standardsitzung, Erstberatung",
+    "duration": "Sitzungsdauer",
+    "breakDuration": "Pause nach Sitzung",
+    "minutes": "Minuten",
+    "totalTime": "Gesamtzeit (Sitzung + Pause)",
+    "descriptionLabel": "Beschreibung",
+    "descriptionPlaceholder": "Beschreiben Sie, was diese Therapiesitzung beinhaltet...",
+    "confirmDelete": "Sind Sie sicher, dass Sie dieses Therapieangebot löschen möchten?",
+    "deleteWarning": "Diese Aktion kann nicht rückgängig gemacht werden. Das Therapieangebot wird dauerhaft entfernt."
   },
   "dashboard": {
     "title": "Dashboard",

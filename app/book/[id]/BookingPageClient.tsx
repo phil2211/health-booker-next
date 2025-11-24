@@ -6,13 +6,16 @@ import { useLocale } from '@/lib/i18n/LocaleProvider'
 import BookingInterface from '@/components/BookingInterface'
 import ResponsiveHeader from '@/components/ResponsiveHeader'
 
+import { TherapyOffering } from '@/lib/types'
+
 interface BookingPageClientProps {
   therapistId: string
   therapistName: string
   blockedSlots: any[]
+  therapyOfferings?: TherapyOffering[]
 }
 
-export default function BookingPageClient({ therapistId, therapistName, blockedSlots }: BookingPageClientProps) {
+export default function BookingPageClient({ therapistId, therapistName, blockedSlots, therapyOfferings }: BookingPageClientProps) {
   const { t } = useTranslation()
   const locale = useLocale()
 
@@ -36,7 +39,12 @@ export default function BookingPageClient({ therapistId, therapistName, blockedS
         </div>
 
         {/* Booking Interface */}
-        <BookingInterface therapistId={therapistId} blockedSlots={blockedSlots} therapistName={therapistName} />
+        <BookingInterface
+          therapistId={therapistId}
+          blockedSlots={blockedSlots}
+          therapistName={therapistName}
+          therapyOfferings={therapyOfferings}
+        />
 
         {/* Back to Profile */}
         <div className="mt-8 text-center">

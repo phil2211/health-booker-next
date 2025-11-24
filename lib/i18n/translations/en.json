@@ -115,7 +115,20 @@
     "oneHour": "1 hour",
     "oneHourSession": "1 hour session",
     "selectedAppointment": "Selected Appointment",
-    "at": "at"
+    "at": "at",
+    "stepSession": "Session",
+    "stepDate": "Date",
+    "stepTime": "Time",
+    "stepInfo": "Info",
+    "selectTreatment": "Select Treatment",
+    "chooseDifferentDate": "Choose a different date",
+    "currentSelection": "Current Selection",
+    "sentence": {
+      "prefix": "You are booking",
+      "treatment": "a {{treatment}}",
+      "date": "on {{date}}",
+      "time": "at {{time}}"
+    }
   },
   "appointments": {
     "title": "Appointments",
@@ -223,6 +236,25 @@
       "friday": "Friday",
       "saturday": "Saturday"
     }
+  },
+  "therapyOfferings": {
+    "title": "Therapy Offerings",
+    "description": "Configure different types of therapy sessions with custom durations and break times.",
+    "addNew": "Add New Offering",
+    "noOfferings": "No therapy offerings configured yet.",
+    "clickAddToStart": "Click 'Add New Offering' to create your first therapy session type.",
+    "active": "Active",
+    "inactive": "Inactive",
+    "name": "Name",
+    "namePlaceholder": "e.g., Standard Session, Initial Consultation",
+    "duration": "Session Duration",
+    "breakDuration": "Break After Session",
+    "minutes": "minutes",
+    "totalTime": "Total Time (Session + Break)",
+    "descriptionLabel": "Description",
+    "descriptionPlaceholder": "Describe what this therapy session includes...",
+    "confirmDelete": "Are you sure you want to delete this therapy offering?",
+    "deleteWarning": "This action cannot be undone. The therapy offering will be permanently removed."
   },
   "dashboard": {
     "title": "Dashboard",

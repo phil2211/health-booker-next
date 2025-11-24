@@ -2,9 +2,10 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { AvailabilityEntry, BlockedSlot } from '@/lib/types'
+import { AvailabilityEntry, BlockedSlot, TherapyOffering } from '@/lib/types'
 import WeeklyAvailabilityEditor from './WeeklyAvailabilityEditor'
 import BlockedSlotsEditor from './BlockedSlotsEditor'
+import TherapyOfferingsEditor from './TherapyOfferingsEditor'
 import { useTranslation } from '@/lib/i18n/useTranslation'
 import { useLocale } from '@/lib/i18n/LocaleProvider'
 
@@ -15,6 +16,7 @@ export default function AvailabilityManagement() {
   const successTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const [weeklyAvailability, setWeeklyAvailability] = useState<AvailabilityEntry[]>([])
   const [blockedSlots, setBlockedSlots] = useState<BlockedSlot[]>([])
+  const [therapyOfferings, setTherapyOfferings] = useState<TherapyOffering[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -23,21 +25,22 @@ export default function AvailabilityManagement() {
   const [initialState, setInitialState] = useState<{
     weeklyAvailability: AvailabilityEntry[]
     blockedSlots: BlockedSlot[]
+    therapyOfferings: TherapyOffering[]
   } | null>(null)
 
   // Load current availability on mount
   useEffect(() => {
     let isMounted = true
-    
+
     async function loadAvailability() {
       try {
         setLoading(true)
         setError(null)
-        
+
         const response = await fetch('/api/therapist/availability')
-        
+
         if (!isMounted) return
-        
+
         if (!response.ok) {
           if (response.status === 401) {
             const loginPath = locale === 'en' ? '/login' : `/${locale}/login`
@@ -50,12 +53,18 @@ export default function AvailabilityManagement() {
         const data = await response.json()
         const weeklyAvail = data.weeklyAvailability || []
         const blocked = data.blockedSlots || []
-        
+        const offerings = data.therapyOfferings || []
+
         if (!isMounted) return
-        
+
         setWeeklyAvailability(weeklyAvail)
         setBlockedSlots(blocked)
-        setInitialState({ weeklyAvailability: weeklyAvail, blockedSlots: blocked })
+        setTherapyOfferings(offerings)
+        setInitialState({
+          weeklyAvailability: weeklyAvail,
+          blockedSlots: blocked,
+          therapyOfferings: offerings
+        })
       } catch (err) {
         if (!isMounted) return
         console.error('Error loading availability:', err)
@@ -68,7 +77,7 @@ export default function AvailabilityManagement() {
     }
 
     loadAvailability()
-    
+
     return () => {
       isMounted = false
     }
@@ -96,16 +105,16 @@ export default function AvailabilityManagement() {
         if (a.dayOfWeek !== b.dayOfWeek) return a.dayOfWeek - b.dayOfWeek
         return a.startTime.localeCompare(b.startTime)
       })
-      
+
       const hasWeeklyChanges = JSON.stringify(sortedWeekly) !== JSON.stringify(sortedInitialWeekly)
-      
+
       // Sort blocked slots for comparison to handle order differences
       const sortedBlocked = [...blockedSlots].sort((a, b) => {
         const aFromDate = a.fromDate || a.date || ''
         const bFromDate = b.fromDate || b.date || ''
         const aToDate = a.toDate || a.date || ''
         const bToDate = b.toDate || b.date || ''
-        
+
         if (aFromDate !== bFromDate) return aFromDate.localeCompare(bFromDate)
         if (aToDate !== bToDate) return aToDate.localeCompare(bToDate)
         if (a.startTime !== b.startTime) return a.startTime.localeCompare(b.startTime)
@@ -116,18 +125,32 @@ export default function AvailabilityManagement() {
         const bFromDate = b.fromDate || b.date || ''
         const aToDate = a.toDate || a.date || ''
         const bToDate = b.toDate || b.date || ''
-        
+
         if (aFromDate !== bFromDate) return aFromDate.localeCompare(bFromDate)
         if (aToDate !== bToDate) return aToDate.localeCompare(bToDate)
         if (a.startTime !== b.startTime) return a.startTime.localeCompare(b.startTime)
         return a.endTime.localeCompare(b.endTime)
       })
-      
+
       const hasBlockedChanges = JSON.stringify(sortedBlocked) !== JSON.stringify(sortedInitialBlocked)
-      
-      setHasChanges(hasWeeklyChanges || hasBlockedChanges)
+
+      // Sort therapy offerings for comparison
+      const sortedOfferings = [...therapyOfferings].sort((a, b) => {
+        const aId = a._id || ''
+        const bId = b._id || ''
+        return aId.localeCompare(bId)
+      })
+      const sortedInitialOfferings = [...initialState.therapyOfferings].sort((a, b) => {
+        const aId = a._id || ''
+        const bId = b._id || ''
+        return aId.localeCompare(bId)
+      })
+
+      const hasOfferingsChanges = JSON.stringify(sortedOfferings) !== JSON.stringify(sortedInitialOfferings)
+
+      setHasChanges(hasWeeklyChanges || hasBlockedChanges || hasOfferingsChanges)
     }
-  }, [weeklyAvailability, blockedSlots, initialState])
+  }, [weeklyAvailability, blockedSlots, therapyOfferings, initialState])
 
   const handleSave = async () => {
     try {
@@ -151,6 +174,7 @@ export default function AvailabilityManagement() {
         body: JSON.stringify({
           weeklyAvailability,
           blockedSlots,
+          therapyOfferings,
         }),
       })
 
@@ -169,9 +193,11 @@ export default function AvailabilityManagement() {
       const data = await response.json()
       setWeeklyAvailability(data.weeklyAvailability || [])
       setBlockedSlots(data.blockedSlots || [])
+      setTherapyOfferings(data.therapyOfferings || [])
       setInitialState({
         weeklyAvailability: data.weeklyAvailability || [],
         blockedSlots: data.blockedSlots || [],
+        therapyOfferings: data.therapyOfferings || [],
       })
       setSuccess(t('availability.availabilityUpdated'))
       setHasChanges(false)
@@ -180,7 +206,7 @@ export default function AvailabilityManagement() {
       if (successTimeoutRef.current) {
         clearTimeout(successTimeoutRef.current)
       }
-      
+
       // Clear success message after 3 seconds
       successTimeoutRef.current = setTimeout(() => {
         setSuccess(null)
@@ -207,7 +233,7 @@ export default function AvailabilityManagement() {
         if (!entry || typeof entry !== 'object') {
           return 'Invalid weekly availability entry.'
         }
-        
+
         if (typeof entry.dayOfWeek !== 'number' || entry.dayOfWeek < 0 || entry.dayOfWeek > 6) {
           return `Invalid day of week: ${entry.dayOfWeek}. Must be between 0-6.`
         }
@@ -235,15 +261,15 @@ export default function AvailabilityManagement() {
         if (!slot || typeof slot !== 'object') {
           return 'Invalid blocked slot entry.'
         }
-        
+
         // Support both new format (fromDate/toDate) and legacy format (date)
         const fromDate = slot.fromDate || slot.date
         const toDate = slot.toDate || slot.date
-        
+
         if (!fromDate || !toDate || typeof fromDate !== 'string' || typeof toDate !== 'string') {
           return 'Blocked slot dates are required and must be strings.'
         }
-        
+
         const dateRegex = /^\d{4}-\d{2}-\d{2}$/
         if (!dateRegex.test(fromDate) || !dateRegex.test(toDate)) {
           return `Invalid date format: ${fromDate} - ${toDate}. Use YYYY-MM-DD format.`
@@ -374,6 +400,14 @@ export default function AvailabilityManagement() {
         <WeeklyAvailabilityEditor
           weeklyAvailability={weeklyAvailability}
           onChange={setWeeklyAvailability}
+        />
+      </div>
+
+      {/* Therapy Offerings Editor */}
+      <div className="bg-white rounded-xl shadow-md border p-6">
+        <TherapyOfferingsEditor
+          therapyOfferings={therapyOfferings}
+          onChange={setTherapyOfferings}
         />
       </div>
 

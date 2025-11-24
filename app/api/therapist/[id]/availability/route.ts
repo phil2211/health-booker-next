@@ -36,6 +36,7 @@ export async function GET(
     const { searchParams } = new URL(request.url)
     const startDate = searchParams.get('startDate')
     const endDate = searchParams.get('endDate')
+    const offeringId = searchParams.get('offeringId') || undefined
 
     // Validate date parameters
     if (!startDate || !endDate) {
@@ -56,7 +57,7 @@ export async function GET(
     // Validate that startDate <= endDate
     const startDateObj = new Date(startDate + 'T00:00:00.000Z')
     const endDateObj = new Date(endDate + 'T00:00:00.000Z')
-    
+
     if (startDateObj > endDateObj) {
       return NextResponse.json(
         { error: 'startDate must be before or equal to endDate' },
@@ -87,7 +88,8 @@ export async function GET(
       therapist,
       startDate,
       endDate,
-      existingBookings
+      existingBookings,
+      offeringId
     )
 
     return NextResponse.json({

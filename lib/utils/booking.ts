@@ -17,6 +17,7 @@ export function convertMongoBookingToBooking(booking: any): Booking {
   return {
     _id: booking._id.toString(),
     therapistId: therapistIdStr,
+    therapyOfferingId: booking.therapyOfferingId || undefined,
     patientName: booking.patientName,
     patientEmail: booking.patientEmail,
     patientPhone: booking.patientPhone || undefined,
