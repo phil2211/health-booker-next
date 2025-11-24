@@ -344,6 +344,8 @@ export async function updateTherapistProfile(
     name?: string
     specialization?: string | { en: string; de: string }
     bio?: string | { en: string; de: string }
+    address?: string
+    phoneNumber?: string
   }
 ): Promise<TherapistDocument | null> {
   try {
@@ -363,6 +365,8 @@ export async function updateTherapistProfile(
     if (profileData.name !== undefined) updateFields.name = profileData.name
     if (profileData.specialization !== undefined) updateFields.specialization = profileData.specialization
     if (profileData.bio !== undefined) updateFields.bio = profileData.bio
+    if (profileData.address !== undefined) updateFields.address = profileData.address
+    if (profileData.phoneNumber !== undefined) updateFields.phoneNumber = profileData.phoneNumber
 
     // Use updateOne instead of findOneAndUpdate for more reliable results
     const updateResult = await db.collection('therapists').updateOne(

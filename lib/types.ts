@@ -34,6 +34,8 @@ export interface Therapist {
   name: string
   specialization: string | { en: string; de: string }
   bio: string | { en: string; de: string }
+  address?: string
+  phoneNumber?: string // Swiss phone number format by default
   photoUrl?: string
   weeklyAvailability: AvailabilityEntry[]
   blockedSlots: BlockedSlot[]

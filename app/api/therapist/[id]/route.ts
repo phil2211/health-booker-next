@@ -126,7 +126,9 @@ export async function PATCH(
     const updatedTherapist = await updateTherapistProfile(id, {
       ...body,
       bio,
-      specialization
+      specialization,
+      address: body.address,
+      phoneNumber: body.phoneNumber
     })
 
     if (!updatedTherapist) {

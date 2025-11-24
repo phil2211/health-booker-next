@@ -253,7 +253,23 @@
     "manageAvailabilityTitle": "Verfügbarkeit verwalten",
     "setWeeklySchedule": "Legen Sie Ihren wöchentlichen wiederkehrenden Zeitplan fest und blockieren Sie bestimmte Daten, an denen Sie nicht verfügbar sind",
     "appointmentsOverview": "Terminübersicht",
-    "viewManageAppointments": "Anzeigen und Verwalten aller Ihrer geplanten Termine"
+    "viewManageAppointments": "Anzeigen und Verwalten aller Ihrer geplanten Termine",
+    "editProfile": "Profil bearbeiten",
+    "profileUpdatedSuccess": "Profil erfolgreich aktualisiert! Weiterleitung...",
+    "name": "Name",
+    "emailCannotBeChanged": "E-Mail kann nicht geändert werden",
+    "address": "Adresse",
+    "addressPlaceholder": "Straße, Stadt, Postleitzahl",
+    "phoneNumber": "Telefonnummer",
+    "phoneNumberPlaceholder": "+41 XX XXX XX XX oder 0XX XXX XX XX",
+    "swissPhoneFormat": "Schweizer Telefonnummernformat",
+    "specializationEnglish": "Spezialisierung (English)",
+    "specializationDeutsch": "Spezialisierung (Deutsch)",
+    "bioEnglish": "Bio (English)",
+    "bioDeutsch": "Bio (Deutsch)",
+    "markdownSupported": "Markdown unterstützt. Zeilenumbrüche werden beibehalten.",
+    "saving": "Wird gespeichert...",
+    "saveChanges": "Änderungen speichern"
   },
   "home": {
     "title": "Gesundheitsarbeiter-Buchungssystem",
@@ -411,4 +427,3 @@
     "body": "Der Termin zwischen {{therapistName}} und {{patientName}} wurde auf den {{newBookingDate}} um {{newBookingTime}} verschoben."
   }
 }
-

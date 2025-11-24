@@ -253,7 +253,23 @@
     "manageAvailabilityTitle": "Manage Availability",
     "setWeeklySchedule": "Set your weekly recurring schedule and block specific dates when you're not available",
     "appointmentsOverview": "Appointments Overview",
-    "viewManageAppointments": "View and manage all your scheduled appointments"
+    "viewManageAppointments": "View and manage all your scheduled appointments",
+    "editProfile": "Edit Profile",
+    "profileUpdatedSuccess": "Profile updated successfully! Redirecting...",
+    "name": "Name",
+    "emailCannotBeChanged": "Email cannot be changed",
+    "address": "Address",
+    "addressPlaceholder": "Street, City, Postal Code",
+    "phoneNumber": "Phone Number",
+    "phoneNumberPlaceholder": "+41 XX XXX XX XX or 0XX XXX XX XX",
+    "swissPhoneFormat": "Swiss phone number format",
+    "specializationEnglish": "Specialization (English)",
+    "specializationDeutsch": "Specialization (Deutsch)",
+    "bioEnglish": "Bio (English)",
+    "bioDeutsch": "Bio (Deutsch)",
+    "markdownSupported": "Markdown supported. Line breaks are preserved.",
+    "saving": "Saving...",
+    "saveChanges": "Save Changes"
   },
   "home": {
     "title": "Health Worker Booking System",
@@ -411,4 +427,3 @@
     "body": "The appointment between {{therapistName}} and {{patientName}} has been rescheduled to {{newBookingDate}} at {{newBookingTime}}."
   }
 }
-

@@ -15,6 +15,8 @@ interface DashboardClientProps {
     specialization: string | { en: string; de: string }
     bio: string | { en: string; de: string }
     email: string
+    address?: string
+    phoneNumber?: string
     weeklyAvailability: any[]
     blockedSlots: any[]
   }
@@ -40,9 +42,17 @@ export default function DashboardClient({ therapist, bookingUrl, baseUrl }: Dash
 
   // Sanitize bio on client side only
   useEffect(() => {
-    import('dompurify').then((DOMPurify) => {
-      setSanitizedBio(DOMPurify.default.sanitize(displayBio))
-    })
+    const parseAndSanitize = async () => {
+      const DOMPurify = (await import('dompurify')).default
+      const { marked } = await import('marked')
+      // Configure marked to respect line breaks and empty lines (paragraphs)
+      const parsed = await marked.parse(displayBio, {
+        breaks: true,  // Convert single line breaks to <br>
+        gfm: true      // Enable GitHub Flavored Markdown for better paragraph handling
+      })
+      setSanitizedBio(DOMPurify.sanitize(parsed))
+    }
+    parseAndSanitize()
   }, [displayBio])
 
   const availabilityPath = locale === 'en' ? '/dashboard/availability' : `/${locale}/dashboard/availability`
@@ -142,10 +152,22 @@ export default function DashboardClient({ therapist, bookingUrl, baseUrl }: Dash
                 <p className="text-sm text-gray-500 mb-1">{t('dashboard.email')}</p>
                 <p className="text-gray-900 font-medium">{therapist.email}</p>
               </div>
+              {therapist.address && (
+                <div className="pb-4 border-b">
+                  <p className="text-sm text-gray-500 mb-1">Address</p>
+                  <p className="text-gray-900 font-medium">{therapist.address}</p>
+                </div>
+              )}
+              {therapist.phoneNumber && (
+                <div className="pb-4 border-b">
+                  <p className="text-sm text-gray-500 mb-1">Phone Number</p>
+                  <p className="text-gray-900 font-medium">{therapist.phoneNumber}</p>
+                </div>
+              )}
               <div>
                 <p className="text-sm text-gray-500 mb-2">{t('dashboard.bio')}</p>
                 <div
-                  className="text-gray-700 leading-relaxed prose max-w-none"
+                  className="text-gray-700 leading-relaxed prose max-w-none [&>p]:mb-4 [&>p:last-child]:mb-0"
                   dangerouslySetInnerHTML={{
                     __html: sanitizedBio
                   }}
