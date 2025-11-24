@@ -312,12 +312,63 @@ export default function PatientBookingScheduler({ therapistId, blockedSlots = []
     }
   }
 
+  // Construct the building sentence
+  const getSummarySentence = () => {
+    const parts = []
+
+    // Prefix: "You are booking"
+    parts.push(t('booking.sentence.prefix'))
+
+    // Treatment part
+    if (selectedOfferingId) {
+      const offering = activeOfferings.find(o => o._id === selectedOfferingId)
+      if (offering) {
+        const name = typeof offering.name === 'string'
+          ? offering.name
+          : (offering.name[locale as 'en' | 'de'] || offering.name.en)
+        parts.push(t('booking.sentence.treatment', { treatment: name }))
+      }
+    }
+
+    // Date part
+    if (selectedDate) {
+      const dateStr = new Date(selectedDate).toLocaleDateString(locale === 'de' ? 'de-DE' : 'en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })
+      parts.push(t('booking.sentence.date', { date: dateStr }))
+    }
+
+    // Time part
+    if (selectedSlot) {
+      const slot = slots.find(s => `${s.date}-${s.startTime}` === selectedSlot)
+      if (slot) {
+        const timeStr = formatTime(slot.sessionStart || slot.startTime)
+        parts.push(t('booking.sentence.time', { time: timeStr }))
+      }
+    }
+
+    return parts.join(' ')
+  }
+
   return (
     <div className="space-y-6">
+      {/* Summary Sentence */}
+      {!submitSuccess && (
+        <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-4 mb-6 text-center animate-in fade-in slide-in-from-top-2">
+          <p className="text-indigo-900 font-medium text-lg">
+            {getSummarySentence()}
+          </p>
+        </div>
+      )}
+
       {/* Step Indicator */}
       {!submitSuccess && (
         <div className="flex items-center justify-between mb-8 relative">
-          <div className="absolute left-0 top-1/2 transform -translate-y-1/2 w-full h-1 bg-gray-200 -z-10" />
+          {/* Line aligned with the center of the circles (h-8 = 32px, center at 16px = top-4) */}
+          <div className="absolute left-0 top-4 transform -translate-y-1/2 w-full h-0.5 bg-gray-200 -z-10" />
           {steps.map((s) => {
             const isCompleted = step > s.number
             const isCurrent = step === s.number
@@ -325,7 +376,7 @@ export default function PatientBookingScheduler({ therapistId, blockedSlots = []
             return (
               <div
                 key={s.number}
-                className={`flex flex-col items-center bg-white px-2 cursor-pointer ${step > s.number ? 'cursor-pointer' : 'cursor-default'}`}
+                className={`flex flex-col items-center px-2 cursor-pointer ${step > s.number ? 'cursor-pointer' : 'cursor-default'}`}
                 onClick={() => {
                   if (step > s.number) setStep(s.number)
                 }}
