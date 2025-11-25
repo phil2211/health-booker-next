@@ -2,6 +2,9 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
+import { useState, useEffect } from 'react'
+import { marked } from 'marked'
+import DOMPurify from 'dompurify'
 import { useTranslation } from '@/lib/i18n/useTranslation'
 import { useLocale } from '@/lib/i18n/LocaleProvider'
 import ResponsiveHeader from '@/components/ResponsiveHeader'
@@ -32,6 +35,25 @@ export default function TherapistPageClient({ therapist }: TherapistPageClientPr
 
   const displayBio = getLocalizedContent(therapist.bio, locale)
   const displaySpecialization = getLocalizedContent(therapist.specialization, locale)
+
+  const [bioHtml, setBioHtml] = useState<string>('')
+
+  useEffect(() => {
+    const processBio = async () => {
+      if (!displayBio) {
+        setBioHtml('')
+        return
+      }
+      try {
+        const parsed = await marked.parse(displayBio)
+        setBioHtml(DOMPurify.sanitize(parsed))
+      } catch (error) {
+        console.error('Error parsing markdown:', error)
+        setBioHtml(displayBio) // Fallback to plain text
+      }
+    }
+    processBio()
+  }, [displayBio])
 
   return (
     <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100">
@@ -70,7 +92,10 @@ export default function TherapistPageClient({ therapist }: TherapistPageClientPr
           <div className="space-y-6">
             <div>
               <h2 className="text-lg font-semibold text-gray-900 mb-3">{t('therapist.about')} {therapist.name}</h2>
-              <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{displayBio}</p>
+              <div
+                className="text-gray-700 leading-relaxed space-y-4 [&>h1]:text-2xl [&>h1]:font-bold [&>h1]:text-gray-900 [&>h2]:text-xl [&>h2]:font-semibold [&>h2]:text-gray-900 [&>h3]:text-lg [&>h3]:font-medium [&>h3]:text-gray-900 [&>ul]:list-disc [&>ul]:pl-5 [&>ol]:list-decimal [&>ol]:pl-5 [&>a]:text-indigo-600 [&>a]:underline [&>blockquote]:border-l-4 [&>blockquote]:border-gray-300 [&>blockquote]:pl-4 [&>blockquote]:italic"
+                dangerouslySetInnerHTML={{ __html: bioHtml }}
+              />
             </div>
 
             {/* Contact Information */}
