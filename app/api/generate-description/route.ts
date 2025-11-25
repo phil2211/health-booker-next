@@ -1,0 +1,55 @@
+import { NextResponse } from 'next/server'
+import { GoogleGenerativeAI } from '@google/generative-ai'
+import { requireAuth } from '@/lib/auth'
+import { createErrorResponse } from '@/lib/utils/api'
+
+export const runtime = 'nodejs'
+
+export async function POST(request: Request) {
+    try {
+        // Ensure user is authenticated
+        await requireAuth()
+
+        const { offeringName, therapistBio, therapistSpecialization, locale } = await request.json()
+
+        if (!process.env.GOOGLE_API_KEY) {
+            return NextResponse.json(
+                createErrorResponse(new Error('Google API Key not configured'), 'POST /api/generate-description', 500),
+                { status: 500 }
+            )
+        }
+
+        const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY)
+        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
+
+        const bio = typeof therapistBio === 'object' ? (therapistBio[locale] || therapistBio.en) : therapistBio
+        const specialization = typeof therapistSpecialization === 'object' ? (therapistSpecialization[locale] || therapistSpecialization.en) : therapistSpecialization
+        const name = typeof offeringName === 'object' ? (offeringName[locale] || offeringName.en) : offeringName
+
+        const prompt = `
+      You are a professional copywriter for a therapist's booking website.
+      Please write a compelling and professional description for a therapy session.
+      
+      Session Name: ${name}
+      Therapist Bio: ${bio}
+      Therapist Specialization: ${specialization}
+      
+      Target Language: ${locale === 'de' ? 'German' : 'English'}
+      
+      Keep the description concise (max 3-4 sentences), warm, and professional. Focus on the benefits for the patient.
+      Do not include any introductory or concluding text, just the description itself.
+    `
+
+        const result = await model.generateContent(prompt)
+        const response = await result.response
+        const text = response.text()
+
+        return NextResponse.json({ description: text.trim() })
+    } catch (error) {
+        console.error('Generate description error:', error)
+        return NextResponse.json(
+            createErrorResponse(error, 'POST /api/generate-description'),
+            { status: 500 }
+        )
+    }
+}

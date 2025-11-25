@@ -8,16 +8,21 @@ import { useLocale } from '@/lib/i18n/LocaleProvider'
 interface TherapyOfferingsEditorProps {
     therapyOfferings: TherapyOffering[]
     onChange: (offerings: TherapyOffering[]) => void
+    therapistBio?: string | { en: string; de: string }
+    therapistSpecialization?: string | { en: string; de: string }
 }
 
 export default function TherapyOfferingsEditor({
     therapyOfferings,
     onChange,
+    therapistBio,
+    therapistSpecialization,
 }: TherapyOfferingsEditorProps) {
     const { t } = useTranslation()
     const locale = useLocale()
     const [editingId, setEditingId] = useState<string | null>(null)
     const [deletingId, setDeletingId] = useState<string | null>(null)
+    const [generatingId, setGeneratingId] = useState<string | null>(null)
 
     const handleAdd = () => {
         const newOffering: TherapyOffering = {
@@ -86,6 +91,47 @@ export default function TherapyOfferingsEditor({
         }
     }
 
+    const [error, setError] = useState<string | null>(null)
+
+    const handleGenerateDescription = async (offering: TherapyOffering) => {
+        setError(null)
+
+        const hasBio = typeof therapistBio === 'string' ? !!therapistBio : (!!therapistBio?.en || !!therapistBio?.de)
+        const hasSpec = typeof therapistSpecialization === 'string' ? !!therapistSpecialization : (!!therapistSpecialization?.en || !!therapistSpecialization?.de)
+
+        if (!hasBio || !hasSpec) {
+            setError(t('therapyOfferings.missingProfileInfo') || 'Please complete your profile bio and specialization first.')
+            return
+        }
+
+        setGeneratingId(offering._id!)
+        try {
+            const response = await fetch('/api/generate-description', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    offeringName: offering.name,
+                    therapistBio,
+                    therapistSpecialization,
+                    locale
+                })
+            })
+
+            if (!response.ok) {
+                const data = await response.json()
+                throw new Error(data.error || 'Generation failed')
+            }
+
+            const data = await response.json()
+            updateLocalizedField(offering, 'description', data.description)
+        } catch (error) {
+            console.error('Generation error:', error)
+            setError(error instanceof Error ? error.message : 'Failed to generate description')
+        } finally {
+            setGeneratingId(null)
+        }
+    }
+
     return (
         <div className="space-y-4">
             <div className="flex items-center justify-between mb-4">
@@ -117,6 +163,15 @@ export default function TherapyOfferingsEditor({
                     {t('therapyOfferings.addNew')}
                 </button>
             </div>
+
+            {error && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4 text-sm text-red-800 flex items-center">
+                    <svg className="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    {error}
+                </div>
+            )}
 
             {therapyOfferings.length === 0 ? (
                 <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
@@ -271,9 +326,29 @@ export default function TherapyOfferingsEditor({
 
                                 {/* Description */}
                                 <div className="md:col-span-2">
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        {t('therapyOfferings.descriptionLabel')}
-                                    </label>
+                                    <div className="flex items-center justify-between mb-1">
+                                        <label className="block text-sm font-medium text-gray-700">
+                                            {t('therapyOfferings.descriptionLabel')}
+                                        </label>
+                                        <button
+                                            onClick={() => handleGenerateDescription(offering)}
+                                            disabled={generatingId === offering._id}
+                                            className="text-indigo-600 hover:text-indigo-800 p-1 rounded-full hover:bg-indigo-50 transition-colors"
+                                            title="Generate description with AI"
+                                            type="button"
+                                        >
+                                            {generatingId === offering._id ? (
+                                                <svg className="animate-spin w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                </svg>
+                                            ) : (
+                                                <svg className="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                                                </svg>
+                                            )}
+                                        </button>
+                                    </div>
                                     <textarea
                                         value={getLocalizedValue(offering.description)}
                                         onChange={(e) =>

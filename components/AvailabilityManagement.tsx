@@ -27,6 +27,10 @@ export default function AvailabilityManagement() {
     blockedSlots: BlockedSlot[]
     therapyOfferings: TherapyOffering[]
   } | null>(null)
+  const [therapistInfo, setTherapistInfo] = useState<{
+    bio: string | { en: string; de: string }
+    specialization: string | { en: string; de: string }
+  } | null>(null)
 
   // Load current availability on mount
   useEffect(() => {
@@ -54,6 +58,8 @@ export default function AvailabilityManagement() {
         const weeklyAvail = data.weeklyAvailability || []
         const blocked = data.blockedSlots || []
         const offerings = data.therapyOfferings || []
+        const bio = data.bio || ''
+        const specialization = data.specialization || ''
 
         if (!isMounted) return
 
@@ -65,6 +71,8 @@ export default function AvailabilityManagement() {
           blockedSlots: blocked,
           therapyOfferings: offerings
         })
+        setTherapyOfferings(offerings)
+        setTherapistInfo({ bio, specialization })
       } catch (err) {
         if (!isMounted) return
         console.error('Error loading availability:', err)
@@ -408,6 +416,8 @@ export default function AvailabilityManagement() {
         <TherapyOfferingsEditor
           therapyOfferings={therapyOfferings}
           onChange={setTherapyOfferings}
+          therapistBio={therapistInfo?.bio}
+          therapistSpecialization={therapistInfo?.specialization}
         />
       </div>
 
