@@ -350,6 +350,8 @@ export async function updateTherapistProfile(
     specialization?: string | { en: string; de: string }
     bio?: string | { en: string; de: string }
     address?: string
+    zip?: string
+    city?: string
     phoneNumber?: string
   }
 ): Promise<TherapistDocument | null> {
@@ -371,6 +373,8 @@ export async function updateTherapistProfile(
     if (profileData.specialization !== undefined) updateFields.specialization = profileData.specialization
     if (profileData.bio !== undefined) updateFields.bio = profileData.bio
     if (profileData.address !== undefined) updateFields.address = profileData.address
+    if (profileData.zip !== undefined) updateFields.zip = profileData.zip
+    if (profileData.city !== undefined) updateFields.city = profileData.city
     if (profileData.phoneNumber !== undefined) updateFields.phoneNumber = profileData.phoneNumber
 
     // Use updateOne instead of findOneAndUpdate for more reliable results

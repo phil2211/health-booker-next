@@ -128,6 +128,8 @@ export async function PATCH(
       bio,
       specialization,
       address: body.address,
+      zip: body.zip,
+      city: body.city,
       phoneNumber: body.phoneNumber
     })
 

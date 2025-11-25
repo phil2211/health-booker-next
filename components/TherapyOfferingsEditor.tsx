@@ -200,7 +200,7 @@ export default function TherapyOfferingsEditor({
                                             updateLocalizedField(offering, 'name', e.target.value)
                                         }
                                         placeholder={t('therapyOfferings.namePlaceholder')}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-black"
                                     />
                                 </div>
 
@@ -223,7 +223,7 @@ export default function TherapyOfferingsEditor({
                                                     parseInt(e.target.value) || 60
                                                 )
                                             }
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-black"
                                         />
                                         <span className="text-sm text-gray-600 whitespace-nowrap">
                                             {t('therapyOfferings.minutes')}
@@ -250,7 +250,7 @@ export default function TherapyOfferingsEditor({
                                                     parseInt(e.target.value) || 0
                                                 )
                                             }
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-black"
                                         />
                                         <span className="text-sm text-gray-600 whitespace-nowrap">
                                             {t('therapyOfferings.minutes')}
@@ -281,7 +281,7 @@ export default function TherapyOfferingsEditor({
                                         }
                                         placeholder={t('therapyOfferings.descriptionPlaceholder')}
                                         rows={3}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-black"
                                     />
                                 </div>
                             </div>

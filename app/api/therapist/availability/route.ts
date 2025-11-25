@@ -7,6 +7,7 @@ import {
 } from '@/models/Therapist'
 import { AvailabilityEntry, BlockedSlot, TherapyOffering } from '@/lib/types'
 import { ObjectId } from 'mongodb'
+import { translateText } from '@/lib/translation'
 
 import { createErrorResponse } from '@/lib/utils/api';
 
@@ -94,6 +95,32 @@ export async function PUT(request: Request) {
           createErrorResponse(new Error('therapyOfferings must be an array'), 'PUT /api/therapist/availability', 400),
           { status: 400 }
         )
+      }
+
+      // Process translations for therapy offerings
+      console.log('Processing therapy offerings translation')
+      for (const offering of therapyOfferings) {
+        // Translate Name
+        if (offering.name && typeof offering.name === 'object') {
+          if (offering.name.de && !offering.name.en) {
+            console.log(`Translating offering name DE -> EN: ${offering.name.de}`)
+            offering.name.en = await translateText(offering.name.de, 'en')
+          } else if (offering.name.en && !offering.name.de) {
+            console.log(`Translating offering name EN -> DE: ${offering.name.en}`)
+            offering.name.de = await translateText(offering.name.en, 'de')
+          }
+        }
+
+        // Translate Description
+        if (offering.description && typeof offering.description === 'object') {
+          if (offering.description.de && !offering.description.en) {
+            console.log(`Translating offering description DE -> EN: ${offering.description.de}`)
+            offering.description.en = await translateText(offering.description.de, 'en')
+          } else if (offering.description.en && !offering.description.de) {
+            console.log(`Translating offering description EN -> DE: ${offering.description.en}`)
+            offering.description.de = await translateText(offering.description.en, 'de')
+          }
+        }
       }
 
       for (let i = 0; i < therapyOfferings.length; i++) {
@@ -199,6 +226,8 @@ export async function GET() {
       weeklyAvailability: therapist.weeklyAvailability,
       blockedSlots: therapist.blockedSlots,
       therapyOfferings: therapist.therapyOfferings || [],
+      bio: therapist.bio,
+      specialization: therapist.specialization,
     })
   } catch (error) {
     console.error('Get availability error:', error)

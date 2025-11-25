@@ -50,6 +50,8 @@ export interface Therapist {
   specialization: string | { en: string; de: string }
   bio: string | { en: string; de: string }
   address?: string
+  zip?: string
+  city?: string
   phoneNumber?: string // Swiss phone number format by default
   photoUrl?: string
   weeklyAvailability: AvailabilityEntry[]

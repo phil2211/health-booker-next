@@ -291,6 +291,8 @@
     "name": "Name",
     "emailCannotBeChanged": "Email cannot be changed",
     "address": "Address",
+    "zip": "ZIP Code",
+    "city": "City",
     "addressPlaceholder": "Street, City, Postal Code",
     "phoneNumber": "Phone Number",
     "phoneNumberPlaceholder": "+41 XX XXX XX XX or 0XX XXX XX XX",

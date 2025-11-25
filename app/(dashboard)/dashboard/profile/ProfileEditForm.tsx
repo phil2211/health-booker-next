@@ -54,6 +54,8 @@ export default function ProfileEditForm({ therapist }: ProfileEditFormProps) {
     // Initialize state
     const [name, setName] = useState(therapist.name)
     const [address, setAddress] = useState(therapist.address || '')
+    const [zip, setZip] = useState(therapist.zip || '')
+    const [city, setCity] = useState(therapist.city || '')
     const [phoneNumber, setPhoneNumber] = useState(therapist.phoneNumber || '')
 
     // We keep track of both languages in state to preserve data
@@ -82,6 +84,8 @@ export default function ProfileEditForm({ therapist }: ProfileEditFormProps) {
                 body: JSON.stringify({
                     name,
                     address,
+                    zip,
+                    city,
                     phoneNumber,
                     bio: {
                         en: bioEn,
@@ -135,7 +139,7 @@ export default function ProfileEditForm({ therapist }: ProfileEditFormProps) {
                     id="name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
                     required
                 />
             </div>
@@ -149,7 +153,7 @@ export default function ProfileEditForm({ therapist }: ProfileEditFormProps) {
                     type="email"
                     id="email"
                     value={therapist.email}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed text-gray-600"
                     disabled
                 />
                 <p className="text-xs text-gray-500 mt-1">{t('dashboard.emailCannotBeChanged')}</p>
@@ -165,9 +169,37 @@ export default function ProfileEditForm({ therapist }: ProfileEditFormProps) {
                     id="address"
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
                     placeholder={t('dashboard.addressPlaceholder')}
                 />
+            </div>
+
+            {/* ZIP and City Fields */}
+            <div className="grid grid-cols-2 gap-4">
+                <div>
+                    <label htmlFor="zip" className="block text-sm font-medium text-gray-700 mb-2">
+                        {t('dashboard.zip')}
+                    </label>
+                    <input
+                        type="text"
+                        id="zip"
+                        value={zip}
+                        onChange={(e) => setZip(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                </div>
+                <div>
+                    <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-2">
+                        {t('dashboard.city')}
+                    </label>
+                    <input
+                        type="text"
+                        id="city"
+                        value={city}
+                        onChange={(e) => setCity(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                </div>
             </div>
 
             {/* Phone Number Field */}
@@ -183,7 +215,7 @@ export default function ProfileEditForm({ therapist }: ProfileEditFormProps) {
                         const formatted = formatSwissPhoneNumber(e.target.value)
                         setPhoneNumber(formatted)
                     }}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
                     placeholder={t('dashboard.phoneNumberPlaceholder')}
                 />
                 <p className="text-xs text-gray-500 mt-1">{t('dashboard.swissPhoneFormat')}</p>
@@ -203,7 +235,7 @@ export default function ProfileEditForm({ therapist }: ProfileEditFormProps) {
                             id="specializationEn"
                             value={specializationEn}
                             onChange={(e) => setSpecializationEn(e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
                             required
                         />
                     </div>
@@ -217,7 +249,7 @@ export default function ProfileEditForm({ therapist }: ProfileEditFormProps) {
                             id="specializationDe"
                             value={specializationDe}
                             onChange={(e) => setSpecializationDe(e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
                             required
                         />
                     </div>
@@ -238,7 +270,7 @@ export default function ProfileEditForm({ therapist }: ProfileEditFormProps) {
                             value={bioEn}
                             onChange={(e) => setBioEn(e.target.value)}
                             rows={5}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
                             required
                         />
                         <p className="text-xs text-gray-500 mt-1">{t('dashboard.markdownSupported')}</p>
@@ -253,7 +285,7 @@ export default function ProfileEditForm({ therapist }: ProfileEditFormProps) {
                             value={bioDe}
                             onChange={(e) => setBioDe(e.target.value)}
                             rows={5}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
                             required
                         />
                         <p className="text-xs text-gray-500 mt-1">{t('dashboard.markdownSupported')}</p>
