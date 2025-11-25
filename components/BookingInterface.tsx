@@ -23,7 +23,7 @@ export default function BookingInterface({ therapistId, blockedSlots, therapistN
   return (
     <>
       {!bookingConfirmed && (
-        <h2 className="text-2xl font-semibold text-gray-900 mb-6">{t('bookingInterface.selectAppointmentTime')}</h2>
+        <h2 className="text-lg sm:text-2xl font-semibold text-gray-900 mb-4 sm:mb-6">{t('bookingInterface.selectAppointmentTime')}</h2>
       )}
       <PatientBookingScheduler
         therapistId={therapistId}

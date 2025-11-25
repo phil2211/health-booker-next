@@ -357,8 +357,8 @@ export default function PatientBookingScheduler({ therapistId, blockedSlots = []
     <div className="space-y-6">
       {/* Summary Sentence */}
       {!submitSuccess && (
-        <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-4 mb-6 text-center animate-in fade-in slide-in-from-top-2">
-          <p className="text-indigo-900 font-medium text-lg">
+        <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6 text-center animate-in fade-in slide-in-from-top-2">
+          <p className="text-indigo-900 font-medium text-base sm:text-lg">
             {getSummarySentence()}
           </p>
         </div>
@@ -366,9 +366,9 @@ export default function PatientBookingScheduler({ therapistId, blockedSlots = []
 
       {/* Step Indicator */}
       {!submitSuccess && (
-        <div className="flex items-center justify-between mb-8 relative">
-          {/* Line aligned with the center of the circles (h-8 = 32px, center at 16px = top-4) */}
-          <div className="absolute left-0 top-4 transform -translate-y-1/2 w-full h-0.5 bg-gray-200 -z-10" />
+        <div className="flex items-center justify-between mb-4 sm:mb-8 relative">
+          {/* Line aligned with the center of the circles */}
+          <div className="absolute left-0 top-3 sm:top-4 transform -translate-y-1/2 w-full h-0.5 bg-gray-200 -z-10" />
           {steps.map((s) => {
             const isCompleted = step > s.number
             const isCurrent = step === s.number
@@ -376,14 +376,14 @@ export default function PatientBookingScheduler({ therapistId, blockedSlots = []
             return (
               <div
                 key={s.number}
-                className={`flex flex-col items-center px-2 cursor-pointer ${step > s.number ? 'cursor-pointer' : 'cursor-default'}`}
+                className={`flex flex-col items-center px-1 sm:px-2 cursor-pointer ${step > s.number ? 'cursor-pointer' : 'cursor-default'}`}
                 onClick={() => {
                   if (step > s.number) setStep(s.number)
                 }}
               >
                 <div
                   className={`
-                    w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold border-2 transition-colors
+                    w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-semibold border-2 transition-colors
                     ${isCompleted || isCurrent
                       ? 'bg-indigo-600 border-indigo-600 text-white'
                       : 'bg-white border-gray-300 text-gray-500'
@@ -391,14 +391,14 @@ export default function PatientBookingScheduler({ therapistId, blockedSlots = []
                   `}
                 >
                   {isCompleted ? (
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-3 h-3 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                   ) : (
                     s.number
                   )}
                 </div>
-                <span className={`text-xs mt-1 font-medium ${isCurrent ? 'text-indigo-600' : 'text-gray-500'}`}>
+                <span className={`text-[10px] sm:text-xs mt-1 font-medium ${isCurrent ? 'text-indigo-600' : 'text-gray-500'}`}>
                   {s.label}
                 </span>
               </div>
@@ -432,7 +432,7 @@ export default function PatientBookingScheduler({ therapistId, blockedSlots = []
                       setStep(2)
                     }}
                     className={`
-                      relative rounded-lg border p-6 cursor-pointer transition-all duration-200 hover:shadow-md
+                      relative rounded-lg border p-4 sm:p-6 cursor-pointer transition-all duration-200 hover:shadow-md
                       ${isSelected
                         ? 'border-indigo-600 bg-indigo-50 ring-1 ring-indigo-600'
                         : 'border-gray-200 bg-white hover:border-indigo-300 hover:bg-gray-50'
@@ -441,7 +441,7 @@ export default function PatientBookingScheduler({ therapistId, blockedSlots = []
                   >
                     <div className="flex justify-between items-start">
                       <div>
-                        <h3 className="text-lg font-semibold text-gray-900">
+                        <h3 className="text-base sm:text-lg font-semibold text-gray-900">
                           {name}
                         </h3>
                         <p className="mt-2 text-sm text-gray-600">
@@ -561,7 +561,7 @@ export default function PatientBookingScheduler({ therapistId, blockedSlots = []
                     onClick={() => handleSlotSelect(slot)}
                     disabled={slot.status !== 'available'}
                     className={`
-                      px-4 py-4 rounded-xl border-2 transition-all duration-200 text-left group
+                      px-2 py-3 sm:px-4 sm:py-4 rounded-xl border-2 transition-all duration-200 text-left group
                       ${isSelected
                         ? 'border-indigo-600 bg-indigo-50 ring-1 ring-indigo-600'
                         : slot.status === 'available'
@@ -570,10 +570,10 @@ export default function PatientBookingScheduler({ therapistId, blockedSlots = []
                       }
                     `}
                   >
-                    <div className={`text-lg font-bold ${isSelected ? 'text-indigo-900' : 'text-gray-900'}`}>
+                    <div className={`text-base sm:text-lg font-bold ${isSelected ? 'text-indigo-900' : 'text-gray-900'}`}>
                       {formatTime(sessionStart)}
                     </div>
-                    <div className={`text-xs mt-1 ${isSelected ? 'text-indigo-700' : 'text-gray-500'}`}>
+                    <div className={`text-[10px] sm:text-xs mt-1 ${isSelected ? 'text-indigo-700' : 'text-gray-500'}`}>
                       {durationDisplay}
                     </div>
                   </button>
@@ -587,7 +587,7 @@ export default function PatientBookingScheduler({ therapistId, blockedSlots = []
       {/* Step 4: Patient Information Form */}
       {!submitSuccess && step === 4 && (
         <div className="animate-in fade-in slide-in-from-right-4 duration-300">
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6 flex items-start gap-3">
+          <div className="bg-green-50 border border-green-200 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6 flex items-start gap-3">
             <div className="mt-1 text-green-600">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -612,8 +612,8 @@ export default function PatientBookingScheduler({ therapistId, blockedSlots = []
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
-              <h3 className="text-xl font-semibold text-gray-900 mb-6">{t('patientForm.patientInformation')}</h3>
+            <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm">
+              <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4 sm:mb-6">{t('patientForm.patientInformation')}</h3>
 
               {submitError && (
                 <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4 text-red-800 text-sm flex items-center gap-2">
@@ -624,7 +624,7 @@ export default function PatientBookingScheduler({ therapistId, blockedSlots = []
                 </div>
               )}
 
-              <div className="space-y-5">
+              <div className="space-y-4 sm:space-y-5">
                 <div>
                   <label htmlFor="patient-name" className="block text-sm font-medium text-gray-700 mb-1">
                     {t('patientForm.fullName')} <span className="text-red-500">*</span>

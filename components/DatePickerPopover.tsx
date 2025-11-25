@@ -218,7 +218,7 @@ export default function DatePickerPopover({
 
   if (inline) {
     return (
-      <div className="inline-block border border-gray-200 rounded-lg bg-white p-4">
+      <div className="inline-block border border-gray-200 rounded-lg bg-white p-2 sm:p-4">
         <DayPicker
           mode="single"
           numberOfMonths={1}
