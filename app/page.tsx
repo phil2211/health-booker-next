@@ -109,6 +109,21 @@ export default function Home() {
               </p>
             </div>
           </div>
+
+          <footer className="mt-24 border-t border-gray-200 pt-8 pb-12">
+            <div className="text-center text-gray-500 text-sm">
+              <p className="mb-4">&copy; {new Date().getFullYear()} HealthBookerNext. {t('common.allRightsReserved')}</p>
+              <div className="flex justify-center gap-6">
+                <Link href="/terms" className="hover:text-indigo-600 transition-colors">
+                  {t('common.termsOfUse')}
+                </Link>
+                <span className="text-gray-300">|</span>
+                <Link href="#" className="hover:text-indigo-600 transition-colors">
+                  {t('common.privacyPolicy')}
+                </Link>
+              </div>
+            </div>
+          </footer>
         </div>
       </div>
     )

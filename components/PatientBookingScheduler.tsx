@@ -705,6 +705,25 @@ export default function PatientBookingScheduler({ therapistId, blockedSlots = []
                   />
                 </div>
 
+                <div className="flex items-start gap-3 pt-2">
+                  <div className="flex items-center h-5">
+                    <input
+                      id="privacy-consent"
+                      type="checkbox"
+                      required
+                      className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                    />
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    <label htmlFor="privacy-consent" className="font-medium text-gray-700">
+                      {t('patientForm.consentLabel') || 'I agree to the processing of my data'}
+                    </label>
+                    <p className="text-xs mt-1">
+                      {t('patientForm.consentText') || 'By checking this box, I agree to the'} <a href="/privacy" target="_blank" className="text-indigo-600 hover:text-indigo-500 underline">Privacy Policy</a> {t('patientForm.consentText2') || 'and consent to the processing of my health data for the purpose of this booking.'}
+                    </p>
+                  </div>
+                </div>
+
                 <button
                   type="submit"
                   disabled={submitting}

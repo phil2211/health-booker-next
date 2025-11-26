@@ -34,7 +34,10 @@
     "dearTherapist": "Dear Therapist",
     "dear": "Dear {{name}}",
     "regards": "Regards",
-    "language": "Language"
+    "language": "Language",
+    "termsOfUse": "Terms of Use",
+    "privacyPolicy": "Privacy Policy",
+    "allRightsReserved": "All rights reserved."
   },
   "auth": {
     "signIn": "Sign In",
