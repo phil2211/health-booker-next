@@ -50,10 +50,18 @@ export default function ProvidersList({ therapists, showLoginRegisterLinks = fal
                 showLoginRegisterLinks={showLoginRegisterLinks}
             />
             <div className="container mx-auto px-4 py-8">
-                <h1 className="text-3xl font-bold mb-8 text-gray-900">{pageTitle}</h1>
+                <h1 className="text-xl md:text-3xl font-bold mb-8 text-gray-900">{pageTitle}</h1>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <div className="lg:col-span-1 space-y-6 overflow-y-auto max-h-[800px] pr-2">
+                    <div className="lg:col-start-2 lg:col-span-2 h-[600px] lg:sticky lg:top-4">
+                        <ProviderMap
+                            therapists={therapists}
+                            onVisibleTherapistsChange={handleVisibleTherapistsChange}
+                            hoveredTherapistId={hoveredTherapistId}
+                        />
+                    </div>
+
+                    <div className="lg:col-start-1 lg:col-span-1 lg:row-start-1 space-y-6 overflow-y-auto max-h-[800px] pr-2">
                         {displayedTherapists.length === 0 ? (
                             <p className="text-gray-500">No providers found in this area.</p>
                         ) : (
@@ -90,14 +98,6 @@ export default function ProvidersList({ therapists, showLoginRegisterLinks = fal
                                 </div>
                             ))
                         )}
-                    </div>
-
-                    <div className="lg:col-span-2 h-[600px] sticky top-4">
-                        <ProviderMap
-                            therapists={therapists}
-                            onVisibleTherapistsChange={handleVisibleTherapistsChange}
-                            hoveredTherapistId={hoveredTherapistId}
-                        />
                     </div>
                 </div>
             </div>
