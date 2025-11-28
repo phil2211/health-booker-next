@@ -1,45 +1,9 @@
 'use client'
 
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet'
+import { useState, useEffect, useCallback, useMemo } from 'react'
+import { APIProvider, Map, AdvancedMarker, Pin, InfoWindow, useMap } from '@vis.gl/react-google-maps'
 import { TherapistDocument } from '@/models/Therapist'
-import 'leaflet/dist/leaflet.css'
-import { useEffect, useState, useCallback } from 'react'
-import L from 'leaflet'
-
-// Fix for default marker icon
-const iconRetinaUrl = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png'
-const iconUrl = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png'
-const shadowUrl = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png'
-
-// Only run this on client side
-if (typeof window !== 'undefined') {
-    delete (L.Icon.Default.prototype as any)._getIconUrl
-    L.Icon.Default.mergeOptions({
-        iconRetinaUrl,
-        iconUrl,
-        shadowUrl,
-    })
-}
-
-// Red marker for highlighted state
-const redIcon = new L.Icon({
-    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
-    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    shadowSize: [41, 41]
-});
-
-// Default blue marker
-const defaultIcon = new L.Icon({
-    iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    shadowSize: [41, 41]
-});
+import Link from 'next/link'
 
 interface ProviderMapProps {
     therapists: TherapistDocument[]
@@ -52,19 +16,23 @@ interface GeocodedTherapist extends TherapistDocument {
     lng?: number
 }
 
-function MapEventHandler({ onBoundsChange }: { onBoundsChange: (bounds: L.LatLngBounds) => void }) {
-    const map = useMapEvents({
-        moveend: () => {
-            onBoundsChange(map.getBounds())
-        },
-        zoomend: () => {
-            onBoundsChange(map.getBounds())
-        }
-    })
+// Component to handle map events like bounds changing
+function MapEventHandler({ onBoundsChange }: { onBoundsChange: (bounds: google.maps.LatLngBounds) => void }) {
+    const map = useMap()
 
-    // Trigger initial bounds check when map is ready
     useEffect(() => {
-        onBoundsChange(map.getBounds())
+        if (!map) return
+
+        const listener = map.addListener('idle', () => {
+            const bounds = map.getBounds()
+            if (bounds) {
+                onBoundsChange(bounds)
+            }
+        })
+
+        return () => {
+            google.maps.event.removeListener(listener)
+        }
     }, [map, onBoundsChange])
 
     return null
@@ -72,24 +40,20 @@ function MapEventHandler({ onBoundsChange }: { onBoundsChange: (bounds: L.LatLng
 
 export default function ProviderMap({ therapists, onVisibleTherapistsChange, hoveredTherapistId }: ProviderMapProps) {
     const [geocodedTherapists, setGeocodedTherapists] = useState<GeocodedTherapist[]>([])
-    const [mapBounds, setMapBounds] = useState<L.LatLngBounds | null>(null)
+    const [mapBounds, setMapBounds] = useState<google.maps.LatLngBounds | null>(null)
+    const [selectedTherapist, setSelectedTherapist] = useState<GeocodedTherapist | null>(null)
 
+    // Geocoding logic (keeping existing Nominatim for now to ensure data availability without extra API setup)
     useEffect(() => {
         const geocodeTherapists = async () => {
-            // We'll use a simple cache to avoid re-fetching if we already have coordinates
-            // In a real app, this should be stored in the DB
             const updatedTherapists = await Promise.all(
                 therapists.map(async (therapist) => {
-                    // If we already have coordinates (future proofing), use them
-                    // For now, we assume we don't have them in the DB
-
                     if (!therapist.address || !therapist.city) return therapist
 
                     const query = `${therapist.address}, ${therapist.zip || ''} ${therapist.city}`.trim()
 
                     try {
-                        // Add a small delay to respect rate limits if we have many requests
-                        // This is a naive implementation
+                        // Add a small delay to respect rate limits
                         await new Promise(resolve => setTimeout(resolve, Math.random() * 1000))
 
                         const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`)
@@ -124,60 +88,83 @@ export default function ProviderMap({ therapists, onVisibleTherapistsChange, hov
         const visibleIds = geocodedTherapists
             .filter(t => {
                 if (t.lat && t.lng) {
-                    return mapBounds.contains([t.lat, t.lng])
+                    return mapBounds.contains({ lat: t.lat, lng: t.lng })
                 }
                 return false
             })
             .map(t => t._id)
 
-        // Only trigger if we have geocoded therapists, otherwise we might filter everyone out prematurely
         if (geocodedTherapists.some(t => t.lat && t.lng)) {
             onVisibleTherapistsChange(visibleIds)
         }
     }, [mapBounds, geocodedTherapists, onVisibleTherapistsChange])
 
     // Default center (Switzerland)
-    const center: [number, number] = [46.8182, 8.2275]
-    const zoom = 8
+    const defaultCenter = { lat: 46.8182, lng: 8.2275 }
+    const defaultZoom = 8
+
+    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
+
+    if (!apiKey) {
+        return <div className="h-full w-full flex items-center justify-center bg-gray-100 text-gray-500">Google Maps API Key missing</div>
+    }
 
     return (
         <div className="h-full w-full rounded-lg overflow-hidden shadow-md border border-gray-200 z-0 relative">
-            <MapContainer center={center} zoom={zoom} style={{ height: '100%', width: '100%' }}>
-                <TileLayer
-                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                />
-                <MapEventHandler onBoundsChange={setMapBounds} />
-                {geocodedTherapists.map((therapist) => (
-                    therapist.lat && therapist.lng && (
-                        <Marker
-                            key={therapist._id}
-                            position={[therapist.lat, therapist.lng]}
-                            icon={therapist._id === hoveredTherapistId ? redIcon : defaultIcon}
-                            zIndexOffset={therapist._id === hoveredTherapistId ? 1000 : 0}
+            <APIProvider apiKey={apiKey}>
+                <Map
+                    defaultCenter={defaultCenter}
+                    defaultZoom={defaultZoom}
+                    mapId="DEMO_MAP_ID" // Required for AdvancedMarker
+                    style={{ width: '100%', height: '100%' }}
+                    gestureHandling={'greedy'}
+                    disableDefaultUI={false}
+                >
+                    <MapEventHandler onBoundsChange={setMapBounds} />
+
+                    {geocodedTherapists.map((therapist) => (
+                        therapist.lat && therapist.lng && (
+                            <AdvancedMarker
+                                key={therapist._id}
+                                position={{ lat: therapist.lat, lng: therapist.lng }}
+                                onClick={() => setSelectedTherapist(therapist)}
+                                zIndex={therapist._id === hoveredTherapistId ? 1000 : 0}
+                            >
+                                <Pin
+                                    background={therapist._id === hoveredTherapistId ? '#EF4444' : '#3B82F6'}
+                                    borderColor={therapist._id === hoveredTherapistId ? '#B91C1C' : '#1D4ED8'}
+                                    glyphColor={'#FFFFFF'}
+                                />
+                            </AdvancedMarker>
+                        )
+                    ))}
+
+                    {selectedTherapist && selectedTherapist.lat && selectedTherapist.lng && (
+                        <InfoWindow
+                            position={{ lat: selectedTherapist.lat, lng: selectedTherapist.lng }}
+                            onCloseClick={() => setSelectedTherapist(null)}
                         >
-                            <Popup>
-                                <div className="font-semibold">{therapist.name}</div>
-                                <div className="text-sm">
-                                    {typeof therapist.specialization === 'string'
-                                        ? therapist.specialization
-                                        : (therapist.specialization as any)?.en || 'Specialization'}
+                            <div className="min-w-[200px] p-2">
+                                <div className="font-semibold text-gray-900 mb-1">{selectedTherapist.name}</div>
+                                <div className="text-sm text-blue-600 font-medium mb-1">
+                                    {typeof selectedTherapist.specialization === 'string'
+                                        ? selectedTherapist.specialization
+                                        : (selectedTherapist.specialization as any)?.en || 'Specialization'}
                                 </div>
-                                <div className="text-xs text-gray-500 mt-1 mb-2">
-                                    {therapist.address}, {therapist.zip} {therapist.city}
+                                <div className="text-xs text-gray-500 mb-3">
+                                    {selectedTherapist.address}, {selectedTherapist.zip} {selectedTherapist.city}
                                 </div>
-                                <a
-                                    href={`/book/${therapist._id}`}
-                                    className="block w-full text-center bg-blue-600 !text-white px-3 py-1.5 rounded text-xs hover:bg-blue-700 transition-colors font-medium no-underline"
-                                    style={{ color: 'white' }}
+                                <Link
+                                    href={`/book/${selectedTherapist._id}`}
+                                    className="block w-full text-center bg-indigo-600 text-white px-3 py-2 rounded text-xs hover:bg-indigo-700 transition-colors font-medium no-underline"
                                 >
                                     Book Appointment
-                                </a>
-                            </Popup>
-                        </Marker>
-                    )
-                ))}
-            </MapContainer>
+                                </Link>
+                            </div>
+                        </InfoWindow>
+                    )}
+                </Map>
+            </APIProvider>
         </div>
     )
 }

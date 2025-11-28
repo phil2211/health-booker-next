@@ -20,9 +20,11 @@ const ProviderMap = dynamic(() => import('@/components/ProviderMap'), {
 
 interface ProvidersListProps {
     therapists: TherapistDocument[]
+    showLoginRegisterLinks?: boolean
+    title?: string
 }
 
-export default function ProvidersList({ therapists }: ProvidersListProps) {
+export default function ProvidersList({ therapists, showLoginRegisterLinks = false, title }: ProvidersListProps) {
     const { t } = useTranslation()
     const locale = useLocale()
     const [visibleTherapistIds, setVisibleTherapistIds] = useState<string[] | null>(null)
@@ -36,16 +38,19 @@ export default function ProvidersList({ therapists }: ProvidersListProps) {
         ? therapists.filter(t => visibleTherapistIds.includes(t._id))
         : therapists
 
+    const pageTitle = title || t('home.viewProviders')
+
     return (
         <div className="min-h-screen bg-white">
             <ResponsiveHeader
-                pageTitle={t('home.viewProviders')}
+                pageTitle={pageTitle}
                 showBackToDashboard={false}
                 showHomeLink={true}
                 showLogoutButton={false}
+                showLoginRegisterLinks={showLoginRegisterLinks}
             />
             <div className="container mx-auto px-4 py-8">
-                <h1 className="text-3xl font-bold mb-8 text-gray-900">{t('home.viewProviders')}</h1>
+                <h1 className="text-3xl font-bold mb-8 text-gray-900">{pageTitle}</h1>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div className="lg:col-span-1 space-y-6 overflow-y-auto max-h-[800px] pr-2">

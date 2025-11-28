@@ -12,13 +12,15 @@ interface ResponsiveHeaderProps {
   showBackToDashboard?: boolean
   showHomeLink?: boolean
   showLogoutButton?: boolean
+  showLoginRegisterLinks?: boolean
 }
 
 export default function ResponsiveHeader({
   pageTitle,
   showBackToDashboard = true,
   showHomeLink = false,
-  showLogoutButton = true
+  showLogoutButton = true,
+  showLoginRegisterLinks = false
 }: ResponsiveHeaderProps) {
   const { t } = useTranslation()
   const locale = useLocale()
@@ -26,6 +28,8 @@ export default function ResponsiveHeader({
 
   const dashboardPath = locale === 'en' ? '/dashboard' : `/${locale}/dashboard`
   const homePath = locale === 'en' ? '/' : `/${locale}`
+  const loginPath = locale === 'en' ? '/login' : `/${locale}/login`
+  const registerPath = locale === 'en' ? '/register' : `/${locale}/register`
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen)
 
@@ -59,6 +63,22 @@ export default function ResponsiveHeader({
               >
                 {t('booking.home')}
               </Link>
+            )}
+            {showLoginRegisterLinks && (
+              <>
+                <Link
+                  href={loginPath}
+                  className="text-sm text-indigo-600 hover:text-indigo-700 font-medium whitespace-nowrap"
+                >
+                  {t('home.therapistLogin')}
+                </Link>
+                <Link
+                  href={registerPath}
+                  className="text-sm text-indigo-600 hover:text-indigo-700 font-medium whitespace-nowrap"
+                >
+                  {t('home.therapistRegister')}
+                </Link>
+              </>
             )}
             <LanguageSwitcher />
             {showLogoutButton && <LogoutButton />}
@@ -124,6 +144,24 @@ export default function ResponsiveHeader({
               >
                 {t('booking.home')}
               </Link>
+            )}
+            {showLoginRegisterLinks && (
+              <>
+                <Link
+                  href={loginPath}
+                  className="block px-3 py-2 text-base font-medium text-indigo-600 hover:text-indigo-700 hover:bg-gray-50 rounded-md transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  {t('home.therapistLogin')}
+                </Link>
+                <Link
+                  href={registerPath}
+                  className="block px-3 py-2 text-base font-medium text-indigo-600 hover:text-indigo-700 hover:bg-gray-50 rounded-md transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  {t('home.therapistRegister')}
+                </Link>
+              </>
             )}
 
             {/* Language switcher in mobile menu */}
