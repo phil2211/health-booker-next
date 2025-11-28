@@ -38,6 +38,31 @@ function MapEventHandler({ onBoundsChange }: { onBoundsChange: (bounds: google.m
     return null
 }
 
+function UserLocationUpdater() {
+    const map = useMap()
+    const [hasLocated, setHasLocated] = useState(false)
+
+    useEffect(() => {
+        if (!map || hasLocated) return
+
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const { latitude, longitude } = position.coords
+                    map.setCenter({ lat: latitude, lng: longitude })
+                    map.setZoom(11) // Zoom 11 is approximately 20km view width
+                    setHasLocated(true)
+                },
+                (error) => {
+                    console.log('Geolocation failed or denied:', error)
+                }
+            )
+        }
+    }, [map, hasLocated])
+
+    return null
+}
+
 export default function ProviderMap({ therapists, onVisibleTherapistsChange, hoveredTherapistId }: ProviderMapProps) {
     const [geocodedTherapists, setGeocodedTherapists] = useState<GeocodedTherapist[]>([])
     const [mapBounds, setMapBounds] = useState<google.maps.LatLngBounds | null>(null)
@@ -121,6 +146,7 @@ export default function ProviderMap({ therapists, onVisibleTherapistsChange, hov
                     disableDefaultUI={false}
                 >
                     <MapEventHandler onBoundsChange={setMapBounds} />
+                    <UserLocationUpdater />
 
                     {geocodedTherapists.map((therapist) => (
                         therapist.lat && therapist.lng && (
