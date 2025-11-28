@@ -265,6 +265,7 @@
     "manageAppointments": "Manage your appointments, availability, and profile settings",
     "yourProfile": "Your Profile",
     "profileStatus": "Profile Status",
+    "appointmentsInCalendar": "Appointments in Calendar",
     "active": "Active",
     "welcome": "Welcome",
     "welcomeUser": "Welcome, {{name}}",

@@ -22,9 +22,10 @@ interface DashboardClientProps {
   }
   bookingUrl: string
   baseUrl: string
+  upcomingAppointmentsCount: number
 }
 
-export default function DashboardClient({ therapist, bookingUrl, baseUrl }: DashboardClientProps) {
+export default function DashboardClient({ therapist, bookingUrl, baseUrl, upcomingAppointmentsCount }: DashboardClientProps) {
   const { t } = useTranslation()
   const locale = useLocale()
   const router = useRouter()
@@ -115,15 +116,50 @@ export default function DashboardClient({ therapist, bookingUrl, baseUrl }: Dash
               <div className="shrink-0">
                 <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
                   <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
                 </div>
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">{t('dashboard.profileStatus')}</p>
-                <p className="text-2xl font-bold text-green-600">{t('dashboard.active')}</p>
+                <p className="text-sm font-medium text-gray-500">{t('dashboard.appointmentsInCalendar')}</p>
+                <p className="text-2xl font-bold text-gray-900">{upcomingAppointmentsCount}</p>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Quick Actions */}
+        <div className="grid md:grid-cols-2 gap-6 mb-8">
+          <div className="bg-white rounded-xl shadow-md border p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('dashboard.viewAppointments')}</h3>
+            <p className="text-gray-600 mb-4">
+              {t('dashboard.seeScheduled')}
+            </p>
+            <p className="text-sm text-gray-500 mb-4">
+              {t('dashboard.viewPatientBookings')}
+            </p>
+            <Link
+              href={appointmentsPath}
+              className="block w-full bg-green-600 text-white px-4 py-3 rounded-lg font-medium hover:bg-green-700 transition-colors text-center"
+            >
+              {t('dashboard.viewAppointments')} →
+            </Link>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-md border p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('dashboard.availabilityManagement')}</h3>
+            <p className="text-gray-600 mb-4">
+              {t('dashboard.setWeeklyRecurring')}
+            </p>
+            <p className="text-sm text-gray-500 mb-4">
+              {t('dashboard.currently')}: {therapist.weeklyAvailability.length} {t('dashboard.weeklySlots')}, {therapist.blockedSlots.length} {t('dashboard.blockedDates')}
+            </p>
+            <Link
+              href={availabilityPath}
+              className="block w-full bg-indigo-600 text-white px-4 py-3 rounded-lg font-medium hover:bg-indigo-700 transition-colors text-center"
+            >
+              {t('dashboard.manageAvailability')} →
+            </Link>
           </div>
         </div>
 
@@ -181,41 +217,6 @@ export default function DashboardClient({ therapist, bookingUrl, baseUrl }: Dash
             fallbackUrl={`${baseUrl}${bookingUrl}`}
             therapistId={therapist._id}
           />
-        </div>
-
-        {/* Quick Actions */}
-        <div className="mt-6 grid md:grid-cols-2 gap-6">
-          <div className="bg-white rounded-xl shadow-md border p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('dashboard.availabilityManagement')}</h3>
-            <p className="text-gray-600 mb-4">
-              {t('dashboard.setWeeklyRecurring')}
-            </p>
-            <p className="text-sm text-gray-500 mb-4">
-              {t('dashboard.currently')}: {therapist.weeklyAvailability.length} {t('dashboard.weeklySlots')}, {therapist.blockedSlots.length} {t('dashboard.blockedDates')}
-            </p>
-            <Link
-              href={availabilityPath}
-              className="block w-full bg-indigo-600 text-white px-4 py-3 rounded-lg font-medium hover:bg-indigo-700 transition-colors text-center"
-            >
-              {t('dashboard.manageAvailability')} →
-            </Link>
-          </div>
-
-          <div className="bg-white rounded-xl shadow-md border p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('dashboard.viewAppointments')}</h3>
-            <p className="text-gray-600 mb-4">
-              {t('dashboard.seeScheduled')}
-            </p>
-            <p className="text-sm text-gray-500 mb-4">
-              {t('dashboard.viewPatientBookings')}
-            </p>
-            <Link
-              href={appointmentsPath}
-              className="block w-full bg-green-600 text-white px-4 py-3 rounded-lg font-medium hover:bg-green-700 transition-colors text-center"
-            >
-              {t('dashboard.viewAppointments')} →
-            </Link>
-          </div>
         </div>
       </div>
     </div>

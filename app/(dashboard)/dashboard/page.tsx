@@ -1,6 +1,7 @@
 import { getAuthSession } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { findTherapistById } from '@/models/Therapist'
+import { getAppointmentStats } from '@/models/Booking'
 import DashboardClient from './DashboardClient'
 
 export default async function DashboardPage() {
@@ -27,6 +28,9 @@ export default async function DashboardPage() {
     ? `https://${process.env.VERCEL_URL}`
     : process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 
+  // Get appointment stats
+  const stats = await getAppointmentStats(therapist._id)
+
   return (
     <DashboardClient
       therapist={{
@@ -40,6 +44,7 @@ export default async function DashboardPage() {
       }}
       bookingUrl={bookingUrl}
       baseUrl={baseUrl}
+      upcomingAppointmentsCount={stats.upcoming}
     />
   )
 }

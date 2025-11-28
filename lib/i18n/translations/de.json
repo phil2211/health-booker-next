@@ -262,6 +262,7 @@
     "manageAppointments": "Verwalte deine Termine, Verfügbarkeit und Profileinstellungen",
     "yourProfile": "Dein Profil",
     "profileStatus": "Profilstatus",
+    "appointmentsInCalendar": "Termine im Kalender",
     "active": "Aktiv",
     "welcome": "Willkommen",
     "welcomeUser": "Willkommen, {{name}}",
