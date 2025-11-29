@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import Providers from './providers'
 import CookieBanner from '@/components/CookieBanner'
+import InstallPrompt from '@/components/InstallPrompt'
 import { getServerLocale } from '@/lib/i18n/server'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -12,6 +13,10 @@ export const metadata: Metadata = {
   description: 'Schedule appointments with health workers',
   // Note: For dynamic i18n metadata, consider using generateMetadata function
   // in individual page components or a middleware-based approach
+  manifest: '/manifest.json',
+  icons: {
+    apple: '/apple-touch-icon.png',
+  },
 }
 
 export default async function RootLayout({
@@ -27,6 +32,7 @@ export default async function RootLayout({
         <Providers>
           {children}
           <CookieBanner />
+          <InstallPrompt />
           <footer className="bg-white border-t border-gray-200 mt-auto">
             <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
               <div className="flex flex-col md:flex-row justify-between items-center gap-4">
