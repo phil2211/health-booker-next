@@ -433,7 +433,7 @@ export default function AvailabilityManagement() {
       <div className="flex items-center justify-between pt-4 border-t">
         <button
           onClick={handleCancel}
-          className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+          className="px-4 py-2 text-sm border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
         >
           {hasChanges ? t('common.cancel') : t('common.return')}
         </button>
@@ -444,7 +444,7 @@ export default function AvailabilityManagement() {
           <button
             onClick={handleSave}
             disabled={saving || !hasChanges}
-            className="px-6 py-3 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2"
+            className="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2"
           >
             {saving && (
               <svg
