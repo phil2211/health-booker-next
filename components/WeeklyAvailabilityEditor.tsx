@@ -13,24 +13,11 @@ function TimeInput({ value, onChange }: { value: string; onChange: (value: strin
   const inputRef = useRef<HTMLInputElement>(null)
 
   return (
-    <div className="relative w-full min-w-0 overflow-hidden">
-      <input
-        ref={inputRef}
-        type="time"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        step="300"
-        className="w-full min-w-0 px-3 py-2 pr-14 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-black"
-        required
-      />
-      <button
-        type="button"
-        onClick={() => inputRef.current?.showPicker?.() || inputRef.current?.focus()}
-        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none focus:text-gray-600 pointer-events-auto"
-        aria-label="Open time picker"
-      >
+    <label className="relative w-full block">
+      <div className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white flex items-center justify-between text-gray-900 cursor-pointer">
+        <span className="flex-1 truncate">{value}</span>
         <svg
-          className="w-5 h-5"
+          className="w-5 h-5 text-gray-400 shrink-0 ml-2"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -42,8 +29,18 @@ function TimeInput({ value, onChange }: { value: string; onChange: (value: strin
             d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
           />
         </svg>
-      </button>
-    </div>
+      </div>
+      <input
+        ref={inputRef}
+        type="time"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        step="300"
+        className="absolute inset-0 w-full h-full appearance-none border-none bg-transparent text-transparent p-0 m-0"
+        style={{ opacity: 0 }}
+        required
+      />
+    </label>
   )
 }
 
@@ -52,7 +49,7 @@ export default function WeeklyAvailabilityEditor({
   onChange,
 }: WeeklyAvailabilityEditorProps) {
   const { t } = useTranslation()
-  
+
   const DAYS_OF_WEEK = [
     { value: 1, label: t('availabilityEditor.days.monday') },
     { value: 2, label: t('availabilityEditor.days.tuesday') },
@@ -62,7 +59,7 @@ export default function WeeklyAvailabilityEditor({
     { value: 6, label: t('availabilityEditor.days.saturday') },
     { value: 0, label: t('availabilityEditor.days.sunday') },
   ]
-  
+
   const getAvailabilityForDay = (dayOfWeek: number): AvailabilityEntry[] => {
     return weeklyAvailability.filter((avail) => avail.dayOfWeek === dayOfWeek)
   }
@@ -73,7 +70,7 @@ export default function WeeklyAvailabilityEditor({
 
   const toggleDayAvailability = (dayOfWeek: number) => {
     const existing = getAvailabilityForDay(dayOfWeek)
-    
+
     if (existing.length > 0) {
       // Remove all availability for this day
       onChange(weeklyAvailability.filter((avail) => avail.dayOfWeek !== dayOfWeek))
@@ -89,32 +86,32 @@ export default function WeeklyAvailabilityEditor({
   const updateAvailabilityEntry = (dayOfWeek: number, index: number, field: 'startTime' | 'endTime', value: string) => {
     const dayEntries = getAvailabilityForDay(dayOfWeek)
     const updatedEntry = { ...dayEntries[index], [field]: value }
-    
+
     const otherDayEntries = weeklyAvailability.filter(
       (avail) => avail.dayOfWeek !== dayOfWeek
     )
-    
+
     const updatedDayEntries = [...dayEntries]
     updatedDayEntries[index] = updatedEntry
-    
+
     onChange([...otherDayEntries, ...updatedDayEntries])
   }
 
   const addTimeRange = (dayOfWeek: number) => {
     const dayEntries = getAvailabilityForDay(dayOfWeek)
     const lastEntry = dayEntries[dayEntries.length - 1]
-    
+
     // Add a new time range, starting after the last one ends
-    const newStartTime = lastEntry 
+    const newStartTime = lastEntry
       ? addMinutesToTime(lastEntry.endTime, 30)
       : '09:00'
-    
+
     const newEndTime = addMinutesToTime(newStartTime, 8 * 60) // 8 hours later
-    
+
     const otherDayEntries = weeklyAvailability.filter(
       (avail) => avail.dayOfWeek !== dayOfWeek
     )
-    
+
     onChange([
       ...otherDayEntries,
       ...dayEntries,
@@ -127,9 +124,9 @@ export default function WeeklyAvailabilityEditor({
     const otherDayEntries = weeklyAvailability.filter(
       (avail) => avail.dayOfWeek !== dayOfWeek
     )
-    
+
     const updatedDayEntries = dayEntries.filter((_, i) => i !== index)
-    
+
     onChange([...otherDayEntries, ...updatedDayEntries])
   }
 
@@ -137,7 +134,7 @@ export default function WeeklyAvailabilityEditor({
     const [hours, mins] = time.split(':').map(Number)
     const totalMinutes = hours * 60 + mins + minutes
     const maxMinutesInDay = 23 * 60 + 59 // 23:59
-    
+
     // Clamp to 23:59 instead of wrapping around midnight
     const clampedMinutes = Math.min(totalMinutes, maxMinutesInDay)
     const newHours = Math.floor(clampedMinutes / 60)
@@ -151,11 +148,11 @@ export default function WeeklyAvailabilityEditor({
       <p className="text-sm text-gray-600 mb-6">
         {t('availability.setWeeklyAvailability')}
       </p>
-      
+
       {DAYS_OF_WEEK.map((day) => {
         const dayEntries = getAvailabilityForDay(day.value)
         const isEnabled = hasAvailabilityForDay(day.value)
-        
+
         return (
           <div
             key={day.value}
@@ -190,7 +187,7 @@ export default function WeeklyAvailabilityEditor({
                     key={`${day.value}-${index}`}
                     className="flex flex-col sm:flex-row sm:items-center gap-3 bg-white p-3 rounded border w-full"
                   >
-                    <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3 min-w-0">
+                    <div className="w-full sm:flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3 min-w-0">
                       <div className="min-w-0">
                         <label className="block text-xs font-medium text-gray-700 mb-1">
                           {t('availabilityEditor.startTime')}

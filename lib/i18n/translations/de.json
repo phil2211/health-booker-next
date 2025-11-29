@@ -434,7 +434,8 @@
     "subject": "Dein Termin ist bestätigt!",
     "body": "Dies ist eine Bestätigung, dass dein Termin mit {{therapistName}} am {{bookingDate}} um {{bookingTime}} geplant ist.",
     "rescheduleExplanation": "Falls du deinen Termin verschieben möchtest, sage bitte diesen Termin ab und buche einen neuen.",
-    "cancelAppointment": "Termin absagen"
+    "cancelAppointment": "Termin absagen",
+    "cancellationPolicy": "Bitte beachte, dass ein Termin mindestens 24 Stunden vorher abgesagt werden muss. Andernfalls können Kosten entstehen."
   },
   "bookingConfirmationTherapist": {
     "preview": "Neue Buchung",

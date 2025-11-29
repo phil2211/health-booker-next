@@ -437,7 +437,8 @@
     "subject": "Your Appointment is Confirmed!",
     "body": "This is a confirmation that your appointment with {{therapistName}} is scheduled for {{bookingDate}} at {{bookingTime}}.",
     "rescheduleExplanation": "If you need to reschedule your appointment, please cancel this appointment and book a new one.",
-    "cancelAppointment": "Cancel Appointment"
+    "cancelAppointment": "Cancel Appointment",
+    "cancellationPolicy": "Please note that an appointment needs to be canceled at least 24 hours before. If not there might be cost consequences."
   },
   "bookingConfirmationTherapist": {
     "preview": "New Booking",

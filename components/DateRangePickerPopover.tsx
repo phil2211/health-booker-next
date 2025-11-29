@@ -34,7 +34,7 @@ export default function DateRangePickerPopover({
 }: DateRangePickerPopoverProps) {
   const { t, locale } = useTranslation()
   const dateFnsLocale = locale === 'de' ? de : enUS
-  
+
   const [selected, setSelected] = useState<DateRange | undefined>(undefined)
   const [selectedStartTime, setSelectedStartTime] = useState<string>(startTime)
   const [selectedEndTime, setSelectedEndTime] = useState<string>(endTime)
@@ -44,30 +44,30 @@ export default function DateRangePickerPopover({
   const triggerRef = useRef<HTMLButtonElement>(null)
   const startTimeInputRef = useRef<HTMLInputElement>(null)
   const endTimeInputRef = useRef<HTMLInputElement>(null)
-  
+
   const today = min || startOfToday()
 
   // Create a matcher function to check if a date is in any blocked range
   const isBlockedDate = (date: Date): boolean => {
     if (!blockedSlots || blockedSlots.length === 0) return false
-    
+
     const dateStart = startOfDay(date)
-    
+
     return blockedSlots.some((slot) => {
       try {
         const slotFromDate = slot.fromDate || slot.date || ''
         const slotToDate = slot.toDate || slot.date || ''
-        
+
         if (!slotFromDate || !slotToDate) return false
-        
+
         const from = parseISO(slotFromDate)
         const to = parseISO(slotToDate)
-        
+
         if (isNaN(from.getTime()) || isNaN(to.getTime())) return false
-        
+
         const fromStart = startOfDay(from)
         const toEnd = startOfDay(to)
-        
+
         // Check if date is within the blocked range (inclusive)
         return isWithinInterval(dateStart, {
           start: fromStart,
@@ -133,21 +133,21 @@ export default function DateRangePickerPopover({
     const viewportWidth = window.innerWidth
     const viewportHeight = window.innerHeight
     const spacing = 8 // Space between button and popover
-    
+
     // Calculate position below the button, aligned to left edge
     let top = triggerRect.bottom + spacing
     let left = triggerRect.left
-    
+
     // Adjust if popover would go off the right edge
     if (left + popoverRect.width > viewportWidth) {
       left = viewportWidth - popoverRect.width - 16 // 16px padding from edge
     }
-    
+
     // Adjust if popover would go off the left edge
     if (left < 16) {
       left = 16
     }
-    
+
     // If popover would go off the bottom, position it above instead
     if (top + popoverRect.height > viewportHeight) {
       top = triggerRect.top - popoverRect.height - spacing
@@ -156,7 +156,7 @@ export default function DateRangePickerPopover({
         top = 16
       }
     }
-    
+
     popover.style.position = 'fixed'
     popover.style.top = `${top}px`
     popover.style.left = `${left}px`
@@ -254,7 +254,7 @@ export default function DateRangePickerPopover({
         startTime: selectedStartTime,
         endTime: selectedEndTime,
       }
-      
+
       // Call onApply if provided, otherwise call onChange
       if (onApply) {
         onApply(data)
@@ -265,7 +265,7 @@ export default function DateRangePickerPopover({
       } else {
         onChange(data)
       }
-      
+
       popoverRef.current?.hidePopover()
       triggerRef.current?.focus()
     }
@@ -353,7 +353,7 @@ export default function DateRangePickerPopover({
             blocked: 'rdp-day_blocked',
           }}
         />
-        
+
         {/* Time inputs */}
         <div className="mt-4 pt-4 border-t border-gray-200">
           <div className="grid grid-cols-2 gap-4 mb-4 min-w-0">
@@ -361,23 +361,43 @@ export default function DateRangePickerPopover({
               <label className="block text-xs font-medium text-gray-700 mb-1">
                 {t('availabilityEditor.startTime')}
               </label>
-              <div className="relative w-full min-w-0 overflow-hidden">
+              <label className="relative w-full block">
+                <div className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white flex items-center justify-between text-gray-900 cursor-pointer">
+                  <span className="flex-1 truncate">{selectedStartTime}</span>
+                  <svg
+                    className="w-5 h-5 text-gray-400 shrink-0 ml-2"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </div>
                 <input
                   ref={startTimeInputRef}
                   type="time"
                   value={selectedStartTime}
                   onChange={(e) => setSelectedStartTime(e.target.value)}
                   step="300"
-                  className="w-full min-w-0 px-3 py-2 pr-14 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-black"
+                  className="absolute inset-0 w-full h-full appearance-none border-none bg-transparent text-transparent p-0 m-0"
+                  style={{ opacity: 0 }}
                 />
-                <button
-                  type="button"
-                  onClick={() => startTimeInputRef.current?.showPicker?.() || startTimeInputRef.current?.focus()}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none focus:text-gray-600 pointer-events-auto"
-                  aria-label="Open time picker"
-                >
+              </label>
+            </div>
+            <div className="min-w-0">
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                {t('availabilityEditor.endTime')}
+              </label>
+              <label className="relative w-full block">
+                <div className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white flex items-center justify-between text-gray-900 cursor-pointer">
+                  <span className="flex-1 truncate">{selectedEndTime}</span>
                   <svg
-                    className="w-5 h-5"
+                    className="w-5 h-5 text-gray-400 shrink-0 ml-2"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -389,47 +409,21 @@ export default function DateRangePickerPopover({
                       d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                     />
                   </svg>
-                </button>
-              </div>
-            </div>
-            <div className="min-w-0">
-              <label className="block text-xs font-medium text-gray-700 mb-1">
-                {t('availabilityEditor.endTime')}
-              </label>
-              <div className="relative w-full min-w-0 overflow-hidden">
+                </div>
                 <input
                   ref={endTimeInputRef}
                   type="time"
                   value={selectedEndTime}
                   onChange={(e) => setSelectedEndTime(e.target.value)}
                   step="300"
-                  className="w-full min-w-0 px-3 py-2 pr-14 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-black"
+                  className="absolute inset-0 w-full h-full appearance-none border-none bg-transparent text-transparent p-0 m-0"
+                  style={{ opacity: 0 }}
                 />
-                <button
-                  type="button"
-                  onClick={() => endTimeInputRef.current?.showPicker?.() || endTimeInputRef.current?.focus()}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none focus:text-gray-600 pointer-events-auto"
-                  aria-label="Open time picker"
-                >
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                </button>
-              </div>
+              </label>
             </div>
           </div>
         </div>
-        
+
         <div className="flex items-center justify-between gap-3 mt-4 pt-4 border-t border-gray-200">
           <button
             type="button"
