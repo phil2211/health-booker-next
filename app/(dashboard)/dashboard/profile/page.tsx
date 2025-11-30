@@ -28,7 +28,12 @@ export default async function ProfileEditPage() {
         <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl mx-auto">
                 <h1 className="text-3xl font-bold text-gray-900 mb-8">{t('dashboard.editProfile')}</h1>
-                <ProfileEditForm therapist={therapist} />
+                <ProfileEditForm therapist={{
+                    ...therapist,
+                    profileImage: undefined,
+                    createdAt: therapist.createdAt?.toISOString() as any,
+                    updatedAt: therapist.updatedAt?.toISOString() as any
+                }} />
             </div>
         </div>
     )
