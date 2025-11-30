@@ -72,12 +72,23 @@ export default function ProvidersList({ therapists, showLoginRegisterLinks = fal
                                     onMouseEnter={() => setHoveredTherapistId(therapist._id)}
                                     onMouseLeave={() => setHoveredTherapistId(null)}
                                 >
-                                    <h2 className="text-xl font-semibold mb-2 text-gray-900">{therapist.name}</h2>
-                                    <p className="text-blue-600 font-medium mb-2">
-                                        {typeof therapist.specialization === 'string'
-                                            ? therapist.specialization
-                                            : (therapist.specialization as any)?.[locale] || (therapist.specialization as any)?.en || 'Specialization'}
-                                    </p>
+                                    <div className="flex items-start space-x-4 mb-2">
+                                        {therapist.profileImage && (
+                                            <img
+                                                src={`data:${therapist.profileImage.contentType};base64,${therapist.profileImage.data}`}
+                                                alt={therapist.name}
+                                                className="w-16 h-16 rounded-full object-cover border border-gray-200 flex-shrink-0"
+                                            />
+                                        )}
+                                        <div>
+                                            <h2 className="text-xl font-semibold text-gray-900">{therapist.name}</h2>
+                                            <p className="text-blue-600 font-medium">
+                                                {typeof therapist.specialization === 'string'
+                                                    ? therapist.specialization
+                                                    : (therapist.specialization as any)?.[locale] || (therapist.specialization as any)?.en || 'Specialization'}
+                                            </p>
+                                        </div>
+                                    </div>
                                     {therapist.address && (
                                         <p className="text-sm text-gray-500 mb-4 flex items-start">
                                             <svg className="w-4 h-4 mr-1 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
