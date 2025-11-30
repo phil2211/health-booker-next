@@ -57,7 +57,9 @@ export default function ProfileEditForm({ therapist }: ProfileEditFormProps) {
     const [zip, setZip] = useState(therapist.zip || '')
     const [city, setCity] = useState(therapist.city || '')
     const [phoneNumber, setPhoneNumber] = useState(therapist.phoneNumber || '')
+    const [linkedinUrl, setLinkedinUrl] = useState(therapist.linkedinUrl || '')
     const [profileImage, setProfileImage] = useState<File | null>(null)
+    const [isDragging, setIsDragging] = useState(false)
 
     // We keep track of both languages in state to preserve data
     const [bioEn, setBioEn] = useState(getInitialValue(therapist.bio, 'en'))
@@ -87,6 +89,7 @@ export default function ProfileEditForm({ therapist }: ProfileEditFormProps) {
                 formData.append('zip', zip)
                 formData.append('city', city)
                 formData.append('phoneNumber', phoneNumber)
+                formData.append('linkedinUrl', linkedinUrl)
                 formData.append('bio', JSON.stringify({ en: bioEn, de: bioDe }))
                 formData.append('specialization', JSON.stringify({ en: specializationEn, de: specializationDe }))
                 formData.append('profileImage', profileImage)
@@ -99,6 +102,7 @@ export default function ProfileEditForm({ therapist }: ProfileEditFormProps) {
                     zip,
                     city,
                     phoneNumber,
+                    linkedinUrl,
                     bio: {
                         en: bioEn,
                         de: bioDe,
@@ -152,25 +156,87 @@ export default function ProfileEditForm({ therapist }: ProfileEditFormProps) {
                 <label htmlFor="profileImage" className="block text-sm font-medium text-gray-700 mb-2">
                     {t('dashboard.profileImage')}
                 </label>
-                <input
-                    type="file"
-                    id="profileImage"
-                    accept="image/png, image/jpeg, image/gif"
-                    onChange={(e) => {
-                        const file = e.target.files?.[0]
+                <div
+                    className={`mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-dashed rounded-md transition-colors ${isDragging ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'
+                        }`}
+                    onDragOver={(e) => {
+                        e.preventDefault()
+                        setIsDragging(true)
+                    }}
+                    onDragLeave={(e) => {
+                        e.preventDefault()
+                        setIsDragging(false)
+                    }}
+                    onDrop={(e) => {
+                        e.preventDefault()
+                        setIsDragging(false)
+                        const file = e.dataTransfer.files?.[0]
                         if (file) {
                             if (file.size > 1024 * 1024) {
                                 setError(t('dashboard.imageTooLarge') || 'Image too large (max 1MB)')
-                                e.target.value = '' // Reset input
+                                return
+                            }
+                            if (!['image/jpeg', 'image/png', 'image/gif'].includes(file.type)) {
+                                setError(t('dashboard.imageRequirements') || 'PNG, JPEG or GIF. Max 1MB.')
                                 return
                             }
                             setProfileImage(file)
                             setError(null)
                         }
                     }}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
-                />
-                <p className="text-xs text-gray-500 mt-1">{t('dashboard.imageRequirements') || 'PNG, JPEG or GIF. Max 1MB.'}</p>
+                >
+                    <div className="space-y-1 text-center">
+                        <svg
+                            className="mx-auto h-12 w-12 text-gray-400"
+                            stroke="currentColor"
+                            fill="none"
+                            viewBox="0 0 48 48"
+                            aria-hidden="true"
+                        >
+                            <path
+                                d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                                strokeWidth={2}
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                            />
+                        </svg>
+                        <div className="flex text-sm text-gray-600 justify-center">
+                            <label
+                                htmlFor="profileImage"
+                                className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500"
+                            >
+                                <span>{t('dashboard.uploadFile') || 'Upload a file'}</span>
+                                <input
+                                    id="profileImage"
+                                    name="profileImage"
+                                    type="file"
+                                    className="sr-only"
+                                    accept="image/png, image/jpeg, image/gif"
+                                    onChange={(e) => {
+                                        const file = e.target.files?.[0]
+                                        if (file) {
+                                            if (file.size > 1024 * 1024) {
+                                                setError(t('dashboard.imageTooLarge') || 'Image too large (max 1MB)')
+                                                e.target.value = '' // Reset input
+                                                return
+                                            }
+                                            setProfileImage(file)
+                                            setError(null)
+                                        }
+                                    }}
+                                />
+                            </label>
+                            <p className="pl-1">{t('dashboard.orDragAndDrop') || 'or drag and drop'}</p>
+                        </div>
+                        <p className="text-xs text-gray-500">
+                            {profileImage ? (
+                                <span className="text-green-600 font-medium">{profileImage.name}</span>
+                            ) : (
+                                t('dashboard.imageRequirements') || 'PNG, JPEG or GIF. Max 1MB.'
+                            )}
+                        </p>
+                    </div>
+                </div>
             </div>
 
             {/* Name Field */}
@@ -263,6 +329,21 @@ export default function ProfileEditForm({ therapist }: ProfileEditFormProps) {
                     placeholder={t('dashboard.phoneNumberPlaceholder')}
                 />
                 <p className="text-xs text-gray-500 mt-1">{t('dashboard.swissPhoneFormat')}</p>
+            </div>
+
+            {/* LinkedIn URL Field */}
+            <div>
+                <label htmlFor="linkedinUrl" className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('dashboard.linkedinUrl')}
+                </label>
+                <input
+                    type="url"
+                    id="linkedinUrl"
+                    value={linkedinUrl}
+                    onChange={(e) => setLinkedinUrl(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+                    placeholder="https://www.linkedin.com/in/username"
+                />
             </div>
 
             {/* Specialization Field */}

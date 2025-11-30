@@ -13,6 +13,13 @@ export type TherapistDocument = Therapist & {
   }
 }
 
+export type SerializedTherapistDocument = Omit<TherapistDocument, 'profileImage'> & {
+  profileImage?: {
+    data: string
+    contentType: string
+  }
+}
+
 /**
  * Hash a password using bcrypt
  */
@@ -194,7 +201,7 @@ export async function createTherapist(
 /**
  * Get all therapists (for public listing)
  */
-export async function getAllTherapists(): Promise<TherapistDocument[]> {
+export async function getAllTherapists(): Promise<SerializedTherapistDocument[]> {
   const db = await getDatabase()
   const therapists = await db
     .collection('therapists')
@@ -202,10 +209,25 @@ export async function getAllTherapists(): Promise<TherapistDocument[]> {
     .project({ password: 0 }) // Exclude password
     .toArray()
 
-  return therapists.map((therapist) => ({
-    ...therapist,
-    _id: therapist._id.toString(),
-  })) as TherapistDocument[]
+  return therapists.map((therapist) => {
+    const doc = {
+      ...therapist,
+      _id: therapist._id.toString(),
+    } as any
+
+    if (doc.profileImage && doc.profileImage.data) {
+      // Convert Buffer to base64 string for client-side consumption
+      return {
+        ...doc,
+        profileImage: {
+          ...doc.profileImage,
+          data: doc.profileImage.data.toString('base64'),
+        },
+      }
+    }
+
+    return doc
+  }) as SerializedTherapistDocument[]
 }
 
 /**
@@ -357,6 +379,7 @@ export async function updateTherapistProfile(
     zip?: string
     city?: string
     phoneNumber?: string
+    linkedinUrl?: string
     profileImage?: {
       data: Buffer
       contentType: string
@@ -384,6 +407,7 @@ export async function updateTherapistProfile(
     if (profileData.zip !== undefined) updateFields.zip = profileData.zip
     if (profileData.city !== undefined) updateFields.city = profileData.city
     if (profileData.phoneNumber !== undefined) updateFields.phoneNumber = profileData.phoneNumber
+    if (profileData.linkedinUrl !== undefined) updateFields.linkedinUrl = profileData.linkedinUrl
     if (profileData.profileImage !== undefined) updateFields.profileImage = profileData.profileImage
 
     // Use updateOne instead of findOneAndUpdate for more reliable results

@@ -16,7 +16,9 @@ interface TherapistPageClientProps {
     specialization: string | { en: string; de: string }
     bio: string | { en: string; de: string }
     photoUrl?: string
+    profileImageSrc?: string | null
     email: string
+    linkedinUrl?: string
   }
 }
 
@@ -55,6 +57,8 @@ export default function TherapistPageClient({ therapist }: TherapistPageClientPr
     processBio()
   }, [displayBio])
 
+  const imageSrc = therapist.profileImageSrc || therapist.photoUrl
+
   return (
     <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100">
       {/* Navigation Bar */}
@@ -70,23 +74,29 @@ export default function TherapistPageClient({ therapist }: TherapistPageClientPr
         {/* Profile Card */}
         <div className="bg-white rounded-xl shadow-xl border p-8">
           {/* Header */}
-          <div className="text-center mb-8 pb-8 border-b">
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">{therapist.name}</h1>
-            <p className="text-xl text-indigo-600 font-medium">{displaySpecialization}</p>
-          </div>
+          <div className="flex flex-col md:flex-row items-center gap-8 mb-8 pb-8 border-b">
+            {imageSrc ? (
+              <div className="relative w-32 h-32 shrink-0">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={imageSrc}
+                  alt={therapist.name}
+                  className="w-full h-full rounded-full object-cover shadow-lg border-4 border-indigo-50"
+                />
+              </div>
+            ) : (
+              <div className="w-32 h-32 rounded-full bg-indigo-100 flex items-center justify-center shrink-0 border-4 border-indigo-50 shadow-lg">
+                <span className="text-4xl font-bold text-indigo-600">
+                  {therapist.name.charAt(0).toUpperCase()}
+                </span>
+              </div>
+            )}
 
-          {/* Profile Photo (if available) */}
-          {therapist.photoUrl && (
-            <div className="flex justify-center mb-8">
-              <Image
-                src={therapist.photoUrl}
-                alt={therapist.name}
-                width={192}
-                height={192}
-                className="w-48 h-48 rounded-full object-cover border-4 border-indigo-200 shadow-lg"
-              />
+            <div className="text-center md:text-left">
+              <h1 className="text-4xl font-bold text-gray-900 mb-2">{therapist.name}</h1>
+              <p className="text-xl text-indigo-600 font-medium">{displaySpecialization}</p>
             </div>
-          )}
+          </div>
 
           {/* Bio Section */}
           <div className="space-y-6">
@@ -104,6 +114,19 @@ export default function TherapistPageClient({ therapist }: TherapistPageClientPr
               <p className="text-sm text-gray-600 mb-1">
                 <span className="font-medium">{t('common.email')}:</span> {therapist.email}
               </p>
+              {therapist.linkedinUrl && (
+                <p className="text-sm text-gray-600 mt-2">
+                  <span className="font-medium">LinkedIn:</span>{' '}
+                  <a
+                    href={therapist.linkedinUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-indigo-600 hover:underline"
+                  >
+                    {t('therapist.viewLinkedinProfile')}
+                  </a>
+                </p>
+              )}
             </div>
 
             {/* Booking Call to Action */}

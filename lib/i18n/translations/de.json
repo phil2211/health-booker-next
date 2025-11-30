@@ -307,7 +307,10 @@
     "saveChanges": "Änderungen speichern",
     "profileImage": "Profilbild",
     "imageTooLarge": "Bild zu groß (max. 1MB)",
-    "imageRequirements": "PNG, JPEG oder GIF. Max. 1MB."
+    "imageRequirements": "PNG, JPEG oder GIF. Max. 1MB.",
+    "uploadFile": "Datei hochladen",
+    "orDragAndDrop": "oder per Drag & Drop",
+    "linkedinUrl": "LinkedIn Profil-URL"
   },
   "home": {
     "title": "Buche deine Behandlung",
@@ -332,7 +335,8 @@
     "readyToBook": "Bereit, einen Termin zu buchen?",
     "clickToView": "Klicke unten, um verfügbare Zeitslots anzuzeigen und deinen Termin mit {{name}} zu vereinbaren.",
     "viewAvailabilityBook": "Verfügbarkeit anzeigen & buchen",
-    "backToHome": "Zurück zur Startseite"
+    "backToHome": "Zurück zur Startseite",
+    "viewLinkedinProfile": "Profil ansehen"
   },
   "cancel": {
     "cancelYourAppointment": "Deinen Termin absagen",

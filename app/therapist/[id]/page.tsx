@@ -20,6 +20,17 @@ async function getTherapistProfile(id: string) {
     return null
   }
 
+  // Convert profile image to base64 if available
+  let profileImageSrc = null
+  if (therapist.profileImage && therapist.profileImage.data) {
+    try {
+      const base64 = therapist.profileImage.data.toString('base64')
+      profileImageSrc = `data:${therapist.profileImage.contentType};base64,${base64}`
+    } catch (e) {
+      console.error('Error converting profile image', e)
+    }
+  }
+
   // Return in API format for consistency
   return {
     therapist: {
@@ -28,6 +39,8 @@ async function getTherapistProfile(id: string) {
       specialization: therapist.specialization,
       bio: therapist.bio,
       photoUrl: therapist.photoUrl,
+      profileImageSrc,
+      linkedinUrl: therapist.linkedinUrl,
       email: therapist.email,
       weeklyAvailability: therapist.weeklyAvailability,
       blockedSlots: therapist.blockedSlots,

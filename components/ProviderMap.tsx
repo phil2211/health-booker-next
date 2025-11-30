@@ -2,16 +2,16 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { APIProvider, Map, AdvancedMarker, Pin, InfoWindow, useMap } from '@vis.gl/react-google-maps'
-import { TherapistDocument } from '@/models/Therapist'
+import { TherapistDocument, SerializedTherapistDocument } from '@/models/Therapist'
 import Link from 'next/link'
 
 interface ProviderMapProps {
-    therapists: TherapistDocument[]
+    therapists: SerializedTherapistDocument[]
     onVisibleTherapistsChange?: (visibleIds: string[]) => void
     hoveredTherapistId?: string | null
 }
 
-interface GeocodedTherapist extends TherapistDocument {
+interface GeocodedTherapist extends SerializedTherapistDocument {
     lat?: number
     lng?: number
 }
@@ -171,13 +171,22 @@ export default function ProviderMap({ therapists, onVisibleTherapistsChange, hov
                             onCloseClick={() => setSelectedTherapist(null)}
                         >
                             <div className="min-w-[200px] p-2">
-                                <div className="font-semibold text-gray-900 mb-1">{selectedTherapist.name}</div>
-                                <div className="text-sm text-blue-600 font-medium mb-1">
+                                {selectedTherapist.profileImage && (
+                                    <div className="flex justify-center mb-3">
+                                        <img
+                                            src={`data:${selectedTherapist.profileImage.contentType};base64,${selectedTherapist.profileImage.data}`}
+                                            alt={selectedTherapist.name}
+                                            className="w-16 h-16 rounded-full object-cover border-2 border-white shadow-md"
+                                        />
+                                    </div>
+                                )}
+                                <div className="font-semibold text-gray-900 mb-1 text-center">{selectedTherapist.name}</div>
+                                <div className="text-sm text-blue-600 font-medium mb-1 text-center">
                                     {typeof selectedTherapist.specialization === 'string'
                                         ? selectedTherapist.specialization
                                         : (selectedTherapist.specialization as any)?.en || 'Specialization'}
                                 </div>
-                                <div className="text-xs text-gray-500 mb-3">
+                                <div className="text-xs text-gray-500 mb-3 text-center">
                                     {selectedTherapist.address}, {selectedTherapist.zip} {selectedTherapist.city}
                                 </div>
                                 <Link

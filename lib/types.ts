@@ -54,6 +54,7 @@ export interface Therapist {
   city?: string
   phoneNumber?: string // Swiss phone number format by default
   photoUrl?: string
+  linkedinUrl?: string
   weeklyAvailability: AvailabilityEntry[]
   blockedSlots: BlockedSlot[]
   therapyOfferings?: TherapyOffering[] // Configurable therapy session types

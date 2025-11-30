@@ -310,7 +310,10 @@
     "saveChanges": "Save Changes",
     "profileImage": "Profile Image",
     "imageTooLarge": "Image too large (max 1MB)",
-    "imageRequirements": "PNG, JPEG or GIF. Max 1MB."
+    "imageRequirements": "PNG, JPEG or GIF. Max 1MB.",
+    "uploadFile": "Upload a file",
+    "orDragAndDrop": "or drag and drop",
+    "linkedinUrl": "LinkedIn Profile URL"
   },
   "home": {
     "title": "Health Worker Booking System",
@@ -335,7 +338,8 @@
     "readyToBook": "Ready to Book an Appointment?",
     "clickToView": "Click below to view available time slots and schedule your appointment with {{name}}.",
     "viewAvailabilityBook": "View Availability & Book",
-    "backToHome": "Back to Home"
+    "backToHome": "Back to Home",
+    "viewLinkedinProfile": "View Profile"
   },
   "cancel": {
     "cancelYourAppointment": "Cancel Your Appointment",

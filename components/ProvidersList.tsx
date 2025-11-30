@@ -1,6 +1,6 @@
 'use client'
 
-import { TherapistDocument } from '@/models/Therapist'
+import { TherapistDocument, SerializedTherapistDocument } from '@/models/Therapist'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { useTranslation } from '@/lib/i18n/useTranslation'
@@ -19,7 +19,7 @@ const ProviderMap = dynamic(() => import('@/components/ProviderMap'), {
 })
 
 interface ProvidersListProps {
-    therapists: TherapistDocument[]
+    therapists: SerializedTherapistDocument[]
     showLoginRegisterLinks?: boolean
     title?: string
 }

@@ -6,10 +6,10 @@ import { useEffect } from 'react'
 import { useTranslation } from '@/lib/i18n/useTranslation'
 import { useLocale } from '@/lib/i18n/LocaleProvider'
 import ProvidersList from '@/components/ProvidersList'
-import { TherapistDocument } from '@/models/Therapist'
+import { TherapistDocument, SerializedTherapistDocument } from '@/models/Therapist'
 
 interface HomeClientProps {
-    therapists: TherapistDocument[]
+    therapists: SerializedTherapistDocument[]
 }
 
 export default function HomeClient({ therapists }: HomeClientProps) {
