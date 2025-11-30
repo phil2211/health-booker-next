@@ -69,6 +69,7 @@ export async function sendBookingConfirmationEmails(booking: Booking, therapist:
       <BookingConfirmationTherapistEmail
         t={emailSetup.t}
         patientName={patient.name}
+        therapistName={therapist.name}
         bookingDate={new Date(booking.appointmentDate).toLocaleDateString(emailSetup.locale)}
         bookingTime={new Date(booking.appointmentDate + 'T' + booking.startTime).toLocaleTimeString(emailSetup.locale, { hour: '2-digit', minute: '2-digit' })}
       />

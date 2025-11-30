@@ -4,6 +4,7 @@ import { Html, Head, Preview, Body, Container, Text } from '@react-email/compone
 interface BookingConfirmationTherapistEmailProps {
   t: (key: string, params?: object) => string; // Translation function
   patientName: string;
+  therapistName: string;
   bookingDate: string;
   bookingTime: string;
 }
@@ -11,6 +12,7 @@ interface BookingConfirmationTherapistEmailProps {
 export const BookingConfirmationTherapistEmail: React.FC<Readonly<BookingConfirmationTherapistEmailProps>> = ({
   t,
   patientName,
+  therapistName,
   bookingDate,
   bookingTime,
 }) => (
@@ -19,7 +21,7 @@ export const BookingConfirmationTherapistEmail: React.FC<Readonly<BookingConfirm
     <Preview>{t('bookingConfirmationTherapist.preview')}</Preview>
     <Body>
       <Container>
-        <Text>{t('common.dearTherapist')},</Text>
+        <Text>{t('common.dear', { name: therapistName })},</Text>
         <Text>
           {t('bookingConfirmationTherapist.body', { patientName, bookingDate, bookingTime })}
         </Text>
