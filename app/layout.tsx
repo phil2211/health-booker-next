@@ -15,6 +15,7 @@ export const metadata: Metadata = {
   // in individual page components or a middleware-based approach
   manifest: '/manifest.json',
   icons: {
+    icon: '/favicon.svg',
     apple: '/apple-touch-icon.png',
   },
 }

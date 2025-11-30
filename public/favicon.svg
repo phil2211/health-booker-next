@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="vibrant-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FA8BFF;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#2BD2FF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2BFF88;stop-opacity:1" />
+    </linearGradient>
+    <filter id="dropShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="10"/>
+      <feOffset dx="5" dy="5" result="offsetblur"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.3"/>
+      </feComponentTransfer>
+      <feMerge> 
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/> 
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <rect x="32" y="32" width="448" height="448" rx="112" fill="url(#vibrant-grad)" />
+  
+  <!-- Medical Cross Symbol -->
+  <g filter="url(#dropShadow)">
+    <rect x="216" y="136" width="80" height="240" rx="20" fill="white" />
+    <rect x="136" y="216" width="240" height="80" rx="20" fill="white" />
+  </g>
+</svg>
