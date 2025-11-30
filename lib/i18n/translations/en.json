@@ -307,7 +307,10 @@
     "bioDeutsch": "Bio (Deutsch)",
     "markdownSupported": "Markdown supported. Line breaks are preserved.",
     "saving": "Saving...",
-    "saveChanges": "Save Changes"
+    "saveChanges": "Save Changes",
+    "profileImage": "Profile Image",
+    "imageTooLarge": "Image too large (max 1MB)",
+    "imageRequirements": "PNG, JPEG or GIF. Max 1MB."
   },
   "home": {
     "title": "Health Worker Booking System",

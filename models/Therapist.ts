@@ -7,6 +7,10 @@ export type TherapistDocument = Therapist & {
   _id: string
   createdAt: Date
   updatedAt: Date
+  profileImage?: {
+    data: Buffer
+    contentType: string
+  }
 }
 
 /**
@@ -353,6 +357,10 @@ export async function updateTherapistProfile(
     zip?: string
     city?: string
     phoneNumber?: string
+    profileImage?: {
+      data: Buffer
+      contentType: string
+    }
   }
 ): Promise<TherapistDocument | null> {
   try {
@@ -376,6 +384,7 @@ export async function updateTherapistProfile(
     if (profileData.zip !== undefined) updateFields.zip = profileData.zip
     if (profileData.city !== undefined) updateFields.city = profileData.city
     if (profileData.phoneNumber !== undefined) updateFields.phoneNumber = profileData.phoneNumber
+    if (profileData.profileImage !== undefined) updateFields.profileImage = profileData.profileImage
 
     // Use updateOne instead of findOneAndUpdate for more reliable results
     const updateResult = await db.collection('therapists').updateOne(

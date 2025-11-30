@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useTranslation } from '@/lib/i18n/useTranslation'
 import { useLocale } from '@/lib/i18n/LocaleProvider'
 import LogoutButton from '@/components/LogoutButton'
@@ -39,9 +40,18 @@ export default function ResponsiveHeader({
         <div className="flex justify-between items-center h-16">
           {/* Left side - Logo and title */}
           <div className="flex items-center space-x-4 min-w-0 flex-1">
-            <span className="text-xl font-bold text-indigo-600 flex-shrink-0">
-              {t('booking.healthBooker')}
-            </span>
+            <Link href={homePath} className="flex-shrink-0 hover:opacity-80 transition-opacity flex items-center gap-2">
+              <Image
+                src="/favicon.svg"
+                alt="HealthBooker Logo"
+                width={32}
+                height={32}
+                className="w-8 h-8"
+              />
+              <span className="text-xl font-bold text-indigo-600">
+                {t('booking.healthBooker')}
+              </span>
+            </Link>
             <span className="text-gray-400 hidden sm:block">|</span>
             <span className="text-sm text-gray-600 truncate hidden sm:block">{pageTitle}</span>
           </div>

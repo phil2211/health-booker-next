@@ -57,6 +57,7 @@ export default function ProfileEditForm({ therapist }: ProfileEditFormProps) {
     const [zip, setZip] = useState(therapist.zip || '')
     const [city, setCity] = useState(therapist.city || '')
     const [phoneNumber, setPhoneNumber] = useState(therapist.phoneNumber || '')
+    const [profileImage, setProfileImage] = useState<File | null>(null)
 
     // We keep track of both languages in state to preserve data
     const [bioEn, setBioEn] = useState(getInitialValue(therapist.bio, 'en'))
@@ -76,12 +77,23 @@ export default function ProfileEditForm({ therapist }: ProfileEditFormProps) {
         setSuccess(false)
 
         try {
-            const response = await fetch(`/api/therapist/${therapist._id}`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
+            let body: any
+            const headers: HeadersInit = {}
+
+            if (profileImage) {
+                const formData = new FormData()
+                formData.append('name', name)
+                formData.append('address', address)
+                formData.append('zip', zip)
+                formData.append('city', city)
+                formData.append('phoneNumber', phoneNumber)
+                formData.append('bio', JSON.stringify({ en: bioEn, de: bioDe }))
+                formData.append('specialization', JSON.stringify({ en: specializationEn, de: specializationDe }))
+                formData.append('profileImage', profileImage)
+                body = formData
+            } else {
+                headers['Content-Type'] = 'application/json'
+                body = JSON.stringify({
                     name,
                     address,
                     zip,
@@ -95,7 +107,13 @@ export default function ProfileEditForm({ therapist }: ProfileEditFormProps) {
                         en: specializationEn,
                         de: specializationDe,
                     },
-                }),
+                })
+            }
+
+            const response = await fetch(`/api/therapist/${therapist._id}`, {
+                method: 'PATCH',
+                headers,
+                body,
             })
 
             if (!response.ok) {
@@ -128,6 +146,32 @@ export default function ProfileEditForm({ therapist }: ProfileEditFormProps) {
                     {t('dashboard.profileUpdatedSuccess')}
                 </div>
             )}
+
+            {/* Profile Image Field */}
+            <div>
+                <label htmlFor="profileImage" className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('dashboard.profileImage')}
+                </label>
+                <input
+                    type="file"
+                    id="profileImage"
+                    accept="image/png, image/jpeg, image/gif"
+                    onChange={(e) => {
+                        const file = e.target.files?.[0]
+                        if (file) {
+                            if (file.size > 1024 * 1024) {
+                                setError(t('dashboard.imageTooLarge') || 'Image too large (max 1MB)')
+                                e.target.value = '' // Reset input
+                                return
+                            }
+                            setProfileImage(file)
+                            setError(null)
+                        }
+                    }}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+                />
+                <p className="text-xs text-gray-500 mt-1">{t('dashboard.imageRequirements') || 'PNG, JPEG or GIF. Max 1MB.'}</p>
+            </div>
 
             {/* Name Field */}
             <div>
@@ -185,7 +229,7 @@ export default function ProfileEditForm({ therapist }: ProfileEditFormProps) {
                         id="zip"
                         value={zip}
                         onChange={(e) => setZip(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
                     />
                 </div>
                 <div>
@@ -197,7 +241,7 @@ export default function ProfileEditForm({ therapist }: ProfileEditFormProps) {
                         id="city"
                         value={city}
                         onChange={(e) => setCity(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
                     />
                 </div>
             </div>

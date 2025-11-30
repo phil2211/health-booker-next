@@ -65,7 +65,7 @@ export async function PATCH(
 ) {
   try {
     const { id } = await params
-    const body = await request.json()
+    const contentType = request.headers.get('content-type') || ''
 
     // Validate ID format
     if (!ObjectId.isValid(id)) {
@@ -74,11 +74,6 @@ export async function PATCH(
         { status: 404 }
       )
     }
-
-    // Call update function
-    // Note: In a real app, we should validate the session user matches the ID
-    // or has admin privileges. Assuming session validation happens in middleware or client.
-    // For now, we'll trust the ID but in production we'd check session.user.id === id
 
     const { updateTherapistProfile, findTherapistById } = await import('@/models/Therapist')
     const { translateText } = await import('@/lib/translation')
@@ -92,8 +87,58 @@ export async function PATCH(
       )
     }
 
+    let updateData: any = {}
+    let bio: any
+    let specialization: any
+
+    if (contentType.includes('multipart/form-data')) {
+      const formData = await request.formData()
+
+      // Extract basic fields
+      updateData.name = formData.get('name') as string
+      updateData.address = formData.get('address') as string
+      updateData.zip = formData.get('zip') as string
+      updateData.city = formData.get('city') as string
+      updateData.phoneNumber = formData.get('phoneNumber') as string
+
+      // Extract and parse JSON fields
+      const bioStr = formData.get('bio') as string
+      if (bioStr) {
+        try {
+          bio = JSON.parse(bioStr)
+        } catch (e) {
+          console.error('Error parsing bio JSON:', e)
+        }
+      }
+
+      const specializationStr = formData.get('specialization') as string
+      if (specializationStr) {
+        try {
+          specialization = JSON.parse(specializationStr)
+        } catch (e) {
+          console.error('Error parsing specialization JSON:', e)
+        }
+      }
+
+      // Handle image upload
+      const file = formData.get('profileImage') as File
+      if (file) {
+        const bytes = await file.arrayBuffer()
+        const buffer = Buffer.from(bytes)
+        updateData.profileImage = {
+          data: buffer,
+          contentType: file.type
+        }
+      }
+    } else {
+      // Handle JSON request (legacy/existing)
+      const body = await request.json()
+      updateData = { ...body }
+      bio = body.bio
+      specialization = body.specialization
+    }
+
     // Process bio translation
-    let bio = body.bio
     if (bio && typeof bio === 'object') {
       console.log('Processing bio translation:', bio)
       // If we have an object, check for missing translations
@@ -109,7 +154,6 @@ export async function PATCH(
     }
 
     // Process specialization translation
-    let specialization = body.specialization
     if (specialization && typeof specialization === 'object') {
       console.log('Processing specialization translation:', specialization)
       if (specialization.de && !specialization.en) {
@@ -124,13 +168,9 @@ export async function PATCH(
     }
 
     const updatedTherapist = await updateTherapistProfile(id, {
-      ...body,
+      ...updateData,
       bio,
       specialization,
-      address: body.address,
-      zip: body.zip,
-      city: body.city,
-      phoneNumber: body.phoneNumber
     })
 
     if (!updatedTherapist) {
