@@ -249,6 +249,7 @@
     "namePlaceholder": "z.B. Standardsitzung, Erstberatung",
     "duration": "Sitzungsdauer",
     "breakDuration": "Pause nach Sitzung",
+    "price": "Preis",
     "minutes": "Minuten",
     "totalTime": "Gesamtzeit (Sitzung + Pause)",
     "descriptionLabel": "Beschreibung",
@@ -311,6 +312,23 @@
     "uploadFile": "Datei hochladen",
     "orDragAndDrop": "oder per Drag & Drop",
     "linkedinUrl": "LinkedIn Profil-URL"
+  },
+  "subscription": {
+    "title": "Abonnement & Nutzung",
+    "currentPlan": "Aktueller Plan",
+    "usage": "Nutzung",
+    "bookingsUsed": "{{used}} von {{limit}} Buchungen genutzt",
+    "unlimited": "Unbegrenzte Buchungen",
+    "upgradeToPro": "Upgrade auf Pro",
+    "manageSubscription": "Abo verwalten",
+    "free": "Kostenlos",
+    "pro": "Pro",
+    "active": "Aktiv",
+    "canceled": "Gekündigt",
+    "past_due": "Überfällig",
+    "incomplete": "Unvollständig",
+    "trialing": "Probezeit",
+    "upgradeDescription": "Erhalten Sie unbegrenzte Buchungen für nur CHF 29/Monat."
   },
   "home": {
     "title": "Buche deine Behandlung",

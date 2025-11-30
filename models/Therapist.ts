@@ -1,4 +1,4 @@
-import { Therapist, AvailabilityEntry, BlockedSlot, TherapyOffering } from '@/lib/types'
+import { Therapist, AvailabilityEntry, BlockedSlot, TherapyOffering, SubscriptionPlan, SubscriptionStatus } from '@/lib/types'
 import bcrypt from 'bcryptjs'
 import { getDatabase } from '@/lib/mongodb'
 import { ObjectId } from 'mongodb'
@@ -186,6 +186,11 @@ export async function createTherapist(
     photoUrl,
     weeklyAvailability: [],
     blockedSlots: [],
+    // Initialize with Free plan
+    subscriptionPlan: SubscriptionPlan.FREE,
+    subscriptionStatus: SubscriptionStatus.ACTIVE,
+    bookingsCount: 0,
+    lastQuotaResetDate: now,
     createdAt: now,
     updatedAt: now,
   }
@@ -442,4 +447,73 @@ export async function updateTherapistProfile(
     console.error('Error updating therapist profile:', error)
     throw error // Re-throw to be caught by API route
   }
+}
+
+/**
+ * Check and reset monthly booking quota if needed
+ * Returns true if quota was reset
+ */
+export async function checkAndResetQuota(therapistId: string): Promise<boolean> {
+  const db = await getDatabase()
+
+  const therapist = await db.collection('therapists').findOne({ _id: new ObjectId(therapistId) })
+  if (!therapist) return false
+
+  const now = new Date()
+  const lastReset = therapist.lastQuotaResetDate ? new Date(therapist.lastQuotaResetDate) : new Date(0)
+
+  // Check if we're in a new month compared to last reset
+  const isNewMonth = now.getMonth() !== lastReset.getMonth() || now.getFullYear() !== lastReset.getFullYear()
+
+  if (isNewMonth) {
+    await db.collection('therapists').updateOne(
+      { _id: new ObjectId(therapistId) },
+      {
+        $set: {
+          bookingsCount: 0,
+          lastQuotaResetDate: now
+        }
+      }
+    )
+    return true
+  }
+
+  return false
+}
+
+/**
+ * Increment booking count for a therapist
+ */
+export async function incrementBookingCount(therapistId: string): Promise<void> {
+  const db = await getDatabase()
+  await db.collection('therapists').updateOne(
+    { _id: new ObjectId(therapistId) },
+    { $inc: { bookingsCount: 1 } }
+  )
+}
+
+/**
+ * Update therapist subscription status
+ */
+export async function updateTherapistSubscription(
+  therapistId: string,
+  plan: SubscriptionPlan,
+  status: SubscriptionStatus,
+  payrexxId?: string
+): Promise<void> {
+  const db = await getDatabase()
+  const updates: any = {
+    subscriptionPlan: plan,
+    subscriptionStatus: status,
+    updatedAt: new Date()
+  }
+
+  if (payrexxId) {
+    updates.payrexxSubscriptionId = payrexxId
+  }
+
+  await db.collection('therapists').updateOne(
+    { _id: new ObjectId(therapistId) },
+    { $set: updates }
+  )
 }

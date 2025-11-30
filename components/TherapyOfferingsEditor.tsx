@@ -31,6 +31,7 @@ export default function TherapyOfferingsEditor({
             description: locale === 'en' ? { en: '', de: '' } : { en: '', de: '' },
             duration: 60,
             breakDuration: 30,
+            price: 100,
             isActive: true,
         }
         onChange([...therapyOfferings, newOffering])
@@ -309,6 +310,32 @@ export default function TherapyOfferingsEditor({
                                         />
                                         <span className="text-sm text-gray-600 whitespace-nowrap">
                                             {t('therapyOfferings.minutes')}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {/* Price */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        {t('therapyOfferings.price')}
+                                    </label>
+                                    <div className="flex items-center gap-2">
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            step="5"
+                                            value={offering.price || 0}
+                                            onChange={(e) =>
+                                                handleUpdate(
+                                                    offering._id!,
+                                                    'price',
+                                                    parseFloat(e.target.value) || 0
+                                                )
+                                            }
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-black"
+                                        />
+                                        <span className="text-sm text-gray-600 whitespace-nowrap">
+                                            CHF
                                         </span>
                                     </div>
                                 </div>

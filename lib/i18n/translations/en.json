@@ -252,6 +252,7 @@
     "namePlaceholder": "e.g., Standard Session, Initial Consultation",
     "duration": "Session Duration",
     "breakDuration": "Break After Session",
+    "price": "Price",
     "minutes": "minutes",
     "totalTime": "Total Time (Session + Break)",
     "descriptionLabel": "Description",
@@ -314,6 +315,23 @@
     "uploadFile": "Upload a file",
     "orDragAndDrop": "or drag and drop",
     "linkedinUrl": "LinkedIn Profile URL"
+  },
+  "subscription": {
+    "title": "Subscription & Usage",
+    "currentPlan": "Current Plan",
+    "usage": "Usage",
+    "bookingsUsed": "{{used}} of {{limit}} bookings used",
+    "unlimited": "Unlimited bookings",
+    "upgradeToPro": "Upgrade to Pro",
+    "manageSubscription": "Manage Subscription",
+    "free": "Free",
+    "pro": "Pro",
+    "active": "Active",
+    "canceled": "Canceled",
+    "past_due": "Past Due",
+    "incomplete": "Incomplete",
+    "trialing": "Trialing",
+    "upgradeDescription": "Get unlimited bookings for just CHF 29/month."
   },
   "home": {
     "title": "Health Worker Booking System",

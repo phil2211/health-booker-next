@@ -33,6 +33,7 @@ export interface TherapyOffering {
   description: string | { en: string; de: string } // Description of the therapy type
   duration: number // Session duration in minutes
   breakDuration: number // Break duration after session in minutes
+  price: number // Price for the session
   isActive: boolean // Whether this offering is currently available for booking
   createdAt?: Date
   updatedAt?: Date
@@ -42,6 +43,19 @@ export interface TherapyOffering {
  * Therapist model as per Requirements.md
  * Healthcare professionals who manage appointments
  */
+export enum SubscriptionPlan {
+  FREE = 'free',
+  PRO = 'pro'
+}
+
+export enum SubscriptionStatus {
+  ACTIVE = 'active',
+  CANCELED = 'canceled',
+  PAST_DUE = 'past_due',
+  INCOMPLETE = 'incomplete',
+  TRIALING = 'trialing'
+}
+
 export interface Therapist {
   _id?: string
   email: string
@@ -57,6 +71,14 @@ export interface Therapist {
   linkedinUrl?: string
   weeklyAvailability: AvailabilityEntry[]
   blockedSlots: BlockedSlot[]
+
+  // Subscription & Quota
+  subscriptionPlan: SubscriptionPlan
+  subscriptionStatus: SubscriptionStatus
+  payrexxSubscriptionId?: string
+  bookingsCount: number // Current month usage
+  lastQuotaResetDate: Date
+
   therapyOfferings?: TherapyOffering[] // Configurable therapy session types
   bookings?: Array<{
     _id: string

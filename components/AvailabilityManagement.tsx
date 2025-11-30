@@ -312,6 +312,27 @@ export default function AvailabilityManagement() {
       }
     }
 
+    // Validate therapy offerings
+    if (Array.isArray(therapyOfferings)) {
+      for (const offering of therapyOfferings) {
+        if (!offering || typeof offering !== 'object') {
+          return 'Invalid therapy offering entry.'
+        }
+
+        if (typeof offering.duration !== 'number' || offering.duration < 15 || offering.duration > 240) {
+          return 'Duration must be between 15 and 240 minutes.'
+        }
+
+        if (typeof offering.breakDuration !== 'number' || offering.breakDuration < 0 || offering.breakDuration > 60) {
+          return 'Break duration must be between 0 and 60 minutes.'
+        }
+
+        if (offering.price !== undefined && (typeof offering.price !== 'number' || offering.price < 0)) {
+          return 'Price must be a valid positive number.'
+        }
+      }
+    }
+
     return null
   }
 

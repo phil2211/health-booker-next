@@ -41,6 +41,9 @@ export default async function DashboardPage() {
         email: therapist.email,
         weeklyAvailability: therapist.weeklyAvailability,
         blockedSlots: therapist.blockedSlots,
+        subscriptionPlan: therapist.subscriptionPlan,
+        subscriptionStatus: therapist.subscriptionStatus,
+        bookingsCount: therapist.bookingsCount,
       }}
       bookingUrl={bookingUrl}
       baseUrl={baseUrl}

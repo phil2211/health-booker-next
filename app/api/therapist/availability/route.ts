@@ -148,6 +148,13 @@ export async function PUT(request: Request) {
           )
         }
 
+        if (typeof offering.price !== 'number' || offering.price < 0) {
+          return NextResponse.json(
+            createErrorResponse(new Error(`Therapy offering at index ${i} must have a valid price`), 'PUT /api/therapist/availability', 400),
+            { status: 400 }
+          )
+        }
+
         if (typeof offering.isActive !== 'boolean') {
           return NextResponse.json(
             createErrorResponse(new Error(`Therapy offering at index ${i} must have isActive as boolean`), 'PUT /api/therapist/availability', 400),

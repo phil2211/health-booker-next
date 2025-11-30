@@ -19,6 +19,9 @@ interface DashboardClientProps {
     phoneNumber?: string
     weeklyAvailability: any[]
     blockedSlots: any[]
+    subscriptionPlan: string
+    subscriptionStatus: string
+    bookingsCount: number
   }
   bookingUrl: string
   baseUrl: string
@@ -124,6 +127,60 @@ export default function DashboardClient({ therapist, bookingUrl, baseUrl, upcomi
                 <p className="text-sm font-medium text-gray-500">{t('dashboard.appointmentsInCalendar')}</p>
                 <p className="text-2xl font-bold text-gray-900">{upcomingAppointmentsCount}</p>
               </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Subscription Card */}
+        <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-purple-500 mb-8">
+          <div className="flex flex-col md:flex-row items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('subscription.title')}</h3>
+              <div className="flex items-center gap-2 mb-2">
+                <span className={`px-3 py-1 rounded-full text-sm font-medium ${therapist.subscriptionPlan === 'pro' ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800'
+                  }`}>
+                  {therapist.subscriptionPlan === 'pro' ? t('subscription.pro') : t('subscription.free')}
+                </span>
+                <span className={`text-sm ${therapist.subscriptionStatus === 'active' ? 'text-green-600' : 'text-red-600'
+                  }`}>
+                  ({t(`subscription.${therapist.subscriptionStatus}`)})
+                </span>
+              </div>
+              <p className="text-gray-600">
+                {therapist.subscriptionPlan === 'pro'
+                  ? t('subscription.unlimited')
+                  : t('subscription.bookingsUsed', { used: therapist.bookingsCount, limit: 5 })
+                }
+              </p>
+              {therapist.subscriptionPlan !== 'pro' && (
+                <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2 max-w-xs">
+                  <div
+                    className="bg-purple-600 h-2.5 rounded-full"
+                    style={{ width: `${Math.min((therapist.bookingsCount / 5) * 100, 100)}%` }}
+                  ></div>
+                </div>
+              )}
+            </div>
+            <div className="mt-4 md:mt-0">
+              {therapist.subscriptionPlan !== 'pro' ? (
+                <a
+                  href={`${process.env.NEXT_PUBLIC_PAYREXX_PRO_PLAN_LINK || '#'}${process.env.NEXT_PUBLIC_PAYREXX_PRO_PLAN_LINK?.includes('?') ? '&' : '?'}referenceId=${therapist._id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block bg-purple-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-purple-700 transition-colors shadow-sm"
+                >
+                  {t('subscription.upgradeToPro')}
+                </a>
+              ) : (
+                <a
+                  href={process.env.NEXT_PUBLIC_PAYREXX_PORTAL_LINK || '#'}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block bg-gray-100 text-gray-700 px-6 py-3 rounded-lg font-medium hover:bg-gray-200 transition-colors"
+                >
+                  {t('subscription.manageSubscription')}
+                </a>
+              )}
             </div>
           </div>
         </div>
