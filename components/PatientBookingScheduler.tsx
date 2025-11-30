@@ -448,7 +448,7 @@ export default function PatientBookingScheduler({ therapistId, blockedSlots = []
                           {description}
                         </p>
                       </div>
-                      <div className="text-sm font-medium text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full">
+                      <div className="text-sm font-medium text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full whitespace-nowrap flex-shrink-0">
                         {offering.duration} {t('therapyOfferings.minutes')}
                       </div>
                     </div>
