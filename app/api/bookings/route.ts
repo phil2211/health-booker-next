@@ -117,40 +117,80 @@ export async function POST(request: Request) {
     }
 
 
-    // Generate cancellation token
-    const cancellationToken = generateSecureToken()
+    // Start MongoDB session for ACID transaction
+    const { getClient } = await import('@/lib/mongodb')
+    const client = await getClient()
+    const session = client.startSession()
 
-    // Create booking
-    const booking = await createBooking({
-      therapistId: body.therapistId,
-      therapyOfferingId: body.therapyOfferingId,
-      patientName: body.patientName,
-      patientEmail: body.patientEmail,
-      patientPhone: body.patientPhone,
-      appointmentDate: body.appointmentDate,
-      startTime: body.startTime,
-      endTime: body.endTime,
-      status: BookingStatus.CONFIRMED,
-      cancellationToken,
-      notes: body.patientComment,
-      locale: body.locale,
-    })
+    let bookingResult: any = null
 
-    // Payment Logic
-    // Always deduct 1 CHF for every booking
     try {
-      const { deductBalance } = await import('@/models/Therapist')
-      await deductBalance(
-        body.therapistId,
-        1,
-        `Booking fee for ${body.patientName}`,
-        booking._id.toString()
+      await session.withTransaction(async () => {
+        // Generate cancellation token
+        const cancellationToken = generateSecureToken()
+
+        // Create booking with session
+        const booking = await createBooking({
+          therapistId: body.therapistId,
+          therapyOfferingId: body.therapyOfferingId,
+          patientName: body.patientName,
+          patientEmail: body.patientEmail,
+          patientPhone: body.patientPhone,
+          appointmentDate: body.appointmentDate,
+          startTime: body.startTime,
+          endTime: body.endTime,
+          status: BookingStatus.CONFIRMED,
+          cancellationToken,
+          notes: body.patientComment,
+          locale: body.locale,
+        }, session)
+
+        // Payment Logic: Deduct 1 CHF with session
+        const { deductBalance } = await import('@/models/Therapist')
+        await deductBalance(
+          body.therapistId,
+          1,
+          `Booking fee for ${body.patientName}`,
+          booking._id.toString(),
+          session
+        )
+
+        bookingResult = booking
+      })
+    } catch (transactionError) {
+      console.error('Transaction failed:', transactionError)
+      await session.endSession()
+
+      // Handle specific transaction errors
+      if (transactionError instanceof Error) {
+        if (transactionError.message.includes('Booking conflict')) {
+          return NextResponse.json(
+            { error: 'Time slot is already booked' },
+            { status: 409 }
+          )
+        }
+      }
+
+      return NextResponse.json(
+        { error: 'Failed to process booking transaction. Please try again.' },
+        { status: 500 }
       )
-    } catch (error) {
-      console.error('Failed to deduct balance after booking:', error)
+    } finally {
+      await session.endSession()
     }
 
-    // Send confirmation emails - if this fails, rollback the booking
+    if (!bookingResult) {
+      return NextResponse.json(
+        { error: 'Booking failed unexpectedly.' },
+        { status: 500 }
+      )
+    }
+
+    const booking = bookingResult
+
+    // Send confirmation emails - if this fails, we can't rollback the committed transaction easily
+    // but the booking is valid and paid for. We should log the error and maybe alert admin.
+    // Ideally, email sending should be decoupled (e.g., via a queue), but for now we try our best.
     const patient: Patient = {
       name: body.patientName,
       email: body.patientEmail,
@@ -160,36 +200,26 @@ export async function POST(request: Request) {
     try {
       await sendBookingConfirmationEmails(booking, therapist, patient)
     } catch (emailError) {
-      // Email sending failed - delete the booking to rollback
-      console.error('Email sending failed, rolling back booking:', emailError)
+      console.error('Email sending failed for confirmed booking:', emailError)
 
-      try {
-        const db = await getDatabase()
-        await db.collection('bookings').deleteOne({ _id: new ObjectId(booking._id) })
-        console.log('Booking rolled back successfully')
-      } catch (rollbackError) {
-        console.error('Failed to rollback booking after email error:', rollbackError)
-        // Continue to throw the original email error
-      }
+      // We do NOT rollback here because the transaction is already committed (money deducted).
+      // We inform the user that the booking is successful but email failed.
 
-      // Return a user-friendly error message
-      const errorMessage = emailError instanceof Error
-        ? emailError.message
-        : 'Failed to send confirmation email'
-
-      // Check if it's a Resend API error
-      if (errorMessage.includes('Resend API error') || errorMessage.includes('Failed to send')) {
-        return NextResponse.json(
-          {
-            error: 'Unable to send confirmation email. Please check your email address and try again. If the problem persists, please contact support.',
-            details: process.env.NODE_ENV === 'development' ? errorMessage : undefined
-          },
-          { status: 503 } // Service Unavailable
-        )
-      }
-
-      // Generic email error
-      throw emailError
+      return NextResponse.json({
+        booking: {
+          _id: booking._id,
+          therapistId: booking.therapistId,
+          patientName: booking.patientName,
+          patientEmail: booking.patientEmail,
+          appointmentDate: booking.appointmentDate,
+          startTime: booking.startTime,
+          endTime: booking.endTime,
+          status: booking.status,
+          cancellationToken: booking.cancellationToken,
+        },
+        message: 'Booking created successfully, but confirmation email could not be sent. Please contact the therapist.',
+        warning: 'Email delivery failed'
+      }, { status: 201 })
     }
 
 
@@ -210,6 +240,7 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error('Create booking error:', error)
 
+    // ... existing error handling ...
     if (error instanceof Error) {
       // Email sending errors (already handled above, but catch any that slip through)
       if (error.message.includes('Resend API error') || error.message.includes('Failed to send')) {

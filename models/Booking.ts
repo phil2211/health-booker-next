@@ -192,7 +192,12 @@ export async function checkBookingConflict(
  * Create a new booking
  * Stores booking only in the bookings collection
  */
-export async function createBooking(booking: Omit<Booking, '_id' | 'createdAt' | 'updatedAt'>): Promise<BookingDocument> {
+import { ClientSession } from 'mongodb'
+
+export async function createBooking(
+  booking: Omit<Booking, '_id' | 'createdAt' | 'updatedAt'>,
+  session?: ClientSession
+): Promise<BookingDocument> {
   const db = await getDatabase()
 
   // Validate booking data
@@ -246,13 +251,16 @@ export async function createBooking(booking: Omit<Booking, '_id' | 'createdAt' |
   }
 
   // Insert booking into bookings collection
-  const insertResult = await db.collection('bookings').insertOne(bookingDoc)
+  const insertResult = await db.collection('bookings').insertOne(bookingDoc, { session })
   const bookingId = insertResult.insertedId
 
 
 
   // Return the created booking document
-  const createdBooking = await db.collection('bookings').findOne({ _id: bookingId })
+  const createdBooking = await db.collection('bookings').findOne(
+    { _id: bookingId },
+    { session }
+  )
 
   if (!createdBooking) {
     throw new Error('Failed to retrieve created booking')

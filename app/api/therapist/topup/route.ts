@@ -42,11 +42,33 @@ export async function POST(request: Request) {
             )
         }
 
-        // Perform top up
-        const updatedTherapist = await topUpBalance(
-            body.therapistId,
-            body.amount
-        )
+        // Start MongoDB session for ACID transaction
+        const { getClient } = await import('@/lib/mongodb')
+        const client = await getClient()
+        const session = client.startSession()
+
+        let updatedTherapist: any = null
+
+        try {
+            await session.withTransaction(async () => {
+                // Perform top up with session
+                updatedTherapist = await topUpBalance(
+                    body.therapistId,
+                    body.amount,
+                    'Account Top Up',
+                    session
+                )
+            })
+        } catch (transactionError) {
+            console.error('Top up transaction failed:', transactionError)
+            await session.endSession()
+            return NextResponse.json(
+                { error: 'Failed to process top up transaction' },
+                { status: 500 }
+            )
+        } finally {
+            await session.endSession()
+        }
 
         if (!updatedTherapist) {
             return NextResponse.json(

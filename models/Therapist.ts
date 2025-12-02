@@ -454,115 +454,103 @@ export async function updateTherapistProfile(
 
 
 /**
+ * Update therapist balance and log transaction in a new collection
+ * Supports ACID transactions via MongoDB session
+ */
+import { ClientSession } from 'mongodb'
+
+export async function updateTherapistBalance(
+  therapistId: string,
+  amount: number,
+  description: string,
+  bookingId?: string,
+  session?: ClientSession
+): Promise<TherapistDocument | null> {
+  const db = await getDatabase()
+  const now = new Date()
+
+  // 1. Get current therapist to check balance
+  const therapist = await db.collection('therapists').findOne(
+    { _id: new ObjectId(therapistId) },
+    { session }
+  )
+
+  if (!therapist) {
+    throw new Error('Therapist not found')
+  }
+
+  const currentBalance = therapist.balance || 0
+  const newBalance = currentBalance + amount
+
+  // 2. Prepare updates
+  const updates: any = {
+    balance: newBalance,
+    updatedAt: now
+  }
+
+  // Handle negative balance tracking
+  if (newBalance < 0 && currentBalance >= 0) {
+    updates.negativeBalanceSince = now
+  } else if (newBalance >= 0 && therapist.negativeBalanceSince) {
+    updates.negativeBalanceSince = null
+  }
+
+  // 3. Update therapist balance
+  const updateResult = await db.collection('therapists').findOneAndUpdate(
+    { _id: new ObjectId(therapistId) },
+    { $set: updates },
+    {
+      session,
+      returnDocument: 'after'
+    }
+  )
+
+  if (!updateResult) {
+    throw new Error('Failed to update therapist balance')
+  }
+
+  // 4. Create transaction record in new collection
+  const transaction = {
+    therapistId: new ObjectId(therapistId),
+    type: amount >= 0 ? 'CREDIT' : 'CHARGE',
+    amount: Math.abs(amount),
+    date: now,
+    description,
+    bookingId: bookingId ? new ObjectId(bookingId) : undefined,
+    createdAt: now
+  }
+
+  await db.collection('transactions').insertOne(transaction, { session })
+
+  return {
+    ...updateResult,
+    _id: updateResult._id.toString(),
+  } as TherapistDocument
+}
+
+/**
  * Deduct amount from therapist balance and log transaction
- * Returns updated therapist document
+ * Wrapper around updateTherapistBalance for backward compatibility
  */
 export async function deductBalance(
   therapistId: string,
   amount: number,
   description: string,
-  bookingId?: string
+  bookingId?: string,
+  session?: ClientSession
 ): Promise<TherapistDocument | null> {
-  const db = await getDatabase()
-  const now = new Date()
-
-  // First get current state to check for negative balance transition
-  const therapist = await db.collection('therapists').findOne({ _id: new ObjectId(therapistId) })
-  if (!therapist) return null
-
-  const currentBalance = therapist.balance || 0
-  const newBalance = currentBalance - amount
-
-  const updates: any = {
-    balance: newBalance,
-    updatedAt: now
-  }
-
-  // If balance goes negative (and wasn't already), set negativeBalanceSince
-  if (newBalance < 0 && currentBalance >= 0) {
-    updates.negativeBalanceSince = now
-  }
-  // If balance becomes positive (or zero), clear negativeBalanceSince
-  else if (newBalance >= 0 && therapist.negativeBalanceSince) {
-    updates.negativeBalanceSince = null
-  }
-
-  const transaction = {
-    id: new ObjectId().toString(),
-    type: 'CHARGE',
-    amount: amount,
-    date: now,
-    description,
-    bookingId
-  }
-
-  const result = await db.collection('therapists').findOneAndUpdate(
-    { _id: new ObjectId(therapistId) },
-    {
-      $set: updates,
-      $push: { transactions: transaction }
-    } as any,
-    { returnDocument: 'after' }
-  )
-
-  if (!result) return null
-
-  return {
-    ...result,
-    _id: result._id.toString(),
-  } as TherapistDocument
+  return updateTherapistBalance(therapistId, -amount, description, bookingId, session)
 }
 
 /**
  * Top up therapist balance and log transaction
- * Returns updated therapist document
+ * Wrapper around updateTherapistBalance for backward compatibility
  */
 export async function topUpBalance(
   therapistId: string,
   amount: number,
-  description: string = 'Account Top Up'
+  description: string = 'Account Top Up',
+  session?: ClientSession
 ): Promise<TherapistDocument | null> {
-  const db = await getDatabase()
-  const now = new Date()
-
-  // First get current state to check for negative balance transition
-  const therapist = await db.collection('therapists').findOne({ _id: new ObjectId(therapistId) })
-  if (!therapist) return null
-
-  const currentBalance = therapist.balance || 0
-  const newBalance = currentBalance + amount
-
-  const updates: any = {
-    balance: newBalance,
-    updatedAt: now
-  }
-
-  // If balance becomes positive (or zero), clear negativeBalanceSince
-  if (newBalance >= 0 && therapist.negativeBalanceSince) {
-    updates.negativeBalanceSince = null
-  }
-
-  const transaction = {
-    id: new ObjectId().toString(),
-    type: 'CREDIT',
-    amount: amount,
-    date: now,
-    description
-  }
-
-  const result = await db.collection('therapists').findOneAndUpdate(
-    { _id: new ObjectId(therapistId) },
-    {
-      $set: updates,
-      $push: { transactions: transaction }
-    } as any,
-    { returnDocument: 'after' }
-  )
-
-  if (!result) return null
-
-  return {
-    ...result,
-    _id: result._id.toString(),
-  } as TherapistDocument
+  return updateTherapistBalance(therapistId, amount, description, undefined, session)
 }
