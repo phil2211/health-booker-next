@@ -74,6 +74,10 @@ export default function ProfileEditForm({ therapist }: ProfileEditFormProps) {
     }
     const [availableCategories, setAvailableCategories] = useState<CategoryData[]>([])
 
+    // Track which category cards are visible/active
+    const [activeCategoryIds, setActiveCategoryIds] = useState<string[]>([])
+    const [hasInitializedActiveCats, setHasInitializedActiveCats] = useState(false)
+
     useEffect(() => {
         const fetchCategories = async () => {
             try {
@@ -88,6 +92,17 @@ export default function ProfileEditForm({ therapist }: ProfileEditFormProps) {
         }
         fetchCategories()
     }, [])
+
+    // Initialize active categories from saved specialization once categories are loaded
+    useEffect(() => {
+        if (availableCategories.length > 0 && !hasInitializedActiveCats) {
+            const initialActive = availableCategories
+                .filter(c => c.tags.some(t => specialization.includes(t.id)))
+                .map(c => c.category.en)
+            setActiveCategoryIds(initialActive)
+            setHasInitializedActiveCats(true)
+        }
+    }, [availableCategories, hasInitializedActiveCats, specialization])
 
     const [isSaving, setIsSaving] = useState(false)
     const [error, setError] = useState<string | null>(null)
@@ -365,79 +380,136 @@ export default function ProfileEditForm({ therapist }: ProfileEditFormProps) {
             </div>
 
             {/* Specialization Field */}
+            {/* Specialization Field */}
             <div className="border-t pt-6">
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">{t('dashboard.specialization')}</h2>
-                <div className="space-y-6">
+
+                {/* Active Categories List */}
+                <div className="space-y-4 mb-6">
                     {availableCategories.map((catGroup) => {
-                        const catId = catGroup.category.en; // Use English name as stable ID for grouping
+                        const catId = catGroup.category.en;
                         const catName = locale === 'en' ? catGroup.category.en : catGroup.category.de;
 
                         // Check if any tag in this category is selected
                         const selectedTagsInThisCat = catGroup.tags.filter(t => specialization.includes(t.id));
-                        const isCategorySelected = selectedTagsInThisCat.length > 0;
 
-                        // Count total selected categories (groups that have at least one tag selected)
-                        const selectedCategoryCount = availableCategories.filter(c =>
-                            c.tags.some(t => specialization.includes(t.id))
-                        ).length;
+                        // Category is active if it's in our manual list
+                        const isCategoryActive = activeCategoryIds.includes(catId);
 
-                        const isMaxCategoriesReached = !isCategorySelected && selectedCategoryCount >= 3;
+                        if (!isCategoryActive) return null;
 
                         return (
-                            <div key={catId} className={`border rounded-lg p-4 ${isCategorySelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}>
+                            <div key={catId} className="border border-blue-200 bg-blue-50 rounded-lg p-4">
                                 <div className="flex items-center justify-between mb-3">
-                                    <h3 className={`font-medium ${isCategorySelected ? 'text-blue-700' : 'text-gray-900'}`}>
-                                        {catName}
-                                    </h3>
-                                    {isCategorySelected && (
-                                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-                                            {selectedTagsInThisCat.length} / 3
-                                        </span>
-                                    )}
+                                    <h3 className="font-medium text-blue-900">{catName}</h3>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            // Remove all tags from this category
+                                            const tagsToRemove = catGroup.tags.map(t => t.id);
+                                            setSpecialization(specialization.filter(id => !tagsToRemove.includes(id)));
+                                            // Remove from active list
+                                            setActiveCategoryIds(activeCategoryIds.filter(id => id !== catId));
+                                        }}
+                                        className="text-sm text-red-600 hover:text-red-800"
+                                    >
+                                        {t('common.remove') || 'Remove'}
+                                    </button>
                                 </div>
 
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                    {catGroup.tags.map(tag => {
-                                        const isSelected = specialization.includes(tag.id);
-                                        const isDisabled =
-                                            // Disable if category limit reached and this category is not selected
-                                            (isMaxCategoriesReached && !isCategorySelected) ||
-                                            // Disable if max tags (3) reached for this category and not selected
-                                            (isCategorySelected && selectedTagsInThisCat.length >= 3 && !isSelected);
+                                {/* Tag Picker Component */}
+                                <div className="relative">
+                                    <div className="flex flex-wrap gap-2 p-2 bg-white border border-blue-200 rounded-md min-h-[42px]">
+                                        {selectedTagsInThisCat.map(tag => (
+                                            <span key={tag.id} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                                                {locale === 'en' ? tag.name.en : tag.name.de}
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setSpecialization(specialization.filter(id => id !== tag.id))}
+                                                    className="ml-1.5 inline-flex items-center justify-center h-4 w-4 rounded-full text-blue-400 hover:bg-blue-200 hover:text-blue-600 focus:outline-none"
+                                                >
+                                                    <span className="sr-only">Remove large option</span>
+                                                    <svg className="h-2 w-2" stroke="currentColor" fill="none" viewBox="0 0 8 8">
+                                                        <path strokeLinecap="round" strokeWidth="1.5" d="M1 1l6 6m0-6L1 7" />
+                                                    </svg>
+                                                </button>
+                                            </span>
+                                        ))}
 
-                                        return (
-                                            <div key={tag.id} className="flex items-center">
-                                                <input
-                                                    type="checkbox"
-                                                    id={`tag-${tag.id}`}
-                                                    checked={isSelected}
-                                                    disabled={isDisabled}
+                                        {selectedTagsInThisCat.length < 3 && (
+                                            <div className="relative flex-grow group">
+                                                <select
                                                     onChange={(e) => {
-                                                        if (e.target.checked) {
-                                                            setSpecialization([...specialization, tag.id])
-                                                        } else {
-                                                            setSpecialization(specialization.filter(id => id !== tag.id))
+                                                        if (e.target.value) {
+                                                            setSpecialization([...specialization, e.target.value]);
+                                                            e.target.value = ''; // Reset select
                                                         }
                                                     }}
-                                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed"
-                                                />
-                                                <label
-                                                    htmlFor={`tag-${tag.id}`}
-                                                    className={`ml-2 block text-sm ${isDisabled ? 'text-gray-400' : 'text-gray-900'}`}
+                                                    className="w-full border-none focus:ring-0 text-sm py-1 pl-2 pr-8 text-gray-500 bg-transparent cursor-pointer"
+                                                    value=""
                                                 >
-                                                    {locale === 'en' ? tag.name.en : tag.name.de}
-                                                </label>
+                                                    <option value="" disabled>{t('dashboard.addTag') || 'Add sub-category...'}</option>
+                                                    {catGroup.tags
+                                                        .filter(t => !specialization.includes(t.id))
+                                                        .map(tag => (
+                                                            <option key={tag.id} value={tag.id}>
+                                                                {locale === 'en' ? tag.name.en : tag.name.de}
+                                                            </option>
+                                                        ))
+                                                    }
+                                                </select>
                                             </div>
-                                        )
-                                    })}
+                                        )}
+                                    </div>
+                                    <p className="text-xs text-gray-500 mt-1">
+                                        {selectedTagsInThisCat.length}/3 {t('dashboard.subCategoriesSelected') || 'sub-categories selected'}
+                                    </p>
                                 </div>
-                                {isCategorySelected && selectedTagsInThisCat.length === 0 && (
-                                    <p className="text-xs text-red-500 mt-2">{t('dashboard.selectAtLeastOneSubCategory') || 'Please select at least one sub-category'}</p>
-                                )}
                             </div>
-                        )
+                        );
                     })}
                 </div>
+
+                {/* Add Category Button */}
+                {(() => {
+                    const activeCategoryCount = activeCategoryIds.length;
+
+                    if (activeCategoryCount < 3) {
+                        return (
+                            <div className="relative inline-block text-left">
+                                <select
+                                    onChange={(e) => {
+                                        const catId = e.target.value;
+                                        if (catId) {
+                                            setActiveCategoryIds([...activeCategoryIds, catId]);
+                                            e.target.value = '';
+                                        }
+                                    }}
+                                    className="inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                    value=""
+                                >
+                                    <option value="" disabled>{t('dashboard.addMainCategory') || '+ Add Main Category'}</option>
+                                    {availableCategories
+                                        .filter(c => !activeCategoryIds.includes(c.category.en))
+                                        .map(c => (
+                                            <option key={c.category.en} value={c.category.en}>
+                                                {locale === 'en' ? c.category.en : c.category.de}
+                                            </option>
+                                        ))
+                                    }
+                                </select>
+                                <p className="text-xs text-gray-500 mt-2">
+                                    {activeCategoryCount}/3 {t('dashboard.mainCategoriesSelected') || 'main categories selected'}
+                                </p>
+                            </div>
+                        );
+                    }
+                    return (
+                        <p className="text-sm text-gray-500">
+                            {t('dashboard.maxCategoriesReached') || 'Maximum 3 main categories reached.'}
+                        </p>
+                    );
+                })()}
             </div>
 
             {/* Bio Field */}
