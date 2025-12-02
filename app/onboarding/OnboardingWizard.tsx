@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation'
 import { useLocale } from '@/lib/i18n/LocaleProvider'
 import { useTranslation } from '@/lib/i18n/useTranslation'
 import WeeklyAvailabilityEditor from '@/components/WeeklyAvailabilityEditor'
-import { AvailabilityEntry } from '@/lib/types'
+import TherapyOfferingsEditor from '@/components/TherapyOfferingsEditor'
+import { AvailabilityEntry, TherapyOffering } from '@/lib/types'
 
 interface OnboardingWizardProps {
     therapist: {
@@ -19,6 +20,7 @@ interface OnboardingWizardProps {
         city: string
         phoneNumber: string
         weeklyAvailability: AvailabilityEntry[]
+        therapyOfferings?: TherapyOffering[]
         profileImage?: {
             data: string
             contentType: string
@@ -41,8 +43,10 @@ export default function OnboardingWizard({ therapist }: OnboardingWizardProps) {
     // Determine initial step
     const isBasicInfoComplete = !!(therapist.name && therapist.address && therapist.zip && therapist.city && therapist.phoneNumber)
     const isProfileComplete = hasContent(therapist.bio) && hasContent(therapist.specialization)
+    const hasOfferings = therapist.therapyOfferings && therapist.therapyOfferings.length > 0
 
     const [step, setStep] = useState(() => {
+        if (isBasicInfoComplete && isProfileComplete && hasOfferings) return 4
         if (isBasicInfoComplete && isProfileComplete) return 3
         if (isBasicInfoComplete) return 2
         return 1
@@ -73,6 +77,7 @@ export default function OnboardingWizard({ therapist }: OnboardingWizardProps) {
     const [profileImage, setProfileImage] = useState<File | null>(null)
     const [isDragging, setIsDragging] = useState(false)
 
+    const [therapyOfferings, setTherapyOfferings] = useState<TherapyOffering[]>(therapist.therapyOfferings || [])
     const [weeklyAvailability, setWeeklyAvailability] = useState<AvailabilityEntry[]>(therapist.weeklyAvailability || [])
 
     const formatSwissPhoneNumber = (value: string) => {
@@ -112,10 +117,15 @@ export default function OnboardingWizard({ therapist }: OnboardingWizardProps) {
                 setError(t('common.fillAllFields') || 'Please fill in all fields')
                 return
             }
-            // Profile image is optional but recommended. User said "adding an image", maybe enforce it?
-            // "adding an image, bio, specialization". I'll make it optional for now to avoid blocking.
             setStep(3)
         } else if (step === 3) {
+            if (therapyOfferings.length === 0) {
+                // Optional: require at least one offering?
+                // setError(t('therapyOfferings.required') || 'Please add at least one therapy offering')
+                // return
+            }
+            setStep(4)
+        } else if (step === 4) {
             // Submit everything
             await handleSubmit()
         }
@@ -123,12 +133,6 @@ export default function OnboardingWizard({ therapist }: OnboardingWizardProps) {
 
     const handleBack = () => {
         if (step > 1) {
-            // If we are at step 3 and profile was complete initially, go back to step 2?
-            // Or if we skipped step 2, should we go back to step 1?
-            // User requirement: "Jump over... if... available".
-            // If we jumped over step 2, going back from step 3 should probably go to step 2 so they can edit it if they want.
-            // But if we jumped over step 1, going back from step 2 should probably go to step 1.
-            // Let's just decrement step. If they skipped it, they can now see it and edit it.
             setStep(step - 1)
         }
     }
@@ -158,13 +162,13 @@ export default function OnboardingWizard({ therapist }: OnboardingWizardProps) {
                 throw new Error('Failed to update profile')
             }
 
-            // 2. Update Availability
+            // 2. Update Availability and Offerings
             const availabilityResponse = await fetch('/api/therapist/availability', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     weeklyAvailability,
-                    // We don't touch blockedSlots or therapyOfferings here, they stay as is (empty)
+                    therapyOfferings,
                 }),
             })
 
@@ -193,11 +197,12 @@ export default function OnboardingWizard({ therapist }: OnboardingWizardProps) {
                         <span className={`text-sm font-medium ${step >= 1 ? 'text-indigo-600' : 'text-gray-500'}`}>{t('onboarding.step1Label')}</span>
                         <span className={`text-sm font-medium ${step >= 2 ? 'text-indigo-600' : 'text-gray-500'}`}>{t('onboarding.step2Label')}</span>
                         <span className={`text-sm font-medium ${step >= 3 ? 'text-indigo-600' : 'text-gray-500'}`}>{t('onboarding.step3Label')}</span>
+                        <span className={`text-sm font-medium ${step >= 4 ? 'text-indigo-600' : 'text-gray-500'}`}>{t('onboarding.step4Label')}</span>
                     </div>
                     <div className="h-2 bg-gray-200 rounded-full">
                         <div
                             className="h-2 bg-indigo-600 rounded-full transition-all duration-300"
-                            style={{ width: `${((step - 1) / 2) * 100}%` }}
+                            style={{ width: `${((step - 1) / 3) * 100}%` }}
                         ></div>
                     </div>
                 </div>
@@ -206,7 +211,8 @@ export default function OnboardingWizard({ therapist }: OnboardingWizardProps) {
                     <h2 className="text-2xl font-bold text-gray-900 mb-6">
                         {step === 1 && (t('onboarding.step1Title') || 'Basic Information')}
                         {step === 2 && (t('onboarding.step2Title') || 'Profile Details')}
-                        {step === 3 && (t('onboarding.step3Title') || 'Set Availability')}
+                        {step === 3 && (t('onboarding.step3Title') || 'Therapy Offerings')}
+                        {step === 4 && (t('onboarding.step4Title') || 'Set Availability')}
                     </h2>
 
                     {error && (
@@ -337,10 +343,22 @@ export default function OnboardingWizard({ therapist }: OnboardingWizardProps) {
                         </div>
                     )}
 
-                    {/* Step 3: Availability */}
+                    {/* Step 3: Therapy Offerings */}
                     {step === 3 && (
                         <div>
-                            <p className="text-gray-600 mb-4">{t('onboarding.step3Description')}</p>
+                            <TherapyOfferingsEditor
+                                therapyOfferings={therapyOfferings}
+                                onChange={setTherapyOfferings}
+                                therapistBio={{ en: bioEn, de: bioDe }}
+                                therapistSpecialization={{ en: specializationEn, de: specializationDe }}
+                            />
+                        </div>
+                    )}
+
+                    {/* Step 4: Availability */}
+                    {step === 4 && (
+                        <div>
+                            <p className="text-gray-600 mb-4">{t('onboarding.step4Description')}</p>
                             <WeeklyAvailabilityEditor
                                 weeklyAvailability={weeklyAvailability}
                                 onChange={setWeeklyAvailability}
@@ -373,7 +391,7 @@ export default function OnboardingWizard({ therapist }: OnboardingWizardProps) {
                                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                 </svg>
                             )}
-                            {step === 3 ? t('onboarding.completeSetup') : t('common.next')}
+                            {step === 4 ? t('onboarding.completeSetup') : t('common.next')}
                         </button>
                     </div>
                 </div>

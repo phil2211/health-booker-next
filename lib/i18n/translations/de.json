@@ -495,11 +495,13 @@
   "onboarding": {
     "step1Title": "Grundlegende Informationen",
     "step2Title": "Profildetails",
-    "step3Title": "Verfügbarkeit einstellen",
+    "step3Title": "Therapieangebote",
+    "step4Title": "Verfügbarkeit einstellen",
     "step1Label": "Basis-Info",
     "step2Label": "Profil",
-    "step3Label": "Verfügbarkeit",
-    "step3Description": "Legen Sie Ihre wöchentliche Verfügbarkeit fest. Sie können dies später in Ihrem Dashboard anpassen.",
+    "step3Label": "Angebote",
+    "step4Label": "Verfügbarkeit",
+    "step4Description": "Legen Sie Ihre wöchentliche Verfügbarkeit fest. Sie können dies später in Ihrem Dashboard anpassen.",
     "completeSetup": "Einrichtung abschließen"
   }
 }

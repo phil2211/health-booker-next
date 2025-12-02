@@ -498,11 +498,13 @@
   "onboarding": {
     "step1Title": "Basic Information",
     "step2Title": "Profile Details",
-    "step3Title": "Set Availability",
+    "step3Title": "Therapy Offerings",
+    "step4Title": "Set Availability",
     "step1Label": "Basic Info",
     "step2Label": "Profile",
-    "step3Label": "Availability",
-    "step3Description": "Set your weekly availability. You can adjust this later in your dashboard.",
+    "step3Label": "Offerings",
+    "step4Label": "Availability",
+    "step4Description": "Set your weekly availability. You can adjust this later in your dashboard.",
     "completeSetup": "Complete Setup"
   }
 }
