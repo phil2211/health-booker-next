@@ -37,7 +37,7 @@ export async function sendBookingConfirmationEmails(booking: Booking, therapist:
     const patientEmailHtml = await generateEmailHtml(
       <BookingConfirmationPatientEmail
         t={emailSetup.t}
-        therapistName={therapist.name}
+        therapistName={therapist.name || 'Therapist'}
         patientName={patient.name}
         bookingDate={new Date(booking.appointmentDate).toLocaleDateString(emailSetup.locale)}
         bookingTime={new Date(booking.appointmentDate + 'T' + booking.startTime).toLocaleTimeString(emailSetup.locale, { hour: '2-digit', minute: '2-digit' })}
@@ -77,7 +77,7 @@ export async function sendBookingConfirmationEmails(booking: Booking, therapist:
       <BookingConfirmationTherapistEmail
         t={emailSetup.t}
         patientName={patient.name}
-        therapistName={therapist.name}
+        therapistName={therapist.name || 'Therapist'}
         bookingDate={new Date(booking.appointmentDate).toLocaleDateString(emailSetup.locale)}
         bookingTime={new Date(booking.appointmentDate + 'T' + booking.startTime).toLocaleTimeString(emailSetup.locale, { hour: '2-digit', minute: '2-digit' })}
       />
@@ -133,7 +133,7 @@ export async function sendCancellationEmail(booking: Booking, therapist: Therapi
       <CancellationNotificationEmail
         t={emailSetup.t}
         recipientName={patient.name}
-        therapistName={therapist.name}
+        therapistName={therapist.name || 'Therapist'}
         patientName={patient.name}
         bookingDate={new Date(booking.appointmentDate).toLocaleDateString(emailSetup.locale)}
         bookingTime={new Date(booking.appointmentDate + 'T' + booking.startTime).toLocaleTimeString(emailSetup.locale, { hour: '2-digit', minute: '2-digit' })}
@@ -164,8 +164,8 @@ export async function sendCancellationEmail(booking: Booking, therapist: Therapi
     const therapistEmailHtml = await generateEmailHtml(
       <CancellationNotificationEmail
         t={emailSetup.t}
-        recipientName={therapist.name}
-        therapistName={therapist.name}
+        recipientName={therapist.name || 'Therapist'}
+        therapistName={therapist.name || 'Therapist'}
         patientName={patient.name}
         bookingDate={new Date(booking.appointmentDate).toLocaleDateString(emailSetup.locale)}
         bookingTime={new Date(booking.appointmentDate + 'T' + booking.startTime).toLocaleTimeString(emailSetup.locale, { hour: '2-digit', minute: '2-digit' })}
@@ -213,7 +213,7 @@ export async function sendRescheduleEmail(booking: Booking, therapist: Therapist
       <RescheduleNotificationEmail
         t={emailSetup.t}
         recipientName={patient.name}
-        therapistName={therapist.name}
+        therapistName={therapist.name || 'Therapist'}
         patientName={patient.name}
         newBookingDate={new Date(booking.appointmentDate).toLocaleDateString(emailSetup.locale)}
         newBookingTime={new Date(booking.appointmentDate + 'T' + booking.startTime).toLocaleTimeString(emailSetup.locale, { hour: '2-digit', minute: '2-digit' })}
@@ -252,8 +252,8 @@ export async function sendRescheduleEmail(booking: Booking, therapist: Therapist
     const therapistEmailHtml = await generateEmailHtml(
       <RescheduleNotificationEmail
         t={emailSetup.t}
-        recipientName={therapist.name}
-        therapistName={therapist.name}
+        recipientName={therapist.name || 'Therapist'}
+        therapistName={therapist.name || 'Therapist'}
         patientName={patient.name}
         newBookingDate={new Date(booking.appointmentDate).toLocaleDateString(emailSetup.locale)}
         newBookingTime={new Date(booking.appointmentDate + 'T' + booking.startTime).toLocaleTimeString(emailSetup.locale, { hour: '2-digit', minute: '2-digit' })}
@@ -308,7 +308,7 @@ export async function sendReminderEmails(booking: Booking, therapist: Therapist,
     const patientEmailHtml = await generateEmailHtml(
       <AppointmentReminderPatientEmail
         t={emailSetup.t}
-        therapistName={therapist.name}
+        therapistName={therapist.name || 'Therapist'}
         patientName={patient.name}
         bookingDate={new Date(booking.appointmentDate).toLocaleDateString(emailSetup.locale)}
         bookingTime={new Date(booking.appointmentDate + 'T' + booking.startTime).toLocaleTimeString(emailSetup.locale, { hour: '2-digit', minute: '2-digit' })}

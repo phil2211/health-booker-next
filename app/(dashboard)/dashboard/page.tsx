@@ -20,6 +20,10 @@ export default async function DashboardPage() {
     return <div>Therapist not found</div>
   }
 
+  if (!therapist.onboardingCompleted) {
+    redirect('/onboarding')
+  }
+
   const bookingUrl = `/book/${therapist._id}`
 
   // Get base URL - use Vercel's automatic VERCEL_URL for preview deployments
@@ -35,9 +39,9 @@ export default async function DashboardPage() {
     <DashboardClient
       therapist={{
         _id: therapist._id,
-        name: therapist.name,
-        specialization: therapist.specialization,
-        bio: therapist.bio,
+        name: therapist.name || '',
+        specialization: therapist.specialization || '',
+        bio: therapist.bio || '',
         email: therapist.email,
         weeklyAvailability: therapist.weeklyAvailability,
         blockedSlots: therapist.blockedSlots,

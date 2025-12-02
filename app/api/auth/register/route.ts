@@ -27,10 +27,10 @@ export async function POST(request: Request) {
 
     // Parse request body
     const body = await request.json()
-    const { email, password, name, specialization, bio, photoUrl } = body
+    const { email, password } = body
 
     // Validate input
-    const validation = validateTherapistInput({ email, password, name, specialization, bio })
+    const validation = validateTherapistInput({ email, password })
     if (!validation.valid) {
       return NextResponse.json(
         { error: 'Validation failed', details: validation.errors },
@@ -61,11 +61,7 @@ export async function POST(request: Request) {
     // Create therapist account
     const therapist = await createTherapist(
       email,
-      hashedPassword,
-      name,
-      specialization,
-      bio,
-      photoUrl
+      hashedPassword
     )
 
     // Return therapist profile without password

@@ -410,13 +410,17 @@ export async function updateTherapistProfile(
     if (profileData.profileImage !== undefined) updateFields.profileImage = profileData.profileImage
 
     // Check if onboarding is completed
-    if (
-      (updateFields.name || (await db.collection('therapists').findOne({ _id: new ObjectId(therapistId) })).name) &&
-      (updateFields.specialization || (await db.collection('therapists').findOne({ _id: new ObjectId(therapistId) })).specialization) &&
-      (updateFields.bio || (await db.collection('therapists').findOne({ _id: new ObjectId(therapistId) })).bio) &&
-      (updateFields.address || (await db.collection('therapists').findOne({ _id: new ObjectId(therapistId) })).address)
-    ) {
-      updateFields.onboardingCompleted = true
+    const currentTherapist = await db.collection('therapists').findOne({ _id: new ObjectId(therapistId) })
+
+    if (currentTherapist) {
+      const hasName = updateFields.name || currentTherapist.name
+      const hasSpecialization = updateFields.specialization || currentTherapist.specialization
+      const hasBio = updateFields.bio || currentTherapist.bio
+      const hasAddress = updateFields.address || currentTherapist.address
+
+      if (hasName && hasSpecialization && hasBio && hasAddress) {
+        updateFields.onboardingCompleted = true
+      }
     }
 
     // Use updateOne instead of findOneAndUpdate for more reliable results

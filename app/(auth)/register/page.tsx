@@ -14,9 +14,6 @@ export default function RegisterPage() {
     email: '',
     password: '',
     confirmPassword: '',
-    name: '',
-    specialization: '',
-    bio: '',
   })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -46,9 +43,6 @@ export default function RegisterPage() {
         body: JSON.stringify({
           email: formData.email,
           password: formData.password,
-          name: formData.name,
-          specialization: formData.specialization,
-          bio: formData.bio,
         }),
       })
 
@@ -136,54 +130,6 @@ export default function RegisterPage() {
               required
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-black focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
               placeholder={t('auth.confirmPasswordPlaceholder')}
-            />
-          </div>
-
-          <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-              {t('auth.fullName')} <span className="text-red-500">*</span>
-            </label>
-            <input
-              id="name"
-              name="name"
-              type="text"
-              value={formData.name}
-              onChange={handleChange}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-black focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-              placeholder={t('auth.fullNamePlaceholder')}
-            />
-          </div>
-
-          <div>
-            <label htmlFor="specialization" className="block text-sm font-medium text-gray-700 mb-1">
-              {t('auth.specialization')} <span className="text-red-500">*</span>
-            </label>
-            <input
-              id="specialization"
-              name="specialization"
-              type="text"
-              value={formData.specialization}
-              onChange={handleChange}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-black focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-              placeholder={t('auth.specializationPlaceholder')}
-            />
-          </div>
-
-          <div>
-            <label htmlFor="bio" className="block text-sm font-medium text-gray-700 mb-1">
-              {t('auth.bio')} <span className="text-red-500">*</span>
-            </label>
-            <textarea
-              id="bio"
-              name="bio"
-              value={formData.bio}
-              onChange={handleChange}
-              required
-              rows={4}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-black focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-              placeholder={t('auth.bioPlaceholder')}
             />
           </div>
 

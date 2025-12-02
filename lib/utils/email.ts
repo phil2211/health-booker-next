@@ -61,9 +61,27 @@ export async function setupEmailData(
       start: new Date(booking.appointmentDate + 'T' + booking.startTime),
       end: new Date(booking.appointmentDate + 'T' + booking.endTime),
       title: t('calendar.appointmentTitle', { therapistName: therapist.name }),
-      description: therapist.phoneNumber
-        ? `${t('calendar.appointmentDescription')}\n\n${t('therapist.phone') || 'Phone'}: ${therapist.phoneNumber}`
-        : t('calendar.appointmentDescription'),
+      description: (() => {
+        const parts = [t('calendar.appointmentDescription')];
+
+        // Add Therapist Name
+        parts.push(`${t('calendar.therapist')}: ${therapist.name}`);
+
+        // Add Specialization
+        const specialization = typeof therapist.specialization === 'object'
+          ? (therapist.specialization as any)[locale] || (therapist.specialization as any)['en']
+          : therapist.specialization;
+        if (specialization) {
+          parts.push(`${t('common.specialization')}: ${specialization}`);
+        }
+
+        // Add Phone
+        if (therapist.phoneNumber) {
+          parts.push(`${t('therapist.phone') || 'Phone'}: ${therapist.phoneNumber}`);
+        }
+
+        return parts.join('\n');
+      })(),
       location: [
         therapist.address,
         [therapist.zip, therapist.city].filter(Boolean).join(' ')
