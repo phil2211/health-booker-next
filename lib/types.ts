@@ -43,12 +43,20 @@ export interface TherapyOffering {
  * Therapist model as per Requirements.md
  * Healthcare professionals who manage appointments
  */
+export interface TherapyTag {
+  _id: string
+  category: { en: string; de: string }
+  name: { en: string; de: string }
+  description?: { en: string; de: string }
+  subcategory?: { en: string; de: string }
+}
+
 export interface Therapist {
   _id?: string
   email: string
   password: string // hashed
   name?: string
-  specialization?: string[]
+  specialization?: TherapyTag[]
   bio?: string | { en: string; de: string }
   address?: string
   zip?: string

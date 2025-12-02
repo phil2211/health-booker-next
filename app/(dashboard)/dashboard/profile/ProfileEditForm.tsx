@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useLocale } from '@/lib/i18n/LocaleProvider'
 import { TherapistDocument } from '@/models/Therapist'
 import { useTranslation } from '@/lib/i18n/useTranslation'
+import { TherapyTag } from '@/lib/types'
 
 interface ProfileEditFormProps {
     therapist: TherapistDocument
@@ -65,12 +66,11 @@ export default function ProfileEditForm({ therapist }: ProfileEditFormProps) {
     const [bioEn, setBioEn] = useState(getInitialValue(therapist.bio, 'en'))
     const [bioDe, setBioDe] = useState(getInitialValue(therapist.bio, 'de'))
 
-    const [specialization, setSpecialization] = useState<string[]>(
-        Array.isArray(therapist.specialization) ? therapist.specialization : []
-    )
+    const [specialization, setSpecialization] = useState<TherapyTag[]>([])
+
     interface CategoryData {
         category: { en: string; de: string }
-        tags: { id: string; name: { en: string; de: string } }[]
+        tags: TherapyTag[]
     }
     const [availableCategories, setAvailableCategories] = useState<CategoryData[]>([])
 
@@ -93,16 +93,32 @@ export default function ProfileEditForm({ therapist }: ProfileEditFormProps) {
         fetchCategories()
     }, [])
 
-    // Initialize active categories from saved specialization once categories are loaded
+    // Initialize active categories and specialization from saved data once categories are loaded
     useEffect(() => {
         if (availableCategories.length > 0 && !hasInitializedActiveCats) {
+            const currentSpec = therapist.specialization || [];
+            let normalizedSpec: TherapyTag[] = [];
+
+            if (currentSpec.length > 0) {
+                if (typeof currentSpec[0] === 'string') {
+                    // Legacy: map IDs to objects
+                    const allTags = availableCategories.flatMap(c => c.tags);
+                    // @ts-ignore - currentSpec is string[] here but TS might think it's TherapyTag[]
+                    normalizedSpec = currentSpec.map(id => allTags.find(t => t._id === id)).filter(Boolean) as TherapyTag[];
+                } else {
+                    // Already objects
+                    normalizedSpec = currentSpec as TherapyTag[];
+                }
+            }
+            setSpecialization(normalizedSpec);
+
             const initialActive = availableCategories
-                .filter(c => c.tags.some(t => specialization.includes(t.id)))
+                .filter(c => c.tags.some(t => normalizedSpec.some(s => s._id === t._id)))
                 .map(c => c.category.en)
             setActiveCategoryIds(initialActive)
             setHasInitializedActiveCats(true)
         }
-    }, [availableCategories, hasInitializedActiveCats, specialization])
+    }, [availableCategories, hasInitializedActiveCats, therapist.specialization])
 
     const [isSaving, setIsSaving] = useState(false)
     const [error, setError] = useState<string | null>(null)
@@ -391,7 +407,7 @@ export default function ProfileEditForm({ therapist }: ProfileEditFormProps) {
                         const catName = locale === 'en' ? catGroup.category.en : catGroup.category.de;
 
                         // Check if any tag in this category is selected
-                        const selectedTagsInThisCat = catGroup.tags.filter(t => specialization.includes(t.id));
+                        const selectedTagsInThisCat = catGroup.tags.filter(t => specialization.some(s => s._id === t._id));
 
                         // Category is active if it's in our manual list
                         const isCategoryActive = activeCategoryIds.includes(catId);
@@ -406,14 +422,14 @@ export default function ProfileEditForm({ therapist }: ProfileEditFormProps) {
                                         type="button"
                                         onClick={() => {
                                             // Remove all tags from this category
-                                            const tagsToRemove = catGroup.tags.map(t => t.id);
-                                            setSpecialization(specialization.filter(id => !tagsToRemove.includes(id)));
+                                            const tagsToRemove = catGroup.tags.map(t => t._id);
+                                            setSpecialization(specialization.filter(s => !tagsToRemove.includes(s._id)));
                                             // Remove from active list
                                             setActiveCategoryIds(activeCategoryIds.filter(id => id !== catId));
                                         }}
                                         className="text-sm text-red-600 hover:text-red-800"
                                     >
-                                        {t('common.remove') || 'Remove'}
+                                        {t('common.remove')}
                                     </button>
                                 </div>
 
@@ -421,11 +437,11 @@ export default function ProfileEditForm({ therapist }: ProfileEditFormProps) {
                                 <div className="relative">
                                     <div className="flex flex-wrap gap-2 p-2 bg-white border border-blue-200 rounded-md min-h-[42px]">
                                         {selectedTagsInThisCat.map(tag => (
-                                            <span key={tag.id} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                                            <span key={tag._id} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
                                                 {locale === 'en' ? tag.name.en : tag.name.de}
                                                 <button
                                                     type="button"
-                                                    onClick={() => setSpecialization(specialization.filter(id => id !== tag.id))}
+                                                    onClick={() => setSpecialization(specialization.filter(s => s._id !== tag._id))}
                                                     className="ml-1.5 inline-flex items-center justify-center h-4 w-4 rounded-full text-blue-400 hover:bg-blue-200 hover:text-blue-600 focus:outline-none"
                                                 >
                                                     <span className="sr-only">Remove large option</span>
@@ -440,19 +456,21 @@ export default function ProfileEditForm({ therapist }: ProfileEditFormProps) {
                                             <div className="relative flex-grow group">
                                                 <select
                                                     onChange={(e) => {
-                                                        if (e.target.value) {
-                                                            setSpecialization([...specialization, e.target.value]);
+                                                        const selectedTagId = e.target.value;
+                                                        const selectedTag = catGroup.tags.find(t => t._id === selectedTagId);
+                                                        if (selectedTag) {
+                                                            setSpecialization([...specialization, selectedTag]);
                                                             e.target.value = ''; // Reset select
                                                         }
                                                     }}
                                                     className="w-full border-none focus:ring-0 text-sm py-1 pl-2 pr-8 text-gray-500 bg-transparent cursor-pointer"
                                                     value=""
                                                 >
-                                                    <option value="" disabled>{t('dashboard.addTag') || 'Add sub-category...'}</option>
+                                                    <option value="" disabled>{t('dashboard.addTag')}</option>
                                                     {catGroup.tags
-                                                        .filter(t => !specialization.includes(t.id))
+                                                        .filter(t => !specialization.some(s => s._id === t._id))
                                                         .map(tag => (
-                                                            <option key={tag.id} value={tag.id}>
+                                                            <option key={tag._id} value={tag._id}>
                                                                 {locale === 'en' ? tag.name.en : tag.name.de}
                                                             </option>
                                                         ))
@@ -462,7 +480,7 @@ export default function ProfileEditForm({ therapist }: ProfileEditFormProps) {
                                         )}
                                     </div>
                                     <p className="text-xs text-gray-500 mt-1">
-                                        {selectedTagsInThisCat.length}/3 {t('dashboard.subCategoriesSelected') || 'sub-categories selected'}
+                                        {selectedTagsInThisCat.length}/3 {t('dashboard.subCategoriesSelected')}
                                     </p>
                                 </div>
                             </div>
@@ -488,7 +506,7 @@ export default function ProfileEditForm({ therapist }: ProfileEditFormProps) {
                                     className="inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                                     value=""
                                 >
-                                    <option value="" disabled>{t('dashboard.addMainCategory') || '+ Add Main Category'}</option>
+                                    <option value="" disabled>{t('dashboard.addMainCategory')}</option>
                                     {availableCategories
                                         .filter(c => !activeCategoryIds.includes(c.category.en))
                                         .map(c => (
@@ -499,14 +517,14 @@ export default function ProfileEditForm({ therapist }: ProfileEditFormProps) {
                                     }
                                 </select>
                                 <p className="text-xs text-gray-500 mt-2">
-                                    {activeCategoryCount}/3 {t('dashboard.mainCategoriesSelected') || 'main categories selected'}
+                                    {activeCategoryCount}/3 {t('dashboard.mainCategoriesSelected')}
                                 </p>
                             </div>
                         );
                     }
                     return (
                         <p className="text-sm text-gray-500">
-                            {t('dashboard.maxCategoriesReached') || 'Maximum 3 main categories reached.'}
+                            {t('dashboard.maxCategoriesReached')}
                         </p>
                     );
                 })()}

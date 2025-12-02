@@ -182,9 +182,9 @@ export default function ProviderMap({ therapists, onVisibleTherapistsChange, hov
                                 )}
                                 <div className="font-semibold text-gray-900 mb-1 text-center">{selectedTherapist.name}</div>
                                 <div className="text-sm text-blue-600 font-medium mb-1 text-center">
-                                    {typeof selectedTherapist.specialization === 'string'
-                                        ? selectedTherapist.specialization
-                                        : (selectedTherapist.specialization as any)?.en || 'Specialization'}
+                                    {Array.isArray(selectedTherapist.specialization) && selectedTherapist.specialization.length > 0
+                                        ? selectedTherapist.specialization.map((s: any) => s.category).join(', ')
+                                        : 'Specialization'}
                                 </div>
                                 <div className="text-xs text-gray-500 mb-3 text-center">
                                     {selectedTherapist.address}, {selectedTherapist.zip} {selectedTherapist.city}

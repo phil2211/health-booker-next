@@ -30,45 +30,21 @@ async function getTherapistProfile(id: string) {
       console.error('Error converting profile image', e)
     }
   }
-
   // Resolve specialization tags
-  let displaySpecialization: any = therapist.specialization
+  let tags: any[] = []
   if (Array.isArray(therapist.specialization) && therapist.specialization.length > 0) {
-    const { getDatabase } = await import('@/lib/mongodb')
-    const db = await getDatabase()
+    if (typeof therapist.specialization[0] === 'string') {
+      const { getDatabase } = await import('@/lib/mongodb')
+      const db = await getDatabase()
 
-    // Fetch all selected tags
-    const tags = await db.collection('therapy_tags').find({
-      _id: { $in: therapist.specialization.map(id => new ObjectId(id)) }
-    }).toArray()
-
-    // Group by category for display
-    const groupedTags: Record<string, string[]> = {}
-    const groupedTagsDe: Record<string, string[]> = {}
-
-    tags.forEach(tag => {
-      const catEn = tag.category.en
-      const catDe = tag.category.de
-
-      if (!groupedTags[catEn]) groupedTags[catEn] = []
-      if (!groupedTagsDe[catDe]) groupedTagsDe[catDe] = []
-
-      const nameEn = tag.subcategory?.en || tag.name?.en || ''
-      const nameDe = tag.subcategory?.de || tag.name?.de || ''
-
-      if (nameEn) groupedTags[catEn].push(nameEn)
-      if (nameDe) groupedTagsDe[catDe].push(nameDe)
-    })
-
-    const enString = Object.entries(groupedTags)
-      .map(([cat, tgs]) => `${cat}: ${tgs.join(', ')}`)
-      .join('; ')
-
-    const deString = Object.entries(groupedTagsDe)
-      .map(([cat, tgs]) => `${cat}: ${tgs.join(', ')}`)
-      .join('; ')
-
-    displaySpecialization = { en: enString, de: deString }
+      // Fetch all selected tags
+      tags = await db.collection('therapy_tags').find({
+        _id: { $in: (therapist.specialization as unknown as string[]).map(id => new ObjectId(id)) }
+      }).toArray()
+    } else {
+      // Already objects
+      tags = therapist.specialization
+    }
   }
 
   // Return in API format for consistency
@@ -76,7 +52,7 @@ async function getTherapistProfile(id: string) {
     therapist: {
       _id: therapist._id,
       name: therapist.name || '',
-      specialization: displaySpecialization || '',
+      specialization: tags,
       bio: therapist.bio || '',
       photoUrl: therapist.photoUrl,
       profileImageSrc,

@@ -7,6 +7,7 @@ import ResponsiveHeader from '@/components/ResponsiveHeader'
 import BookingUrlSection from '@/components/BookingUrlSection'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { TherapyTag } from '@/lib/types'
 
 import TopUpModal from '@/components/TopUpModal'
 
@@ -15,6 +16,7 @@ interface DashboardClientProps {
     _id: string
     name: string
     specialization: string | { en: string; de: string }
+    specializationTags?: TherapyTag[]
     bio: string | { en: string; de: string }
     email: string
     address?: string
@@ -97,6 +99,16 @@ export default function DashboardClient({ therapist, bookingUrl, baseUrl, upcomi
   const availabilityPath = locale === 'en' ? '/dashboard/availability' : `/${locale}/dashboard/availability`
   const appointmentsPath = locale === 'en' ? '/dashboard/appointments' : `/${locale}/dashboard/appointments`
   const profileEditPath = locale === 'en' ? '/dashboard/profile' : `/${locale}/dashboard/profile`
+
+  // Group tags by category if available
+  const groupedTags = therapist.specializationTags?.reduce((acc, tag) => {
+    const category = locale === 'en' ? tag.category.en : tag.category.de
+    if (!acc[category]) {
+      acc[category] = []
+    }
+    acc[category].push(tag)
+    return acc
+  }, {} as Record<string, TherapyTag[]>)
 
   return (
     <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100">
@@ -195,8 +207,6 @@ export default function DashboardClient({ therapist, bookingUrl, baseUrl, upcomi
           </div>
         </div>
 
-
-
         {/* Quick Actions */}
         <div className="grid md:grid-cols-2 gap-6 mb-8">
           <div className="bg-white rounded-xl shadow-md border p-6">
@@ -251,7 +261,24 @@ export default function DashboardClient({ therapist, bookingUrl, baseUrl, upcomi
               </div>
               <div className="pb-4 border-b">
                 <p className="text-sm text-gray-500 mb-1">{t('dashboard.specialization')}</p>
-                <p className="text-gray-900 font-medium">{displaySpecialization}</p>
+                {groupedTags && Object.keys(groupedTags).length > 0 ? (
+                  <div className="space-y-3 mt-2">
+                    {Object.entries(groupedTags).map(([category, tags]) => (
+                      <div key={category}>
+                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">{category}</p>
+                        <div className="flex flex-wrap gap-2">
+                          {tags.map(tag => (
+                            <span key={tag._id} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                              {locale === 'en' ? tag.name.en : tag.name.de}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-900 font-medium">{displaySpecialization}</p>
+                )}
               </div>
               <div className="pb-4 border-b">
                 <p className="text-sm text-gray-500 mb-1">{t('dashboard.email')}</p>

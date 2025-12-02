@@ -3,6 +3,7 @@ import { findTherapistByEmail, findTherapistById, comparePassword } from '@/mode
 import { getDatabase } from '@/lib/mongodb'
 import { randomBytes } from 'crypto'
 import type { NextAuthOptions } from 'next-auth'
+import { TherapyTag } from '@/lib/types'
 
 declare module 'next-auth' {
   interface Session {
@@ -10,7 +11,7 @@ declare module 'next-auth' {
       id: string
       email: string
       name: string
-      specialization: string | { en: string; de: string }
+      specialization: TherapyTag[] | string | { en: string; de: string }
       bio: string | { en: string; de: string }
     }
   }
@@ -19,13 +20,13 @@ declare module 'next-auth' {
     id: string
     email: string
     name: string
-    specialization: string | { en: string; de: string }
+    specialization: TherapyTag[] | string | { en: string; de: string }
     bio: string | { en: string; de: string }
   }
 
   interface JWT {
     id: string
-    specialization: string | { en: string; de: string }
+    specialization: TherapyTag[] | string | { en: string; de: string }
     bio: string | { en: string; de: string }
   }
 }
@@ -117,9 +118,9 @@ export const authOptions: NextAuthOptions = {
           return {
             id: therapist._id,
             email: therapist.email,
-            name: therapist.name,
-            specialization: therapist.specialization,
-            bio: therapist.bio,
+            name: therapist.name || '',
+            specialization: therapist.specialization || '',
+            bio: therapist.bio || '',
           }
         } catch (error) {
           console.error('Auth error:', error)
@@ -160,7 +161,7 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.id as string
         session.user.email = token.email as string
         session.user.name = token.name as string
-        session.user.specialization = token.specialization as string | { en: string; de: string }
+        session.user.specialization = token.specialization as TherapyTag[] | string | { en: string; de: string }
         session.user.bio = token.bio as string | { en: string; de: string }
 
         // Verify session exists in database and update last seen

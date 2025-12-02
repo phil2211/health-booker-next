@@ -1,4 +1,4 @@
-import { Therapist, AvailabilityEntry, BlockedSlot, TherapyOffering } from '@/lib/types'
+import { Therapist, AvailabilityEntry, BlockedSlot, TherapyOffering, TherapyTag } from '@/lib/types'
 import bcrypt from 'bcryptjs'
 import { getDatabase } from '@/lib/mongodb'
 import { ObjectId } from 'mongodb'
@@ -165,7 +165,7 @@ export async function createTherapist(
   email: string,
   hashedPassword: string,
   name?: string,
-  specialization?: string[],
+  specialization?: TherapyTag[],
   bio?: string,
   photoUrl?: string
 ): Promise<TherapistDocument> {
@@ -204,8 +204,34 @@ export async function getAllTherapists(): Promise<SerializedTherapistDocument[]>
   const db = await getDatabase()
   const therapists = await db
     .collection('therapists')
-    .find({})
-    .project({ password: 0 }) // Exclude password
+    .aggregate([
+      {
+        $project: { password: 0 }
+      },
+      {
+        $addFields: {
+          specialization: {
+            $map: {
+              input: {
+                $setUnion: [
+                  {
+                    $map: {
+                      input: "$specialization",
+                      as: "spec",
+                      in: "$$spec.category.en"
+                    }
+                  }
+                ]
+              },
+              as: "category",
+              in: {
+                category: "$$category"
+              }
+            }
+          }
+        }
+      }
+    ])
     .toArray()
 
   return therapists.map((therapist) => {
@@ -372,7 +398,7 @@ export async function updateTherapistProfile(
   therapistId: string,
   profileData: {
     name?: string
-    specialization?: string[]
+    specialization?: TherapyTag[]
     bio?: string | { en: string; de: string }
     address?: string
     zip?: string

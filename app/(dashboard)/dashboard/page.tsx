@@ -37,22 +37,29 @@ export default async function DashboardPage() {
 
   // Resolve specialization tags
   let displaySpecialization = ''
-  if (Array.isArray(therapist.specialization) && therapist.specialization.length > 0) {
-    const { getDatabase } = await import('@/lib/mongodb')
-    const db = await getDatabase()
-    const { ObjectId } = await import('mongodb')
+  let specializationTags: any[] = []
 
-    // Fetch all selected tags
-    const tags = await db.collection('therapy_tags').find({
-      _id: { $in: therapist.specialization.map(id => new ObjectId(id)) }
-    }).toArray()
+  if (Array.isArray(therapist.specialization) && therapist.specialization.length > 0) {
+    if (typeof therapist.specialization[0] === 'string') {
+      const { getDatabase } = await import('@/lib/mongodb')
+      const db = await getDatabase()
+      const { ObjectId } = await import('mongodb')
+
+      // Fetch all selected tags
+      specializationTags = await db.collection('therapy_tags').find({
+        _id: { $in: (therapist.specialization as unknown as string[]).map(id => new ObjectId(id)) }
+      }).toArray()
+    } else {
+      // Already objects
+      specializationTags = therapist.specialization
+    }
 
     // Group by category for display
     // Format: "Category: Tag1, Tag2; Category2: Tag3"
     const groupedTags: Record<string, string[]> = {}
     const groupedTagsDe: Record<string, string[]> = {}
 
-    tags.forEach(tag => {
+    specializationTags.forEach(tag => {
       const catEn = tag.category.en
       const catDe = tag.category.de
 
@@ -88,6 +95,7 @@ export default async function DashboardPage() {
         _id: therapist._id,
         name: therapist.name || '',
         specialization: displaySpecialization,
+        specializationTags: specializationTags,
         bio: therapist.bio || '',
         email: therapist.email,
         weeklyAvailability: therapist.weeklyAvailability,

@@ -83,9 +83,9 @@ export default function ProvidersList({ therapists, showLoginRegisterLinks = fal
                                         <div>
                                             <h2 className="text-xl font-semibold text-gray-900">{therapist.name}</h2>
                                             <p className="text-blue-600 font-medium">
-                                                {typeof therapist.specialization === 'string'
-                                                    ? therapist.specialization
-                                                    : (therapist.specialization as any)?.[locale] || (therapist.specialization as any)?.en || 'Specialization'}
+                                                {Array.isArray(therapist.specialization) && therapist.specialization.length > 0
+                                                    ? therapist.specialization.map((s: any) => s.category).join(', ')
+                                                    : 'Specialization'}
                                             </p>
                                         </div>
                                     </div>

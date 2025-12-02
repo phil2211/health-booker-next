@@ -1,19 +1,19 @@
 'use client'
 
 import Link from 'next/link'
-import Image from 'next/image'
 import { useState, useEffect } from 'react'
 import { marked } from 'marked'
 import DOMPurify from 'dompurify'
 import { useTranslation } from '@/lib/i18n/useTranslation'
 import { useLocale } from '@/lib/i18n/LocaleProvider'
 import ResponsiveHeader from '@/components/ResponsiveHeader'
+import { TherapyTag } from '@/lib/types'
 
 interface TherapistPageClientProps {
   therapist: {
     _id: string
     name: string
-    specialization: string | { en: string; de: string }
+    specialization: any[]
     bio: string | { en: string; de: string }
     photoUrl?: string
     profileImageSrc?: string | null
@@ -36,7 +36,19 @@ export default function TherapistPageClient({ therapist }: TherapistPageClientPr
   }
 
   const displayBio = getLocalizedContent(therapist.bio, locale)
-  const displaySpecialization = getLocalizedContent(therapist.specialization, locale)
+
+  // Group specialization tags
+  const groupedTags = (Array.isArray(therapist.specialization) ? therapist.specialization : []).reduce((acc: Record<string, any[]>, tag: any) => {
+    const category = tag.category?.[locale] || tag.category?.en || 'Other'
+    if (!acc[category]) acc[category] = []
+
+    // Check if tag is object or string (just in case)
+    if (typeof tag === 'object') {
+      acc[category].push(tag)
+    }
+
+    return acc
+  }, {})
 
   const [bioHtml, setBioHtml] = useState<string>('')
 
@@ -92,9 +104,24 @@ export default function TherapistPageClient({ therapist }: TherapistPageClientPr
               </div>
             )}
 
-            <div className="text-center md:text-left">
+            <div className="text-center md:text-left w-full">
               <h1 className="text-4xl font-bold text-gray-900 mb-2">{therapist.name}</h1>
-              <p className="text-xl text-indigo-600 font-medium mb-3">{displaySpecialization}</p>
+
+              {groupedTags && Object.keys(groupedTags).length > 0 ? (
+                <div className="space-y-2 mb-3">
+                  {Object.entries(groupedTags).map(([category, tags]) => (
+                    <div key={category} className="flex flex-wrap gap-2 justify-center md:justify-start">
+                      {tags.map(tag => (
+                        <span key={tag._id} className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800">
+                          {locale === 'en' ? tag.name.en : tag.name.de}
+                        </span>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xl text-indigo-600 font-medium mb-3">{t('therapist.generalTherapist')}</p>
+              )}
 
               {therapist.linkedinUrl && (
                 <a
@@ -152,5 +179,3 @@ export default function TherapistPageClient({ therapist }: TherapistPageClientPr
     </div>
   )
 }
-
-

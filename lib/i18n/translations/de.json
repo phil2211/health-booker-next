@@ -2,7 +2,7 @@
   "common": {
     "loading": "Lädt...",
     "save": "Speichern",
-    "cancel": "Stornieren",
+    "cancel": "Abbrechen",
     "close": "Schließen",
     "edit": "Bearbeiten",
     "delete": "Löschen",
@@ -34,7 +34,8 @@
     "dearTherapist": "Sehr geehrte/r Therapeut/in",
     "dear": "Sehr geehrte/r {{name}}",
     "regards": "Mit freundlichen Grüßen",
-    "language": "Sprache"
+    "language": "Sprache",
+    "remove": "Entfernen"
   },
   "auth": {
     "signIn": "Anmelden",
@@ -255,7 +256,9 @@
     "descriptionLabel": "Beschreibung",
     "descriptionPlaceholder": "Beschreibe, was diese Therapiesitzung beinhaltet...",
     "confirmDelete": "Bist du sicher, dass du dieses Therapieangebot löschen möchtest?",
-    "deleteWarning": "Diese Aktion kann nicht rückgängig gemacht werden. Das Therapieangebot wird dauerhaft entfernt."
+    "deleteWarning": "Diese Aktion kann nicht rückgängig gemacht werden. Das Therapieangebot wird dauerhaft entfernt.",
+    "selectSpecialization": "Spezialisierung auswählen (optional)",
+    "selectSpecializationPlaceholder": "Wählen Sie eine Spezialisierung..."
   },
   "dashboard": {
     "title": "Dashboard",
@@ -315,7 +318,13 @@
     "accountBalance": "Kontostand",
     "balanceInsufficient": "Ihr Guthaben ist nicht ausreichend. Ihre Verfügbarkeit ist derzeit für Patienten verborgen. Bitte laden Sie Ihr Konto auf, um Buchungen zu erhalten.",
     "accountGoodStanding": "Ihr Konto ist in gutem Zustand.",
-    "topUpAccount": "Konto aufladen"
+    "topUpAccount": "Konto aufladen",
+    "addTag": "Unterkategorie hinzufügen...",
+    "subCategoriesSelected": "Unterkategorien ausgewählt",
+    "addMainCategory": "+ Hauptkategorie hinzufügen",
+    "mainCategoriesSelected": "Hauptkategorien ausgewählt",
+    "maxCategoriesReached": "Maximal 3 Hauptkategorien erreicht.",
+    "selectAtLeastOneSubCategory": "Bitte wählen Sie mindestens eine Unterkategorie aus"
   },
   "subscription": {
     "title": "Abonnement & Nutzung",
@@ -359,7 +368,8 @@
     "viewAvailabilityBook": "Verfügbarkeit anzeigen & buchen",
     "backToHome": "Zurück zur Startseite",
     "viewLinkedinProfile": "Profil ansehen",
-    "phone": "Telefon"
+    "phone": "Telefon",
+    "generalTherapist": "Allgemeiner Therapeut"
   },
   "cancel": {
     "cancelYourAppointment": "Deinen Termin absagen",

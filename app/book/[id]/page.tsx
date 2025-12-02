@@ -51,7 +51,7 @@ export default async function BookingPage({ params }: BookingPageProps) {
   return (
     <BookingPageClient
       therapistId={therapist._id}
-      therapistName={therapist.name}
+      therapistName={therapist.name || ''}
       blockedSlots={therapist.blockedSlots}
       therapyOfferings={therapist.therapyOfferings}
     />

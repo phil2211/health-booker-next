@@ -23,7 +23,23 @@ export async function POST(request: Request) {
         const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
 
         const bio = typeof therapistBio === 'object' ? (therapistBio[locale] || therapistBio.en) : therapistBio
-        const specialization = typeof therapistSpecialization === 'object' ? (therapistSpecialization[locale] || therapistSpecialization.en) : therapistSpecialization
+
+        let specialization = ''
+        if (Array.isArray(therapistSpecialization)) {
+            specialization = therapistSpecialization
+                .map((tag: any) => {
+                    if (tag.name && typeof tag.name === 'object') {
+                        return tag.name[locale] || tag.name.en
+                    }
+                    return tag.name || ''
+                })
+                .filter(Boolean)
+                .join(', ')
+        } else if (typeof therapistSpecialization === 'object' && therapistSpecialization !== null) {
+            specialization = therapistSpecialization[locale] || therapistSpecialization.en
+        } else {
+            specialization = therapistSpecialization
+        }
         const name = typeof offeringName === 'object' ? (offeringName[locale] || offeringName.en) : offeringName
 
         const prompt = `

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { AvailabilityEntry, BlockedSlot, TherapyOffering } from '@/lib/types'
+import { AvailabilityEntry, BlockedSlot, TherapyOffering, TherapyTag } from '@/lib/types'
 import WeeklyAvailabilityEditor from './WeeklyAvailabilityEditor'
 import BlockedSlotsEditor from './BlockedSlotsEditor'
 import TherapyOfferingsEditor from './TherapyOfferingsEditor'
@@ -29,7 +29,7 @@ export default function AvailabilityManagement() {
   } | null>(null)
   const [therapistInfo, setTherapistInfo] = useState<{
     bio: string | { en: string; de: string }
-    specialization: string | { en: string; de: string }
+    specialization: TherapyTag[] | string | { en: string; de: string }
   } | null>(null)
 
   // Load current availability on mount

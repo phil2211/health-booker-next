@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { TherapyOffering } from '@/lib/types'
+import { TherapyOffering, TherapyTag } from '@/lib/types'
 import { useTranslation } from '@/lib/i18n/useTranslation'
 import { useLocale } from '@/lib/i18n/LocaleProvider'
 
@@ -9,7 +9,7 @@ interface TherapyOfferingsEditorProps {
     therapyOfferings: TherapyOffering[]
     onChange: (offerings: TherapyOffering[]) => void
     therapistBio?: string | { en: string; de: string }
-    therapistSpecialization?: string | { en: string; de: string }
+    therapistSpecialization?: TherapyTag[] | string | { en: string; de: string }
 }
 
 export default function TherapyOfferingsEditor({
@@ -98,7 +98,11 @@ export default function TherapyOfferingsEditor({
         setError(null)
 
         const hasBio = typeof therapistBio === 'string' ? !!therapistBio : (!!therapistBio?.en || !!therapistBio?.de)
-        const hasSpec = typeof therapistSpecialization === 'string' ? !!therapistSpecialization : (!!therapistSpecialization?.en || !!therapistSpecialization?.de)
+        const hasSpec = Array.isArray(therapistSpecialization)
+            ? therapistSpecialization.length > 0
+            : typeof therapistSpecialization === 'string'
+                ? !!therapistSpecialization
+                : (!!therapistSpecialization?.en || !!therapistSpecialization?.de)
 
         if (!hasBio || !hasSpec) {
             setError(t('therapyOfferings.missingProfileInfo') || 'Please complete your profile bio and specialization first.')
@@ -131,6 +135,21 @@ export default function TherapyOfferingsEditor({
             setError(error instanceof Error ? error.message : 'Failed to generate description')
         } finally {
             setGeneratingId(null)
+        }
+    }
+
+    const handleSpecializationSelect = (offering: TherapyOffering, tagId: string) => {
+        if (!Array.isArray(therapistSpecialization)) return
+
+        const tag = therapistSpecialization.find(t => t._id === tagId)
+        if (tag) {
+            // Update name with localized tag name
+            // We need to respect the localized structure of the name field
+            const newName = {
+                en: tag.name.en,
+                de: tag.name.de
+            }
+            handleUpdate(offering._id!, 'name', newName)
         }
     }
 
@@ -245,6 +264,29 @@ export default function TherapyOfferingsEditor({
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {/* Specialization Selection */}
+                                {Array.isArray(therapistSpecialization) && therapistSpecialization.length > 0 && (
+                                    <div className="md:col-span-2">
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            {t('therapyOfferings.selectSpecialization') || 'Select from Profile'}
+                                        </label>
+                                        <select
+                                            onChange={(e) => handleSpecializationSelect(offering, e.target.value)}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-black"
+                                            defaultValue=""
+                                        >
+                                            <option value="" disabled>
+                                                {t('therapyOfferings.selectSpecializationPlaceholder') || 'Choose a specialization...'}
+                                            </option>
+                                            {therapistSpecialization.map((tag) => (
+                                                <option key={tag._id} value={tag._id}>
+                                                    {getLocalizedValue(tag.name)}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                )}
+
                                 {/* Name */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">

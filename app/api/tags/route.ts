@@ -26,7 +26,11 @@ export async function GET() {
             category: group._id,
             tags: group.tags.map((tag: any) => ({
                 id: tag._id.toString(),
-                name: tag.subcategory || tag.name // Fallback to name if subcategory is missing
+                _id: tag._id.toString(),
+                name: tag.subcategory || tag.name,
+                category: tag.category,
+                description: tag.description,
+                subcategory: tag.subcategory
             })).sort((a: any, b: any) => {
                 const nameA = a?.name?.en || '';
                 const nameB = b?.name?.en || '';
