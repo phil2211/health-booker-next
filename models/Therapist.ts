@@ -165,7 +165,7 @@ export async function createTherapist(
   email: string,
   hashedPassword: string,
   name?: string,
-  specialization?: string,
+  specialization?: string[],
   bio?: string,
   photoUrl?: string
 ): Promise<TherapistDocument> {
@@ -372,7 +372,7 @@ export async function updateTherapistProfile(
   therapistId: string,
   profileData: {
     name?: string
-    specialization?: string | { en: string; de: string }
+    specialization?: string[]
     bio?: string | { en: string; de: string }
     address?: string
     zip?: string

@@ -31,13 +31,53 @@ async function getTherapistProfile(id: string) {
     }
   }
 
+  // Resolve specialization tags
+  let displaySpecialization: any = therapist.specialization
+  if (Array.isArray(therapist.specialization) && therapist.specialization.length > 0) {
+    const { getDatabase } = await import('@/lib/mongodb')
+    const db = await getDatabase()
+
+    // Fetch all selected tags
+    const tags = await db.collection('therapy_tags').find({
+      _id: { $in: therapist.specialization.map(id => new ObjectId(id)) }
+    }).toArray()
+
+    // Group by category for display
+    const groupedTags: Record<string, string[]> = {}
+    const groupedTagsDe: Record<string, string[]> = {}
+
+    tags.forEach(tag => {
+      const catEn = tag.category.en
+      const catDe = tag.category.de
+
+      if (!groupedTags[catEn]) groupedTags[catEn] = []
+      if (!groupedTagsDe[catDe]) groupedTagsDe[catDe] = []
+
+      const nameEn = tag.subcategory?.en || tag.name?.en || ''
+      const nameDe = tag.subcategory?.de || tag.name?.de || ''
+
+      if (nameEn) groupedTags[catEn].push(nameEn)
+      if (nameDe) groupedTagsDe[catDe].push(nameDe)
+    })
+
+    const enString = Object.entries(groupedTags)
+      .map(([cat, tgs]) => `${cat}: ${tgs.join(', ')}`)
+      .join('; ')
+
+    const deString = Object.entries(groupedTagsDe)
+      .map(([cat, tgs]) => `${cat}: ${tgs.join(', ')}`)
+      .join('; ')
+
+    displaySpecialization = { en: enString, de: deString }
+  }
+
   // Return in API format for consistency
   return {
     therapist: {
       _id: therapist._id,
-      name: therapist.name,
-      specialization: therapist.specialization,
-      bio: therapist.bio,
+      name: therapist.name || '',
+      specialization: displaySpecialization || '',
+      bio: therapist.bio || '',
       photoUrl: therapist.photoUrl,
       profileImageSrc,
       linkedinUrl: therapist.linkedinUrl,

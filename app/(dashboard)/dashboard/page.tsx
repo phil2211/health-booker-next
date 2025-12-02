@@ -35,12 +35,59 @@ export default async function DashboardPage() {
   // Get appointment stats
   const stats = await getAppointmentStats(therapist._id)
 
+  // Resolve specialization tags
+  let displaySpecialization = ''
+  if (Array.isArray(therapist.specialization) && therapist.specialization.length > 0) {
+    const { getDatabase } = await import('@/lib/mongodb')
+    const db = await getDatabase()
+    const { ObjectId } = await import('mongodb')
+
+    // Fetch all selected tags
+    const tags = await db.collection('therapy_tags').find({
+      _id: { $in: therapist.specialization.map(id => new ObjectId(id)) }
+    }).toArray()
+
+    // Group by category for display
+    // Format: "Category: Tag1, Tag2; Category2: Tag3"
+    const groupedTags: Record<string, string[]> = {}
+    const groupedTagsDe: Record<string, string[]> = {}
+
+    tags.forEach(tag => {
+      const catEn = tag.category.en
+      const catDe = tag.category.de
+
+      if (!groupedTags[catEn]) groupedTags[catEn] = []
+      if (!groupedTagsDe[catDe]) groupedTagsDe[catDe] = []
+
+      const nameEn = tag.subcategory?.en || tag.name?.en || ''
+      const nameDe = tag.subcategory?.de || tag.name?.de || ''
+
+      if (nameEn) groupedTags[catEn].push(nameEn)
+      if (nameDe) groupedTagsDe[catDe].push(nameDe)
+    })
+
+    const enString = Object.entries(groupedTags)
+      .map(([cat, tgs]) => `${cat}: ${tgs.join(', ')}`)
+      .join('; ')
+
+    const deString = Object.entries(groupedTagsDe)
+      .map(([cat, tgs]) => `${cat}: ${tgs.join(', ')}`)
+      .join('; ')
+
+    displaySpecialization = { en: enString, de: deString } as any
+  } else if (typeof therapist.specialization === 'string') {
+    displaySpecialization = therapist.specialization
+  } else if (typeof therapist.specialization === 'object') {
+    // It's already the old format {en, de}
+    displaySpecialization = therapist.specialization as any
+  }
+
   return (
     <DashboardClient
       therapist={{
         _id: therapist._id,
         name: therapist.name || '',
-        specialization: therapist.specialization || '',
+        specialization: displaySpecialization,
         bio: therapist.bio || '',
         email: therapist.email,
         weeklyAvailability: therapist.weeklyAvailability,

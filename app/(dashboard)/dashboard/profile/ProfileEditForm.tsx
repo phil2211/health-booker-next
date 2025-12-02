@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useLocale } from '@/lib/i18n/LocaleProvider'
 import { TherapistDocument } from '@/models/Therapist'
@@ -52,7 +52,7 @@ export default function ProfileEditForm({ therapist }: ProfileEditFormProps) {
     }
 
     // Initialize state
-    const [name, setName] = useState(therapist.name)
+    const [name, setName] = useState(therapist.name || '')
     const [address, setAddress] = useState(therapist.address || '')
     const [zip, setZip] = useState(therapist.zip || '')
     const [city, setCity] = useState(therapist.city || '')
@@ -65,8 +65,29 @@ export default function ProfileEditForm({ therapist }: ProfileEditFormProps) {
     const [bioEn, setBioEn] = useState(getInitialValue(therapist.bio, 'en'))
     const [bioDe, setBioDe] = useState(getInitialValue(therapist.bio, 'de'))
 
-    const [specializationEn, setSpecializationEn] = useState(getInitialValue(therapist.specialization, 'en'))
-    const [specializationDe, setSpecializationDe] = useState(getInitialValue(therapist.specialization, 'de'))
+    const [specialization, setSpecialization] = useState<string[]>(
+        Array.isArray(therapist.specialization) ? therapist.specialization : []
+    )
+    interface CategoryData {
+        category: { en: string; de: string }
+        tags: { id: string; name: { en: string; de: string } }[]
+    }
+    const [availableCategories, setAvailableCategories] = useState<CategoryData[]>([])
+
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const res = await fetch('/api/tags')
+                if (res.ok) {
+                    const data = await res.json()
+                    setAvailableCategories(data.categories)
+                }
+            } catch (e) {
+                console.error('Failed to fetch categories', e)
+            }
+        }
+        fetchCategories()
+    }, [])
 
     const [isSaving, setIsSaving] = useState(false)
     const [error, setError] = useState<string | null>(null)
@@ -91,7 +112,7 @@ export default function ProfileEditForm({ therapist }: ProfileEditFormProps) {
                 formData.append('phoneNumber', phoneNumber)
                 formData.append('linkedinUrl', linkedinUrl)
                 formData.append('bio', JSON.stringify({ en: bioEn, de: bioDe }))
-                formData.append('specialization', JSON.stringify({ en: specializationEn, de: specializationDe }))
+                formData.append('specialization', JSON.stringify(specialization))
                 formData.append('profileImage', profileImage)
                 body = formData
             } else {
@@ -107,10 +128,7 @@ export default function ProfileEditForm({ therapist }: ProfileEditFormProps) {
                         en: bioEn,
                         de: bioDe,
                     },
-                    specialization: {
-                        en: specializationEn,
-                        de: specializationDe,
-                    },
+                    specialization,
                 })
             }
 
@@ -349,36 +367,77 @@ export default function ProfileEditForm({ therapist }: ProfileEditFormProps) {
             {/* Specialization Field */}
             <div className="border-t pt-6">
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">{t('dashboard.specialization')}</h2>
+                <div className="space-y-6">
+                    {availableCategories.map((catGroup) => {
+                        const catId = catGroup.category.en; // Use English name as stable ID for grouping
+                        const catName = locale === 'en' ? catGroup.category.en : catGroup.category.de;
 
-                {locale === 'en' ? (
-                    <div>
-                        <label htmlFor="specializationEn" className="block text-sm font-medium text-gray-700 mb-2">
-                            {t('dashboard.specializationEnglish')}
-                        </label>
-                        <input
-                            type="text"
-                            id="specializationEn"
-                            value={specializationEn}
-                            onChange={(e) => setSpecializationEn(e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
-                            required
-                        />
-                    </div>
-                ) : (
-                    <div>
-                        <label htmlFor="specializationDe" className="block text-sm font-medium text-gray-700 mb-2">
-                            {t('dashboard.specializationDeutsch')}
-                        </label>
-                        <input
-                            type="text"
-                            id="specializationDe"
-                            value={specializationDe}
-                            onChange={(e) => setSpecializationDe(e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
-                            required
-                        />
-                    </div>
-                )}
+                        // Check if any tag in this category is selected
+                        const selectedTagsInThisCat = catGroup.tags.filter(t => specialization.includes(t.id));
+                        const isCategorySelected = selectedTagsInThisCat.length > 0;
+
+                        // Count total selected categories (groups that have at least one tag selected)
+                        const selectedCategoryCount = availableCategories.filter(c =>
+                            c.tags.some(t => specialization.includes(t.id))
+                        ).length;
+
+                        const isMaxCategoriesReached = !isCategorySelected && selectedCategoryCount >= 3;
+
+                        return (
+                            <div key={catId} className={`border rounded-lg p-4 ${isCategorySelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}>
+                                <div className="flex items-center justify-between mb-3">
+                                    <h3 className={`font-medium ${isCategorySelected ? 'text-blue-700' : 'text-gray-900'}`}>
+                                        {catName}
+                                    </h3>
+                                    {isCategorySelected && (
+                                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                                            {selectedTagsInThisCat.length} / 3
+                                        </span>
+                                    )}
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                    {catGroup.tags.map(tag => {
+                                        const isSelected = specialization.includes(tag.id);
+                                        const isDisabled =
+                                            // Disable if category limit reached and this category is not selected
+                                            (isMaxCategoriesReached && !isCategorySelected) ||
+                                            // Disable if max tags (3) reached for this category and not selected
+                                            (isCategorySelected && selectedTagsInThisCat.length >= 3 && !isSelected);
+
+                                        return (
+                                            <div key={tag.id} className="flex items-center">
+                                                <input
+                                                    type="checkbox"
+                                                    id={`tag-${tag.id}`}
+                                                    checked={isSelected}
+                                                    disabled={isDisabled}
+                                                    onChange={(e) => {
+                                                        if (e.target.checked) {
+                                                            setSpecialization([...specialization, tag.id])
+                                                        } else {
+                                                            setSpecialization(specialization.filter(id => id !== tag.id))
+                                                        }
+                                                    }}
+                                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                                                />
+                                                <label
+                                                    htmlFor={`tag-${tag.id}`}
+                                                    className={`ml-2 block text-sm ${isDisabled ? 'text-gray-400' : 'text-gray-900'}`}
+                                                >
+                                                    {locale === 'en' ? tag.name.en : tag.name.de}
+                                                </label>
+                                            </div>
+                                        )
+                                    })}
+                                </div>
+                                {isCategorySelected && selectedTagsInThisCat.length === 0 && (
+                                    <p className="text-xs text-red-500 mt-2">{t('dashboard.selectAtLeastOneSubCategory') || 'Please select at least one sub-category'}</p>
+                                )}
+                            </div>
+                        )
+                    })}
+                </div>
             </div>
 
             {/* Bio Field */}

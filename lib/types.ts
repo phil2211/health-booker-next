@@ -48,7 +48,7 @@ export interface Therapist {
   email: string
   password: string // hashed
   name?: string
-  specialization?: string | { en: string; de: string }
+  specialization?: string[]
   bio?: string | { en: string; de: string }
   address?: string
   zip?: string

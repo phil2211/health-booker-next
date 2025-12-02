@@ -154,19 +154,7 @@ export async function PATCH(
       }
     }
 
-    // Process specialization translation
-    if (specialization && typeof specialization === 'object') {
-      console.log('Processing specialization translation:', specialization)
-      if (specialization.de && !specialization.en) {
-        console.log('Translating specialization DE -> EN')
-        specialization.en = await translateText(specialization.de, 'en')
-        console.log('Translated specialization EN:', specialization.en)
-      } else if (specialization.en && !specialization.de) {
-        console.log('Translating specialization EN -> DE')
-        specialization.de = await translateText(specialization.en, 'de')
-        console.log('Translated specialization DE:', specialization.de)
-      }
-    }
+    // Specialization is now an array of IDs, no translation needed
 
     const updatedTherapist = await updateTherapistProfile(id, {
       ...updateData,
