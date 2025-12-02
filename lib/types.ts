@@ -47,9 +47,9 @@ export interface Therapist {
   _id?: string
   email: string
   password: string // hashed
-  name: string
-  specialization: string | { en: string; de: string }
-  bio: string | { en: string; de: string }
+  name?: string
+  specialization?: string | { en: string; de: string }
+  bio?: string | { en: string; de: string }
   address?: string
   zip?: string
   city?: string
@@ -58,6 +58,9 @@ export interface Therapist {
   linkedinUrl?: string
   weeklyAvailability: AvailabilityEntry[]
   blockedSlots: BlockedSlot[]
+  pushSubscription?: PushSubscriptionJSON
+  onboardingCompleted?: boolean
+
 
   // Subscription & Quota - REMOVED
 
@@ -154,6 +157,7 @@ export interface Patient {
     relationship: string
     phone: string
   }
+  pushSubscription?: PushSubscriptionJSON
   createdAt?: Date
   updatedAt?: Date
 }

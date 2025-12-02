@@ -57,17 +57,8 @@ export function validateTherapistInput(therapist: Partial<Therapist>): { valid: 
     errors.push('Password must be at least 8 characters long')
   }
 
-  if (!therapist.name || typeof therapist.name !== 'string') {
-    errors.push('Name is required')
-  }
-
-  if (!therapist.specialization || typeof therapist.specialization !== 'string') {
-    errors.push('Specialization is required')
-  }
-
-  if (!therapist.bio || typeof therapist.bio !== 'string') {
-    errors.push('Bio is required')
-  }
+  // Name, specialization, and bio are now optional during initial registration
+  // They will be collected during onboarding
 
   return {
     valid: errors.length === 0,
@@ -173,9 +164,9 @@ export async function findTherapistById(id: string): Promise<TherapistDocument |
 export async function createTherapist(
   email: string,
   hashedPassword: string,
-  name: string,
-  specialization: string,
-  bio: string,
+  name?: string,
+  specialization?: string,
+  bio?: string,
   photoUrl?: string
 ): Promise<TherapistDocument> {
   const db = await getDatabase()
@@ -193,6 +184,7 @@ export async function createTherapist(
     // Initialize Payment Model
     balance: 0,
     transactions: [],
+    onboardingCompleted: false,
     createdAt: now,
     updatedAt: now,
   }
@@ -416,6 +408,16 @@ export async function updateTherapistProfile(
     if (profileData.phoneNumber !== undefined) updateFields.phoneNumber = profileData.phoneNumber
     if (profileData.linkedinUrl !== undefined) updateFields.linkedinUrl = profileData.linkedinUrl
     if (profileData.profileImage !== undefined) updateFields.profileImage = profileData.profileImage
+
+    // Check if onboarding is completed
+    if (
+      (updateFields.name || (await db.collection('therapists').findOne({ _id: new ObjectId(therapistId) })).name) &&
+      (updateFields.specialization || (await db.collection('therapists').findOne({ _id: new ObjectId(therapistId) })).specialization) &&
+      (updateFields.bio || (await db.collection('therapists').findOne({ _id: new ObjectId(therapistId) })).bio) &&
+      (updateFields.address || (await db.collection('therapists').findOne({ _id: new ObjectId(therapistId) })).address)
+    ) {
+      updateFields.onboardingCompleted = true
+    }
 
     // Use updateOne instead of findOneAndUpdate for more reliable results
     const updateResult = await db.collection('therapists').updateOne(

@@ -10,6 +10,7 @@ import { RescheduleNotificationEmail } from '@/components/emails/RescheduleNotif
 import { generateSecureToken } from '@/lib/utils/tokens';
 import { Booking, Therapist, Patient } from '@/lib/types';
 import { getValidLocale, setupEmailData, generateEmailHtml, validateEmailConfig } from '@/lib/utils/email';
+import { sendNotificationToUser } from '@/lib/push';
 
 // Instead, create a function to get Resend instance
 function getResendClient() {
@@ -64,6 +65,13 @@ export async function sendBookingConfirmationEmails(booking: Booking, therapist:
 
     console.log('Patient email sent successfully:', patientEmailResponse.data?.id);
 
+    // Send Push Notification to Patient
+    await sendNotificationToUser(
+      patient,
+      emailSetup.t('bookingConfirmation.subject'),
+      `Your appointment with ${therapist.name} is confirmed for ${new Date(booking.appointmentDate).toLocaleDateString(emailSetup.locale)} at ${booking.startTime}.`
+    );
+
     // Email to Therapist
     const therapistEmailHtml = await generateEmailHtml(
       <BookingConfirmationTherapistEmail
@@ -93,6 +101,13 @@ export async function sendBookingConfirmationEmails(booking: Booking, therapist:
     }
 
     console.log('Therapist email sent successfully:', therapistEmailResponse.data?.id);
+
+    // Send Push Notification to Therapist
+    await sendNotificationToUser(
+      therapist,
+      emailSetup.t('bookingConfirmationTherapist.subject', { patientName: patient.name }),
+      `New booking from ${patient.name} for ${new Date(booking.appointmentDate).toLocaleDateString(emailSetup.locale)} at ${booking.startTime}.`
+    );
 
     return {
       patientEmail: patientEmailResponse,
@@ -138,6 +153,13 @@ export async function sendCancellationEmail(booking: Booking, therapist: Therapi
 
     console.log('Patient cancellation email sent successfully:', patientEmailResponse.data?.id);
 
+    // Send Push Notification to Patient
+    await sendNotificationToUser(
+      patient,
+      emailSetup.t('cancellationNotification.subject'),
+      `Your appointment with ${therapist.name} has been cancelled.`
+    );
+
     // Email to Therapist
     const therapistEmailHtml = await generateEmailHtml(
       <CancellationNotificationEmail
@@ -162,6 +184,13 @@ export async function sendCancellationEmail(booking: Booking, therapist: Therapi
     }
 
     console.log('Therapist cancellation email sent successfully:', therapistEmailResponse.data?.id);
+
+    // Send Push Notification to Therapist
+    await sendNotificationToUser(
+      therapist,
+      emailSetup.t('cancellationNotification.subject'),
+      `Appointment with ${patient.name} has been cancelled.`
+    );
 
     return {
       patientEmail: patientEmailResponse,
@@ -212,6 +241,13 @@ export async function sendRescheduleEmail(booking: Booking, therapist: Therapist
 
     console.log('Patient reschedule email sent successfully:', patientEmailResponse.data?.id);
 
+    // Send Push Notification to Patient
+    await sendNotificationToUser(
+      patient,
+      emailSetup.t('rescheduleNotification.subject'),
+      `Your appointment with ${therapist.name} has been rescheduled to ${new Date(booking.appointmentDate).toLocaleDateString(emailSetup.locale)} at ${booking.startTime}.`
+    );
+
     // Email to Therapist
     const therapistEmailHtml = await generateEmailHtml(
       <RescheduleNotificationEmail
@@ -244,6 +280,13 @@ export async function sendRescheduleEmail(booking: Booking, therapist: Therapist
     }
 
     console.log('Therapist reschedule email sent successfully:', therapistEmailResponse.data?.id);
+
+    // Send Push Notification to Therapist
+    await sendNotificationToUser(
+      therapist,
+      emailSetup.t('rescheduleNotification.subject'),
+      `Appointment with ${patient.name} has been rescheduled to ${new Date(booking.appointmentDate).toLocaleDateString(emailSetup.locale)} at ${booking.startTime}.`
+    );
 
     return {
       patientEmail: patientEmailResponse,

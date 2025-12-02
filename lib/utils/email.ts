@@ -61,8 +61,13 @@ export async function setupEmailData(
       start: new Date(booking.appointmentDate + 'T' + booking.startTime),
       end: new Date(booking.appointmentDate + 'T' + booking.endTime),
       title: t('calendar.appointmentTitle', { therapistName: therapist.name }),
-      description: t('calendar.appointmentDescription'),
-      location: 'Online',
+      description: therapist.phoneNumber
+        ? `${t('calendar.appointmentDescription')}\n\n${t('therapist.phone') || 'Phone'}: ${therapist.phoneNumber}`
+        : t('calendar.appointmentDescription'),
+      location: [
+        therapist.address,
+        [therapist.zip, therapist.city].filter(Boolean).join(' ')
+      ].filter(Boolean).join(', ') || 'Online',
     }));
   }
 

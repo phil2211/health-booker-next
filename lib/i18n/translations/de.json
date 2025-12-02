@@ -354,7 +354,8 @@
     "clickToView": "Klicke unten, um verfügbare Zeitslots anzuzeigen und deinen Termin mit {{name}} zu vereinbaren.",
     "viewAvailabilityBook": "Verfügbarkeit anzeigen & buchen",
     "backToHome": "Zurück zur Startseite",
-    "viewLinkedinProfile": "Profil ansehen"
+    "viewLinkedinProfile": "Profil ansehen",
+    "phone": "Telefon"
   },
   "cancel": {
     "cancelYourAppointment": "Deinen Termin absagen",

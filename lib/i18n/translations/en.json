@@ -357,7 +357,8 @@
     "clickToView": "Click below to view available time slots and schedule your appointment with {{name}}.",
     "viewAvailabilityBook": "View Availability & Book",
     "backToHome": "Back to Home",
-    "viewLinkedinProfile": "View Profile"
+    "viewLinkedinProfile": "View Profile",
+    "phone": "Phone"
   },
   "cancel": {
     "cancelYourAppointment": "Cancel Your Appointment",

@@ -4,6 +4,7 @@ import './globals.css'
 import Providers from './providers'
 import CookieBanner from '@/components/CookieBanner'
 import InstallPrompt from '@/components/InstallPrompt'
+import { PushNotificationManager } from '@/components/PushNotificationManager'
 import { getServerLocale } from '@/lib/i18n/server'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -34,6 +35,7 @@ export default async function RootLayout({
           {children}
           <CookieBanner />
           <InstallPrompt />
+          <PushNotificationManager />
           <footer className="bg-white border-t border-gray-200 mt-auto">
             <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
               <div className="flex flex-col md:flex-row justify-between items-center gap-4">
