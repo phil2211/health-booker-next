@@ -7,6 +7,10 @@ export type TherapistDocument = Therapist & {
   _id: string
   createdAt: Date
   updatedAt: Date
+  // Payment Model
+  balance: number
+  negativeBalanceSince?: Date
+  transactions?: any[] // Using any[] to avoid circular dependency issues for now, or import Transaction
   profileImage?: {
     data: Buffer
     contentType: string
@@ -191,6 +195,9 @@ export async function createTherapist(
     subscriptionStatus: SubscriptionStatus.ACTIVE,
     bookingsCount: 0,
     lastQuotaResetDate: now,
+    // Initialize Payment Model
+    balance: 0,
+    transactions: [],
     createdAt: now,
     updatedAt: now,
   }
@@ -516,4 +523,64 @@ export async function updateTherapistSubscription(
     { _id: new ObjectId(therapistId) },
     { $set: updates }
   )
+}
+
+/**
+ * Deduct amount from therapist balance and log transaction
+ * Returns updated therapist document
+ */
+export async function deductBalance(
+  therapistId: string,
+  amount: number,
+  description: string,
+  bookingId?: string
+): Promise<TherapistDocument | null> {
+  const db = await getDatabase()
+  const now = new Date()
+
+  // First get current state to check for negative balance transition
+  const therapist = await db.collection('therapists').findOne({ _id: new ObjectId(therapistId) })
+  if (!therapist) return null
+
+  const currentBalance = therapist.balance || 0
+  const newBalance = currentBalance - amount
+
+  const updates: any = {
+    balance: newBalance,
+    updatedAt: now
+  }
+
+  // If balance goes negative (and wasn't already), set negativeBalanceSince
+  if (newBalance < 0 && currentBalance >= 0) {
+    updates.negativeBalanceSince = now
+  }
+  // If balance becomes positive (or zero), clear negativeBalanceSince
+  else if (newBalance >= 0 && therapist.negativeBalanceSince) {
+    updates.negativeBalanceSince = null
+  }
+
+  const transaction = {
+    id: new ObjectId().toString(),
+    type: 'CHARGE',
+    amount: amount,
+    date: now,
+    description,
+    bookingId
+  }
+
+  const result = await db.collection('therapists').findOneAndUpdate(
+    { _id: new ObjectId(therapistId) },
+    {
+      $set: updates,
+      $push: { transactions: transaction }
+    } as any,
+    { returnDocument: 'after' }
+  )
+
+  if (!result || !result.value) return null
+
+  return {
+    ...result.value,
+    _id: result.value._id.toString(),
+  } as TherapistDocument
 }

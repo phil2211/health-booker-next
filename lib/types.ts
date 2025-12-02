@@ -90,8 +90,23 @@ export interface Therapist {
     status: BookingStatus
     createdAt: Date
   }> // Array of future bookings (more than 3 days old are removed)
+
+  // Payment Model
+  balance: number // Current account balance in CHF
+  negativeBalanceSince?: Date // Date when balance first went negative
+  transactions?: Transaction[] // History of charges and payments
+
   createdAt?: Date
   updatedAt?: Date
+}
+
+export interface Transaction {
+  id: string
+  type: 'CHARGE' | 'PAYMENT' | 'ADJUSTMENT'
+  amount: number
+  date: Date
+  description: string
+  bookingId?: string
 }
 
 /**

@@ -22,6 +22,8 @@ interface DashboardClientProps {
     subscriptionPlan: string
     subscriptionStatus: string
     bookingsCount: number
+    balance?: number
+    negativeBalanceSince?: string // Date string
   }
   bookingUrl: string
   baseUrl: string
@@ -127,6 +129,40 @@ export default function DashboardClient({ therapist, bookingUrl, baseUrl, upcomi
                 <p className="text-sm font-medium text-gray-500">{t('dashboard.appointmentsInCalendar')}</p>
                 <p className="text-2xl font-bold text-gray-900">{upcomingAppointmentsCount}</p>
               </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Balance Card */}
+        <div className={`bg-white rounded-xl shadow-md p-6 border-l-4 mb-8 ${(therapist.balance || 0) < 0 ? 'border-red-500' : 'border-emerald-500'
+          }`}>
+          <div className="flex flex-col md:flex-row items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Account Balance</h3>
+              <div className="flex items-center gap-2 mb-2">
+                <span className={`text-3xl font-bold ${(therapist.balance || 0) < 0 ? 'text-red-600' : 'text-emerald-600'
+                  }`}>
+                  CHF {(therapist.balance || 0).toFixed(2)}
+                </span>
+              </div>
+              <p className="text-gray-600">
+                {(therapist.balance || 0) < 0
+                  ? 'Please top up your account to avoid service interruption.'
+                  : 'Your account is in good standing.'}
+              </p>
+              {therapist.negativeBalanceSince && (
+                <p className="text-red-600 text-sm mt-1 font-medium">
+                  Overdue since: {new Date(therapist.negativeBalanceSince).toLocaleDateString()}
+                </p>
+              )}
+            </div>
+            <div className="mt-4 md:mt-0">
+              <button
+                onClick={() => alert('Top-up functionality coming soon! Please contact support.')}
+                className="inline-block bg-emerald-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-emerald-700 transition-colors shadow-sm"
+              >
+                Top Up Account
+              </button>
             </div>
           </div>
         </div>

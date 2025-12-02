@@ -107,6 +107,29 @@ export async function POST(request: Request) {
       )
     }
 
+    // Payment Logic
+    // 1. Check if blocked
+    if (therapist.negativeBalanceSince) {
+      const negativeSince = new Date(therapist.negativeBalanceSince)
+      const sixtyDaysAgo = new Date()
+      sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60)
+
+      if (negativeSince < sixtyDaysAgo) {
+        return NextResponse.json(
+          { error: 'Booking is currently disabled due to outstanding balance. Please contact the therapist directly.' },
+          { status: 403 }
+        )
+      }
+    }
+
+    // 2. Check Free Trial & Deduct Balance
+    const sixMonthsAgo = new Date()
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6)
+    const therapistCreatedAt = therapist.createdAt ? new Date(therapist.createdAt) : new Date()
+
+    // Logic moved to after booking creation to include booking ID
+
+
     // Generate cancellation token
     const cancellationToken = generateSecureToken()
 
@@ -125,6 +148,23 @@ export async function POST(request: Request) {
       notes: body.patientComment,
       locale: body.locale,
     })
+
+    // Update transaction with booking ID if deduction happened
+    if (therapistCreatedAt < sixMonthsAgo) {
+      try {
+        const { deductBalance } = await import('@/models/Therapist')
+        // We call it again? No, we should have called it before or we update the transaction.
+        // Actually, let's move the deduction AFTER booking creation so we have the ID.
+        await deductBalance(
+          body.therapistId,
+          1,
+          `Booking fee for ${body.patientName}`,
+          booking._id.toString()
+        )
+      } catch (error) {
+        console.error('Failed to deduct balance after booking:', error)
+      }
+    }
 
     // Send confirmation emails - if this fails, rollback the booking
     const patient: Patient = {
