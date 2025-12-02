@@ -505,6 +505,7 @@
     "step3Label": "Offerings",
     "step4Label": "Availability",
     "step4Description": "Set your weekly availability. You can adjust this later in your dashboard.",
-    "completeSetup": "Complete Setup"
+    "completeSetup": "Complete Setup",
+    "title": "Onboarding"
   }
 }
