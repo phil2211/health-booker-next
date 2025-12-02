@@ -12,14 +12,14 @@ export async function POST(request: Request) {
 
         const { offeringName, therapistBio, therapistSpecialization, locale } = await request.json()
 
-        if (!process.env.GOOGLE_API_KEY) {
+        if (!process.env.GEMINI_API_KEY) {
             return NextResponse.json(
-                createErrorResponse(new Error('Google API Key not configured'), 'POST /api/generate-description', 500),
+                createErrorResponse(new Error('Gemini API Key not configured'), 'POST /api/generate-description', 500),
                 { status: 500 }
             )
         }
 
-        const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY)
+        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
         const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
 
         const bio = typeof therapistBio === 'object' ? (therapistBio[locale] || therapistBio.en) : therapistBio

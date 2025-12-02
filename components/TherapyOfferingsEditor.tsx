@@ -120,6 +120,7 @@ export default function TherapyOfferingsEditor({
 
             if (!response.ok) {
                 const data = await response.json()
+                console.error('Generation failed:', data)
                 throw new Error(data.error || 'Generation failed')
             }
 

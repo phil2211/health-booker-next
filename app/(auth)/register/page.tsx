@@ -52,7 +52,9 @@ export default function RegisterPage() {
         setError(data.error || t('auth.registrationFailed'))
       } else {
         // Registration successful, redirect to login
-        const loginPath = locale === 'en' ? '/login?registered=true' : `/${locale}/login?registered=true`
+        const loginPath = locale === 'en'
+          ? `/login?registered=true&email=${encodeURIComponent(formData.email)}`
+          : `/${locale}/login?registered=true&email=${encodeURIComponent(formData.email)}`
         router.push(loginPath)
       }
     } catch (err) {
