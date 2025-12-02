@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { signIn } from 'next-auth/react'
 import Link from 'next/link'
 import { useTranslation } from '@/lib/i18n/useTranslation'
 import { useLocale } from '@/lib/i18n/LocaleProvider'
@@ -51,11 +52,22 @@ export default function RegisterPage() {
       if (!response.ok) {
         setError(data.error || t('auth.registrationFailed'))
       } else {
-        // Registration successful, redirect to login
-        const loginPath = locale === 'en'
-          ? `/login?registered=true&email=${encodeURIComponent(formData.email)}`
-          : `/${locale}/login?registered=true&email=${encodeURIComponent(formData.email)}`
-        router.push(loginPath)
+        // Registration successful, login automatically
+        const result = await signIn('credentials', {
+          redirect: false,
+          email: formData.email,
+          password: formData.password,
+        })
+
+        if (result?.error) {
+          setError(t('auth.loginError'))
+        } else {
+          // Wait a moment for session to be set, then redirect
+          setTimeout(() => {
+            const dashboardPath = locale === 'en' ? '/dashboard' : `/${locale}/dashboard`
+            window.location.href = dashboardPath
+          }, 100)
+        }
       }
     } catch (err) {
       setError(t('errors.genericError'))
