@@ -8,6 +8,8 @@ import BookingUrlSection from '@/components/BookingUrlSection'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 
+import TopUpModal from '@/components/TopUpModal'
+
 interface DashboardClientProps {
   therapist: {
     _id: string
@@ -19,9 +21,7 @@ interface DashboardClientProps {
     phoneNumber?: string
     weeklyAvailability: any[]
     blockedSlots: any[]
-    subscriptionPlan: string
-    subscriptionStatus: string
-    bookingsCount: number
+
     balance?: number
     negativeBalanceSince?: string // Date string
   }
@@ -35,6 +35,8 @@ export default function DashboardClient({ therapist, bookingUrl, baseUrl, upcomi
   const locale = useLocale()
   const router = useRouter()
   const [sanitizedBio, setSanitizedBio] = useState<string>('')
+  const [isTopUpModalOpen, setIsTopUpModalOpen] = useState(false)
+  const [localBalance, setLocalBalance] = useState(therapist.balance || 0)
 
   // Helper to get localized content
   const getLocalizedContent = (content: string | { en: string; de: string }, lang: string) => {
@@ -60,6 +62,37 @@ export default function DashboardClient({ therapist, bookingUrl, baseUrl, upcomi
     }
     parseAndSanitize()
   }, [displayBio])
+
+  // Sync local balance with prop when it changes (e.g. after router.refresh())
+  useEffect(() => {
+    setLocalBalance(therapist.balance || 0)
+  }, [therapist.balance])
+
+  const handleTopUp = async (amount: number) => {
+    try {
+      const response = await fetch('/api/therapist/topup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          therapistId: therapist._id,
+          amount,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to top up')
+      }
+
+      const data = await response.json()
+      setLocalBalance(data.balance)
+      router.refresh() // Refresh server components to ensure consistency
+    } catch (error) {
+      console.error('Top up error:', error)
+      alert('Failed to top up account. Please try again.')
+    }
+  }
 
   const availabilityPath = locale === 'en' ? '/dashboard/availability' : `/${locale}/dashboard/availability`
   const appointmentsPath = locale === 'en' ? '/dashboard/appointments' : `/${locale}/dashboard/appointments`
@@ -134,31 +167,26 @@ export default function DashboardClient({ therapist, bookingUrl, baseUrl, upcomi
         </div>
 
         {/* Balance Card */}
-        <div className={`bg-white rounded-xl shadow-md p-6 border-l-4 mb-8 ${(therapist.balance || 0) < 0 ? 'border-red-500' : 'border-emerald-500'
+        <div className={`bg-white rounded-xl shadow-md p-6 border-l-4 mb-8 ${localBalance <= 0 ? 'border-red-500' : 'border-emerald-500'
           }`}>
           <div className="flex flex-col md:flex-row items-center justify-between">
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Account Balance</h3>
               <div className="flex items-center gap-2 mb-2">
-                <span className={`text-3xl font-bold ${(therapist.balance || 0) < 0 ? 'text-red-600' : 'text-emerald-600'
+                <span className={`text-3xl font-bold ${localBalance <= 0 ? 'text-red-600' : 'text-emerald-600'
                   }`}>
-                  CHF {(therapist.balance || 0).toFixed(2)}
+                  CHF {localBalance.toFixed(2)}
                 </span>
               </div>
               <p className="text-gray-600">
-                {(therapist.balance || 0) < 0
-                  ? 'Please top up your account to avoid service interruption.'
+                {localBalance <= 0
+                  ? 'Your balance is insufficient. Your availability is currently hidden from patients. Please top up to receive bookings.'
                   : 'Your account is in good standing.'}
               </p>
-              {therapist.negativeBalanceSince && (
-                <p className="text-red-600 text-sm mt-1 font-medium">
-                  Overdue since: {new Date(therapist.negativeBalanceSince).toLocaleDateString()}
-                </p>
-              )}
             </div>
             <div className="mt-4 md:mt-0">
               <button
-                onClick={() => alert('Top-up functionality coming soon! Please contact support.')}
+                onClick={() => setIsTopUpModalOpen(true)}
                 className="inline-block bg-emerald-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-emerald-700 transition-colors shadow-sm"
               >
                 Top Up Account
@@ -167,59 +195,7 @@ export default function DashboardClient({ therapist, bookingUrl, baseUrl, upcomi
           </div>
         </div>
 
-        {/* Subscription Card */}
-        <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-purple-500 mb-8">
-          <div className="flex flex-col md:flex-row items-center justify-between">
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('subscription.title')}</h3>
-              <div className="flex items-center gap-2 mb-2">
-                <span className={`px-3 py-1 rounded-full text-sm font-medium ${therapist.subscriptionPlan === 'pro' ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800'
-                  }`}>
-                  {therapist.subscriptionPlan === 'pro' ? t('subscription.pro') : t('subscription.free')}
-                </span>
-                <span className={`text-sm ${therapist.subscriptionStatus === 'active' ? 'text-green-600' : 'text-red-600'
-                  }`}>
-                  ({t(`subscription.${therapist.subscriptionStatus}`)})
-                </span>
-              </div>
-              <p className="text-gray-600">
-                {therapist.subscriptionPlan === 'pro'
-                  ? t('subscription.unlimited')
-                  : t('subscription.bookingsUsed', { used: therapist.bookingsCount, limit: 5 })
-                }
-              </p>
-              {therapist.subscriptionPlan !== 'pro' && (
-                <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2 max-w-xs">
-                  <div
-                    className="bg-purple-600 h-2.5 rounded-full"
-                    style={{ width: `${Math.min((therapist.bookingsCount / 5) * 100, 100)}%` }}
-                  ></div>
-                </div>
-              )}
-            </div>
-            <div className="mt-4 md:mt-0">
-              {therapist.subscriptionPlan !== 'pro' ? (
-                <a
-                  href={`${process.env.NEXT_PUBLIC_PAYREXX_PRO_PLAN_LINK || '#'}${process.env.NEXT_PUBLIC_PAYREXX_PRO_PLAN_LINK?.includes('?') ? '&' : '?'}referenceId=${therapist._id}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-block bg-purple-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-purple-700 transition-colors shadow-sm"
-                >
-                  {t('subscription.upgradeToPro')}
-                </a>
-              ) : (
-                <a
-                  href={process.env.NEXT_PUBLIC_PAYREXX_PORTAL_LINK || '#'}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-block bg-gray-100 text-gray-700 px-6 py-3 rounded-lg font-medium hover:bg-gray-200 transition-colors"
-                >
-                  {t('subscription.manageSubscription')}
-                </a>
-              )}
-            </div>
-          </div>
-        </div>
+
 
         {/* Quick Actions */}
         <div className="grid md:grid-cols-2 gap-6 mb-8">
@@ -312,6 +288,13 @@ export default function DashboardClient({ therapist, bookingUrl, baseUrl, upcomi
           />
         </div>
       </div>
+
+      {isTopUpModalOpen && (
+        <TopUpModal
+          onClose={() => setIsTopUpModalOpen(false)}
+          onTopUp={handleTopUp}
+        />
+      )}
     </div>
   )
 }

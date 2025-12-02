@@ -1,4 +1,4 @@
-import { Therapist, AvailabilityEntry, BlockedSlot, TherapyOffering, SubscriptionPlan, SubscriptionStatus } from '@/lib/types'
+import { Therapist, AvailabilityEntry, BlockedSlot, TherapyOffering } from '@/lib/types'
 import bcrypt from 'bcryptjs'
 import { getDatabase } from '@/lib/mongodb'
 import { ObjectId } from 'mongodb'
@@ -190,11 +190,6 @@ export async function createTherapist(
     photoUrl,
     weeklyAvailability: [],
     blockedSlots: [],
-    // Initialize with Free plan
-    subscriptionPlan: SubscriptionPlan.FREE,
-    subscriptionStatus: SubscriptionStatus.ACTIVE,
-    bookingsCount: 0,
-    lastQuotaResetDate: now,
     // Initialize Payment Model
     balance: 0,
     transactions: [],
@@ -456,74 +451,7 @@ export async function updateTherapistProfile(
   }
 }
 
-/**
- * Check and reset monthly booking quota if needed
- * Returns true if quota was reset
- */
-export async function checkAndResetQuota(therapistId: string): Promise<boolean> {
-  const db = await getDatabase()
 
-  const therapist = await db.collection('therapists').findOne({ _id: new ObjectId(therapistId) })
-  if (!therapist) return false
-
-  const now = new Date()
-  const lastReset = therapist.lastQuotaResetDate ? new Date(therapist.lastQuotaResetDate) : new Date(0)
-
-  // Check if we're in a new month compared to last reset
-  const isNewMonth = now.getMonth() !== lastReset.getMonth() || now.getFullYear() !== lastReset.getFullYear()
-
-  if (isNewMonth) {
-    await db.collection('therapists').updateOne(
-      { _id: new ObjectId(therapistId) },
-      {
-        $set: {
-          bookingsCount: 0,
-          lastQuotaResetDate: now
-        }
-      }
-    )
-    return true
-  }
-
-  return false
-}
-
-/**
- * Increment booking count for a therapist
- */
-export async function incrementBookingCount(therapistId: string): Promise<void> {
-  const db = await getDatabase()
-  await db.collection('therapists').updateOne(
-    { _id: new ObjectId(therapistId) },
-    { $inc: { bookingsCount: 1 } }
-  )
-}
-
-/**
- * Update therapist subscription status
- */
-export async function updateTherapistSubscription(
-  therapistId: string,
-  plan: SubscriptionPlan,
-  status: SubscriptionStatus,
-  payrexxId?: string
-): Promise<void> {
-  const db = await getDatabase()
-  const updates: any = {
-    subscriptionPlan: plan,
-    subscriptionStatus: status,
-    updatedAt: new Date()
-  }
-
-  if (payrexxId) {
-    updates.payrexxSubscriptionId = payrexxId
-  }
-
-  await db.collection('therapists').updateOne(
-    { _id: new ObjectId(therapistId) },
-    { $set: updates }
-  )
-}
 
 /**
  * Deduct amount from therapist balance and log transaction
@@ -566,6 +494,60 @@ export async function deductBalance(
     date: now,
     description,
     bookingId
+  }
+
+  const result = await db.collection('therapists').findOneAndUpdate(
+    { _id: new ObjectId(therapistId) },
+    {
+      $set: updates,
+      $push: { transactions: transaction }
+    } as any,
+    { returnDocument: 'after' }
+  )
+
+  if (!result || !result.value) return null
+
+  return {
+    ...result.value,
+    _id: result.value._id.toString(),
+  } as TherapistDocument
+}
+
+/**
+ * Top up therapist balance and log transaction
+ * Returns updated therapist document
+ */
+export async function topUpBalance(
+  therapistId: string,
+  amount: number,
+  description: string = 'Account Top Up'
+): Promise<TherapistDocument | null> {
+  const db = await getDatabase()
+  const now = new Date()
+
+  // First get current state to check for negative balance transition
+  const therapist = await db.collection('therapists').findOne({ _id: new ObjectId(therapistId) })
+  if (!therapist) return null
+
+  const currentBalance = therapist.balance || 0
+  const newBalance = currentBalance + amount
+
+  const updates: any = {
+    balance: newBalance,
+    updatedAt: now
+  }
+
+  // If balance becomes positive (or zero), clear negativeBalanceSince
+  if (newBalance >= 0 && therapist.negativeBalanceSince) {
+    updates.negativeBalanceSince = null
+  }
+
+  const transaction = {
+    id: new ObjectId().toString(),
+    type: 'CREDIT',
+    amount: amount,
+    date: now,
+    description
   }
 
   const result = await db.collection('therapists').findOneAndUpdate(

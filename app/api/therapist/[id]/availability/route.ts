@@ -76,6 +76,17 @@ export async function GET(
     }
 
 
+    // Check balance
+    if (therapist.balance !== undefined && therapist.balance <= 0) {
+      return NextResponse.json({
+        slots: [],
+        therapistId: id,
+        startDate,
+        endDate,
+        message: 'Therapist has insufficient balance'
+      })
+    }
+
     // Get existing bookings for the date range
     const existingBookings = await getBookingsByTherapistAndDateRange(
       id,

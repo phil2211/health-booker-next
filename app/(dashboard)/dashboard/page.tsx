@@ -41,9 +41,7 @@ export default async function DashboardPage() {
         email: therapist.email,
         weeklyAvailability: therapist.weeklyAvailability,
         blockedSlots: therapist.blockedSlots,
-        subscriptionPlan: therapist.subscriptionPlan,
-        subscriptionStatus: therapist.subscriptionStatus,
-        bookingsCount: therapist.bookingsCount,
+
         balance: therapist.balance,
         negativeBalanceSince: therapist.negativeBalanceSince ? therapist.negativeBalanceSince.toISOString() : undefined,
       }}

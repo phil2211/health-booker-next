@@ -43,19 +43,6 @@ export interface TherapyOffering {
  * Therapist model as per Requirements.md
  * Healthcare professionals who manage appointments
  */
-export enum SubscriptionPlan {
-  FREE = 'free',
-  PRO = 'pro'
-}
-
-export enum SubscriptionStatus {
-  ACTIVE = 'active',
-  CANCELED = 'canceled',
-  PAST_DUE = 'past_due',
-  INCOMPLETE = 'incomplete',
-  TRIALING = 'trialing'
-}
-
 export interface Therapist {
   _id?: string
   email: string
@@ -72,12 +59,8 @@ export interface Therapist {
   weeklyAvailability: AvailabilityEntry[]
   blockedSlots: BlockedSlot[]
 
-  // Subscription & Quota
-  subscriptionPlan: SubscriptionPlan
-  subscriptionStatus: SubscriptionStatus
-  payrexxSubscriptionId?: string
-  bookingsCount: number // Current month usage
-  lastQuotaResetDate: Date
+  // Subscription & Quota - REMOVED
+
 
   therapyOfferings?: TherapyOffering[] // Configurable therapy session types
   bookings?: Array<{

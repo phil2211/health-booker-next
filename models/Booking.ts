@@ -1,8 +1,7 @@
 import { Booking, BookingStatus } from '@/lib/types'
 import { getDatabase, getClient } from '@/lib/mongodb'
 import { ObjectId } from 'mongodb'
-import { checkAndResetQuota, incrementBookingCount, findTherapistById } from '@/models/Therapist'
-import { SubscriptionPlan } from '@/lib/types'
+import { findTherapistById } from '@/models/Therapist'
 
 
 /**
@@ -201,23 +200,7 @@ export async function createBooking(booking: Omit<Booking, '_id' | 'createdAt' |
     throw new Error('Invalid booking data')
   }
 
-  // Check Quota for Free Plan
-  // 1. Reset quota if new month
-  await checkAndResetQuota(booking.therapistId)
 
-  // 2. Get therapist to check plan and count
-  const therapist = await findTherapistById(booking.therapistId)
-  if (!therapist) {
-    throw new Error('Therapist not found')
-  }
-
-  // 3. Check limit
-  if (therapist.subscriptionPlan === SubscriptionPlan.FREE) {
-    const FREE_LIMIT = 5
-    if (therapist.bookingsCount >= FREE_LIMIT) {
-      throw new Error(`Free plan limit reached (${FREE_LIMIT} bookings/month). Please upgrade to Pro for unlimited bookings.`)
-    }
-  }
 
   // Check for conflicts
   const appointmentDateStr = booking.appointmentDate instanceof Date
@@ -266,8 +249,7 @@ export async function createBooking(booking: Omit<Booking, '_id' | 'createdAt' |
   const insertResult = await db.collection('bookings').insertOne(bookingDoc)
   const bookingId = insertResult.insertedId
 
-  // Increment booking count
-  await incrementBookingCount(booking.therapistId)
+
 
   // Return the created booking document
   const createdBooking = await db.collection('bookings').findOne({ _id: bookingId })
