@@ -1,20 +1,20 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useLocale } from '@/lib/i18n/LocaleProvider'
 import { useTranslation } from '@/lib/i18n/useTranslation'
 import WeeklyAvailabilityEditor from '@/components/WeeklyAvailabilityEditor'
 import TherapyOfferingsEditor from '@/components/TherapyOfferingsEditor'
 import ResponsiveHeader from '@/components/ResponsiveHeader'
-import { AvailabilityEntry, TherapyOffering } from '@/lib/types'
+import { AvailabilityEntry, TherapyOffering, TherapyTag } from '@/lib/types'
 
 interface OnboardingWizardProps {
     therapist: {
         _id: string
         name: string
         email: string
-        specialization: string | { en: string; de: string }
+        specialization: any[] | string | { en: string; de: string }
         bio: string | { en: string; de: string }
         address: string
         zip: string
@@ -43,7 +43,7 @@ export default function OnboardingWizard({ therapist }: OnboardingWizardProps) {
 
     // Determine initial step
     const isBasicInfoComplete = !!(therapist.name && therapist.address && therapist.zip && therapist.city && therapist.phoneNumber)
-    const isProfileComplete = hasContent(therapist.bio) && hasContent(therapist.specialization)
+    const isProfileComplete = hasContent(therapist.bio) && (Array.isArray(therapist.specialization) ? therapist.specialization.length > 0 : hasContent(therapist.specialization as any))
     const hasOfferings = therapist.therapyOfferings && therapist.therapyOfferings.length > 0
 
     const [step, setStep] = useState(() => {
@@ -72,13 +72,81 @@ export default function OnboardingWizard({ therapist }: OnboardingWizardProps) {
 
     const [bioEn, setBioEn] = useState(getInitialValue(therapist.bio, 'en'))
     const [bioDe, setBioDe] = useState(getInitialValue(therapist.bio, 'de'))
-    const [specializationEn, setSpecializationEn] = useState(getInitialValue(therapist.specialization, 'en'))
-    const [specializationDe, setSpecializationDe] = useState(getInitialValue(therapist.specialization, 'de'))
+
+    const [specialization, setSpecialization] = useState<TherapyTag[]>([])
+
+    interface CategoryData {
+        category: { en: string; de: string }
+        tags: TherapyTag[]
+    }
+    const [availableCategories, setAvailableCategories] = useState<CategoryData[]>([])
+
+    // Track which category cards are visible/active
+    const [activeCategoryIds, setActiveCategoryIds] = useState<string[]>([])
+    const [hasInitializedActiveCats, setHasInitializedActiveCats] = useState(false)
+
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const res = await fetch('/api/tags')
+                if (res.ok) {
+                    const data = await res.json()
+                    setAvailableCategories(data.categories)
+                }
+            } catch (e) {
+                console.error('Failed to fetch categories', e)
+            }
+        }
+        fetchCategories()
+    }, [])
+
+    // Initialize active categories and specialization from saved data once categories are loaded
+    useEffect(() => {
+        if (availableCategories.length > 0 && !hasInitializedActiveCats) {
+            const currentSpec = therapist.specialization || [];
+            let normalizedSpec: TherapyTag[] = [];
+
+            if (Array.isArray(currentSpec)) {
+                if (currentSpec.length > 0) {
+                    if (typeof currentSpec[0] === 'string') {
+                        // Legacy: map IDs to objects
+                        const allTags = availableCategories.flatMap(c => c.tags);
+                        // @ts-ignore - currentSpec is string[] here but TS might think it's TherapyTag[]
+                        normalizedSpec = currentSpec.map(id => allTags.find(t => t._id === id)).filter(Boolean) as TherapyTag[];
+                    } else {
+                        // Already objects
+                        normalizedSpec = currentSpec as TherapyTag[];
+                    }
+                }
+            }
+
+            setSpecialization(normalizedSpec);
+
+            const initialActive = availableCategories
+                .filter(c => c.tags.some(t => normalizedSpec.some(s => s._id === t._id)))
+                .map(c => c.category.en)
+            setActiveCategoryIds(initialActive)
+            setHasInitializedActiveCats(true)
+        }
+    }, [availableCategories, hasInitializedActiveCats, therapist.specialization])
 
     const [profileImage, setProfileImage] = useState<File | null>(null)
     const [isDragging, setIsDragging] = useState(false)
 
-    const [therapyOfferings, setTherapyOfferings] = useState<TherapyOffering[]>(therapist.therapyOfferings || [])
+    const [therapyOfferings, setTherapyOfferings] = useState<TherapyOffering[]>(() => {
+        if (therapist.therapyOfferings && therapist.therapyOfferings.length > 0) {
+            return therapist.therapyOfferings
+        }
+        return [{
+            _id: 'default-initial-consultation',
+            name: { en: "Initial Consultation", de: "Erstkonsultation" },
+            description: { en: "Initial consultation to discuss your needs and goals.", de: "Erstgespräch zur Besprechung Ihrer Bedürfnisse und Ziele." },
+            duration: 60,
+            breakDuration: 15,
+            price: 120,
+            isActive: true
+        }]
+    })
     const [weeklyAvailability, setWeeklyAvailability] = useState<AvailabilityEntry[]>(therapist.weeklyAvailability || [])
 
     const formatSwissPhoneNumber = (value: string) => {
@@ -114,7 +182,7 @@ export default function OnboardingWizard({ therapist }: OnboardingWizardProps) {
                 setStep(2)
             }
         } else if (step === 2) {
-            if ((locale === 'en' && (!bioEn || !specializationEn)) || (locale === 'de' && (!bioDe || !specializationDe))) {
+            if ((locale === 'en' && !bioEn) || (locale === 'de' && !bioDe) || specialization.length === 0) {
                 setError(t('common.fillAllFields') || 'Please fill in all fields')
                 return
             }
@@ -149,7 +217,7 @@ export default function OnboardingWizard({ therapist }: OnboardingWizardProps) {
             formData.append('city', city)
             formData.append('phoneNumber', phoneNumber)
             formData.append('bio', JSON.stringify({ en: bioEn, de: bioDe }))
-            formData.append('specialization', JSON.stringify({ en: specializationEn, de: specializationDe }))
+            formData.append('specialization', JSON.stringify(specialization))
             if (profileImage) {
                 formData.append('profileImage', profileImage)
             }
@@ -323,14 +391,136 @@ export default function OnboardingWizard({ therapist }: OnboardingWizardProps) {
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('dashboard.specialization')} ({locale === 'en' ? 'English' : 'Deutsch'})</label>
-                                    <input
-                                        type="text"
-                                        value={locale === 'en' ? specializationEn : specializationDe}
-                                        onChange={(e) => locale === 'en' ? setSpecializationEn(e.target.value) : setSpecializationDe(e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-black focus:ring-indigo-500 focus:border-indigo-500"
-                                        required
-                                    />
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('dashboard.specialization')}</label>
+
+                                    {/* Active Categories List */}
+                                    <div className="space-y-4 mb-6">
+                                        {availableCategories.map((catGroup) => {
+                                            const catId = catGroup.category.en;
+                                            const catName = locale === 'en' ? catGroup.category.en : catGroup.category.de;
+
+                                            // Check if any tag in this category is selected
+                                            const selectedTagsInThisCat = catGroup.tags.filter(t => specialization.some(s => s._id === t._id));
+
+                                            // Category is active if it's in our manual list
+                                            const isCategoryActive = activeCategoryIds.includes(catId);
+
+                                            if (!isCategoryActive) return null;
+
+                                            return (
+                                                <div key={catId} className="border border-blue-200 bg-blue-50 rounded-lg p-4">
+                                                    <div className="flex items-center justify-between mb-3">
+                                                        <h3 className="font-medium text-blue-900">{catName}</h3>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                // Remove all tags from this category
+                                                                const tagsToRemove = catGroup.tags.map(t => t._id);
+                                                                setSpecialization(specialization.filter(s => !tagsToRemove.includes(s._id)));
+                                                                // Remove from active list
+                                                                setActiveCategoryIds(activeCategoryIds.filter(id => id !== catId));
+                                                            }}
+                                                            className="text-sm text-red-600 hover:text-red-800"
+                                                        >
+                                                            {t('common.remove')}
+                                                        </button>
+                                                    </div>
+
+                                                    {/* Tag Picker Component */}
+                                                    <div className="relative">
+                                                        <div className="flex flex-wrap gap-2 p-2 bg-white border border-blue-200 rounded-md min-h-[42px]">
+                                                            {selectedTagsInThisCat.map(tag => (
+                                                                <span key={tag._id} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                                                                    {locale === 'en' ? tag.name.en : tag.name.de}
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => setSpecialization(specialization.filter(s => s._id !== tag._id))}
+                                                                        className="ml-1.5 inline-flex items-center justify-center h-4 w-4 rounded-full text-blue-400 hover:bg-blue-200 hover:text-blue-600 focus:outline-none"
+                                                                    >
+                                                                        <span className="sr-only">Remove large option</span>
+                                                                        <svg className="h-2 w-2" stroke="currentColor" fill="none" viewBox="0 0 8 8">
+                                                                            <path strokeLinecap="round" strokeWidth="1.5" d="M1 1l6 6m0-6L1 7" />
+                                                                        </svg>
+                                                                    </button>
+                                                                </span>
+                                                            ))}
+
+                                                            {selectedTagsInThisCat.length < 3 && (
+                                                                <div className="relative flex-grow group">
+                                                                    <select
+                                                                        onChange={(e) => {
+                                                                            const selectedTagId = e.target.value;
+                                                                            const selectedTag = catGroup.tags.find(t => t._id === selectedTagId);
+                                                                            if (selectedTag) {
+                                                                                setSpecialization([...specialization, selectedTag]);
+                                                                                e.target.value = ''; // Reset select
+                                                                            }
+                                                                        }}
+                                                                        className="w-full border-none focus:ring-0 text-sm py-1 pl-2 pr-8 text-gray-500 bg-transparent cursor-pointer"
+                                                                        value=""
+                                                                    >
+                                                                        <option value="" disabled>{t('dashboard.addTag')}</option>
+                                                                        {catGroup.tags
+                                                                            .filter(t => !specialization.some(s => s._id === t._id))
+                                                                            .map(tag => (
+                                                                                <option key={tag._id} value={tag._id}>
+                                                                                    {locale === 'en' ? tag.name.en : tag.name.de}
+                                                                                </option>
+                                                                            ))
+                                                                        }
+                                                                    </select>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        <p className="text-xs text-gray-500 mt-1">
+                                                            {selectedTagsInThisCat.length}/3 {t('dashboard.subCategoriesSelected')}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+
+                                    {/* Add Category Button */}
+                                    {(() => {
+                                        const activeCategoryCount = activeCategoryIds.length;
+
+                                        if (activeCategoryCount < 3) {
+                                            return (
+                                                <div className="relative inline-block text-left w-full">
+                                                    <select
+                                                        onChange={(e) => {
+                                                            const catId = e.target.value;
+                                                            if (catId) {
+                                                                setActiveCategoryIds([...activeCategoryIds, catId]);
+                                                                e.target.value = '';
+                                                            }
+                                                        }}
+                                                        className="inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                                        value=""
+                                                    >
+                                                        <option value="" disabled>{t('dashboard.addMainCategory')}</option>
+                                                        {availableCategories
+                                                            .filter(c => !activeCategoryIds.includes(c.category.en))
+                                                            .map(c => (
+                                                                <option key={c.category.en} value={c.category.en}>
+                                                                    {locale === 'en' ? c.category.en : c.category.de}
+                                                                </option>
+                                                            ))
+                                                        }
+                                                    </select>
+                                                    <p className="text-xs text-gray-500 mt-2">
+                                                        {activeCategoryCount}/3 {t('dashboard.mainCategoriesSelected')}
+                                                    </p>
+                                                </div>
+                                            );
+                                        }
+                                        return (
+                                            <p className="text-sm text-gray-500">
+                                                {t('dashboard.maxCategoriesReached')}
+                                            </p>
+                                        );
+                                    })()}
                                 </div>
 
                                 <div>
@@ -353,7 +543,7 @@ export default function OnboardingWizard({ therapist }: OnboardingWizardProps) {
                                     therapyOfferings={therapyOfferings}
                                     onChange={setTherapyOfferings}
                                     therapistBio={{ en: bioEn, de: bioDe }}
-                                    therapistSpecialization={{ en: specializationEn, de: specializationDe }}
+                                    therapistSpecialization={specialization}
                                 />
                             </div>
                         )}

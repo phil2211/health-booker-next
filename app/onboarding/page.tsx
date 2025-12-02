@@ -28,9 +28,7 @@ export default async function OnboardingPage() {
                 _id: therapist._id,
                 name: therapist.name || '',
                 email: therapist.email,
-                specialization: Array.isArray(therapist.specialization)
-                    ? therapist.specialization.map(s => s.name.en).join(', ')
-                    : therapist.specialization || '',
+                specialization: therapist.specialization || [],
                 bio: therapist.bio || '',
                 address: therapist.address || '',
                 zip: therapist.zip || '',
