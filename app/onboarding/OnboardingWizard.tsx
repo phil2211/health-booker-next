@@ -8,6 +8,7 @@ import WeeklyAvailabilityEditor from '@/components/WeeklyAvailabilityEditor'
 import TherapyOfferingsEditor from '@/components/TherapyOfferingsEditor'
 import ResponsiveHeader from '@/components/ResponsiveHeader'
 import { AvailabilityEntry, TherapyOffering, TherapyTag } from '@/lib/types'
+import { AsYouType } from 'libphonenumber-js'
 
 interface OnboardingWizardProps {
     therapist: {
@@ -150,22 +151,7 @@ export default function OnboardingWizard({ therapist }: OnboardingWizardProps) {
     const [weeklyAvailability, setWeeklyAvailability] = useState<AvailabilityEntry[]>(therapist.weeklyAvailability || [])
 
     const formatSwissPhoneNumber = (value: string) => {
-        const digits = value.replace(/\D/g, '')
-        if (digits.startsWith('41')) {
-            const formatted = digits.slice(0, 11)
-            if (formatted.length <= 2) return `+${formatted}`
-            if (formatted.length <= 4) return `+${formatted.slice(0, 2)} ${formatted.slice(2)}`
-            if (formatted.length <= 7) return `+${formatted.slice(0, 2)} ${formatted.slice(2, 4)} ${formatted.slice(4)}`
-            if (formatted.length <= 9) return `+${formatted.slice(0, 2)} ${formatted.slice(2, 4)} ${formatted.slice(4, 7)} ${formatted.slice(7)}`
-            return `+${formatted.slice(0, 2)} ${formatted.slice(2, 4)} ${formatted.slice(4, 7)} ${formatted.slice(7, 9)} ${formatted.slice(9)}`
-        } else if (digits.startsWith('0')) {
-            const formatted = digits.slice(0, 10)
-            if (formatted.length <= 3) return formatted
-            if (formatted.length <= 6) return `${formatted.slice(0, 3)} ${formatted.slice(3)}`
-            if (formatted.length <= 8) return `${formatted.slice(0, 3)} ${formatted.slice(3, 6)} ${formatted.slice(6)}`
-            return `${formatted.slice(0, 3)} ${formatted.slice(3, 6)} ${formatted.slice(6, 8)} ${formatted.slice(8)}`
-        }
-        return value
+        return new AsYouType('CH').input(value)
     }
 
     const handleNext = async () => {
