@@ -409,6 +409,8 @@ export async function updateTherapistProfile(
     if (profileData.linkedinUrl !== undefined) updateFields.linkedinUrl = profileData.linkedinUrl
     if (profileData.profileImage !== undefined) updateFields.profileImage = profileData.profileImage
 
+    let shouldAddStartingCredit = false
+
     // Check if onboarding is completed
     const currentTherapist = await db.collection('therapists').findOne({ _id: new ObjectId(therapistId) })
 
@@ -420,6 +422,9 @@ export async function updateTherapistProfile(
 
       if (hasName && hasSpecialization && hasBio && hasAddress) {
         updateFields.onboardingCompleted = true
+        if (!currentTherapist.onboardingCompleted) {
+          shouldAddStartingCredit = true
+        }
       }
     }
 
@@ -430,6 +435,10 @@ export async function updateTherapistProfile(
         $set: updateFields,
       }
     )
+
+    if (shouldAddStartingCredit) {
+      await topUpBalance(therapistId, 180, 'Starting Credit')
+    }
 
     // Check if update was successful
     if (updateResult.matchedCount === 0) {

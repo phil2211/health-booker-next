@@ -190,9 +190,9 @@ export default function OnboardingWizard({ therapist }: OnboardingWizardProps) {
                 {/* Progress Bar */}
                 <div className="mb-8">
                     <div className="flex items-center justify-between mb-2">
-                        <span className={`text-sm font-medium ${step >= 1 ? 'text-indigo-600' : 'text-gray-500'}`}>Basic Info</span>
-                        <span className={`text-sm font-medium ${step >= 2 ? 'text-indigo-600' : 'text-gray-500'}`}>Profile</span>
-                        <span className={`text-sm font-medium ${step >= 3 ? 'text-indigo-600' : 'text-gray-500'}`}>Availability</span>
+                        <span className={`text-sm font-medium ${step >= 1 ? 'text-indigo-600' : 'text-gray-500'}`}>{t('onboarding.step1Label')}</span>
+                        <span className={`text-sm font-medium ${step >= 2 ? 'text-indigo-600' : 'text-gray-500'}`}>{t('onboarding.step2Label')}</span>
+                        <span className={`text-sm font-medium ${step >= 3 ? 'text-indigo-600' : 'text-gray-500'}`}>{t('onboarding.step3Label')}</span>
                     </div>
                     <div className="h-2 bg-gray-200 rounded-full">
                         <div
@@ -219,54 +219,54 @@ export default function OnboardingWizard({ therapist }: OnboardingWizardProps) {
                     {step === 1 && (
                         <div className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">{t('common.name')}</label>
                                 <input
                                     type="text"
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-black focus:ring-indigo-500 focus:border-indigo-500"
                                     required
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">{t('dashboard.address')}</label>
                                 <input
                                     type="text"
                                     value={address}
                                     onChange={(e) => setAddress(e.target.value)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-black focus:ring-indigo-500 focus:border-indigo-500"
                                     required
                                 />
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">ZIP</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('dashboard.zip')}</label>
                                     <input
                                         type="text"
                                         value={zip}
                                         onChange={(e) => setZip(e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-black focus:ring-indigo-500 focus:border-indigo-500"
                                         required
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('dashboard.city')}</label>
                                     <input
                                         type="text"
                                         value={city}
                                         onChange={(e) => setCity(e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-black focus:ring-indigo-500 focus:border-indigo-500"
                                         required
                                     />
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">{t('dashboard.phoneNumber')}</label>
                                 <input
                                     type="tel"
                                     value={phoneNumber}
                                     onChange={(e) => setPhoneNumber(formatSwissPhoneNumber(e.target.value))}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-black focus:ring-indigo-500 focus:border-indigo-500"
                                     placeholder="+41 XX XXX XX XX"
                                     required
                                 />
@@ -278,7 +278,7 @@ export default function OnboardingWizard({ therapist }: OnboardingWizardProps) {
                     {step === 2 && (
                         <div className="space-y-6">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Profile Image</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">{t('dashboard.profileImage')}</label>
                                 <div
                                     className={`mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-dashed rounded-md transition-colors ${isDragging ? 'border-indigo-500 bg-indigo-50' : 'border-gray-300 hover:border-gray-400'}`}
                                     onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
@@ -298,39 +298,39 @@ export default function OnboardingWizard({ therapist }: OnboardingWizardProps) {
                                         </svg>
                                         <div className="flex text-sm text-gray-600 justify-center">
                                             <label htmlFor="file-upload" className="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none">
-                                                <span>Upload a file</span>
+                                                <span>{t('dashboard.uploadFile')}</span>
                                                 <input id="file-upload" name="file-upload" type="file" className="sr-only" accept="image/*" onChange={(e) => {
                                                     const file = e.target.files?.[0];
                                                     if (file) setProfileImage(file);
                                                 }} />
                                             </label>
-                                            <p className="pl-1">or drag and drop</p>
+                                            <p className="pl-1">{t('dashboard.orDragAndDrop')}</p>
                                         </div>
                                         <p className="text-xs text-gray-500">
-                                            {profileImage ? profileImage.name : 'PNG, JPG, GIF up to 1MB'}
+                                            {profileImage ? profileImage.name : t('dashboard.imageRequirements')}
                                         </p>
                                     </div>
                                 </div>
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Specialization ({locale === 'en' ? 'English' : 'German'})</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">{t('dashboard.specialization')} ({locale === 'en' ? 'English' : 'Deutsch'})</label>
                                 <input
                                     type="text"
                                     value={locale === 'en' ? specializationEn : specializationDe}
                                     onChange={(e) => locale === 'en' ? setSpecializationEn(e.target.value) : setSpecializationDe(e.target.value)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-black focus:ring-indigo-500 focus:border-indigo-500"
                                     required
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Bio ({locale === 'en' ? 'English' : 'German'})</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">{t('dashboard.bio')} ({locale === 'en' ? 'English' : 'Deutsch'})</label>
                                 <textarea
                                     value={locale === 'en' ? bioEn : bioDe}
                                     onChange={(e) => locale === 'en' ? setBioEn(e.target.value) : setBioDe(e.target.value)}
                                     rows={4}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-black focus:ring-indigo-500 focus:border-indigo-500"
                                     required
                                 />
                             </div>
@@ -340,7 +340,7 @@ export default function OnboardingWizard({ therapist }: OnboardingWizardProps) {
                     {/* Step 3: Availability */}
                     {step === 3 && (
                         <div>
-                            <p className="text-gray-600 mb-4">Set your weekly availability. You can adjust this later in your dashboard.</p>
+                            <p className="text-gray-600 mb-4">{t('onboarding.step3Description')}</p>
                             <WeeklyAvailabilityEditor
                                 weeklyAvailability={weeklyAvailability}
                                 onChange={setWeeklyAvailability}
@@ -356,7 +356,7 @@ export default function OnboardingWizard({ therapist }: OnboardingWizardProps) {
                                 className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
                                 disabled={loading}
                             >
-                                Back
+                                {t('common.back')}
                             </button>
                         ) : (
                             <div></div>
@@ -373,7 +373,7 @@ export default function OnboardingWizard({ therapist }: OnboardingWizardProps) {
                                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                 </svg>
                             )}
-                            {step === 3 ? 'Complete Setup' : 'Next'}
+                            {step === 3 ? t('onboarding.completeSetup') : t('common.next')}
                         </button>
                     </div>
                 </div>

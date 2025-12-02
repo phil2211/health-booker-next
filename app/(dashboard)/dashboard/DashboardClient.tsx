@@ -169,9 +169,9 @@ export default function DashboardClient({ therapist, bookingUrl, baseUrl, upcomi
         {/* Balance Card */}
         <div className={`bg-white rounded-xl shadow-md p-6 border-l-4 mb-8 ${localBalance <= 0 ? 'border-red-500' : 'border-emerald-500'
           }`}>
-          <div className="flex flex-col md:flex-row items-center justify-between">
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Account Balance</h3>
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('dashboard.accountBalance')}</h3>
               <div className="flex items-center gap-2 mb-2">
                 <span className={`text-3xl font-bold ${localBalance <= 0 ? 'text-red-600' : 'text-emerald-600'
                   }`}>
@@ -180,16 +180,16 @@ export default function DashboardClient({ therapist, bookingUrl, baseUrl, upcomi
               </div>
               <p className="text-gray-600">
                 {localBalance <= 0
-                  ? 'Your balance is insufficient. Your availability is currently hidden from patients. Please top up to receive bookings.'
-                  : 'Your account is in good standing.'}
+                  ? t('dashboard.balanceInsufficient')
+                  : t('dashboard.accountGoodStanding')}
               </p>
             </div>
-            <div className="mt-4 md:mt-0">
+            <div className="mt-4 md:mt-0 shrink-0">
               <button
                 onClick={() => setIsTopUpModalOpen(true)}
                 className="inline-block bg-emerald-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-emerald-700 transition-colors shadow-sm"
               >
-                Top Up Account
+                {t('dashboard.topUpAccount')}
               </button>
             </div>
           </div>

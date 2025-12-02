@@ -311,7 +311,11 @@
     "imageRequirements": "PNG, JPEG oder GIF. Max. 1MB.",
     "uploadFile": "Datei hochladen",
     "orDragAndDrop": "oder per Drag & Drop",
-    "linkedinUrl": "LinkedIn Profil-URL"
+    "linkedinUrl": "LinkedIn Profil-URL",
+    "accountBalance": "Kontostand",
+    "balanceInsufficient": "Ihr Guthaben ist nicht ausreichend. Ihre Verfügbarkeit ist derzeit für Patienten verborgen. Bitte laden Sie Ihr Konto auf, um Buchungen zu erhalten.",
+    "accountGoodStanding": "Ihr Konto ist in gutem Zustand.",
+    "topUpAccount": "Konto aufladen"
   },
   "subscription": {
     "title": "Abonnement & Nutzung",
@@ -487,5 +491,15 @@
     "preview": "Termin verschoben",
     "subject": "Ein Termin wurde verschoben",
     "body": "Der Termin zwischen {{therapistName}} und {{patientName}} wurde auf den {{newBookingDate}} um {{newBookingTime}} verschoben."
+  },
+  "onboarding": {
+    "step1Title": "Grundlegende Informationen",
+    "step2Title": "Profildetails",
+    "step3Title": "Verfügbarkeit einstellen",
+    "step1Label": "Basis-Info",
+    "step2Label": "Profil",
+    "step3Label": "Verfügbarkeit",
+    "step3Description": "Legen Sie Ihre wöchentliche Verfügbarkeit fest. Sie können dies später in Ihrem Dashboard anpassen.",
+    "completeSetup": "Einrichtung abschließen"
   }
 }

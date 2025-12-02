@@ -314,7 +314,11 @@
     "imageRequirements": "PNG, JPEG or GIF. Max 1MB.",
     "uploadFile": "Upload a file",
     "orDragAndDrop": "or drag and drop",
-    "linkedinUrl": "LinkedIn Profile URL"
+    "linkedinUrl": "LinkedIn Profile URL",
+    "accountBalance": "Account Balance",
+    "balanceInsufficient": "Your balance is insufficient. Your availability is currently hidden from patients. Please top up to receive bookings.",
+    "accountGoodStanding": "Your account is in good standing.",
+    "topUpAccount": "Top Up Account"
   },
   "subscription": {
     "title": "Subscription & Usage",
@@ -490,5 +494,15 @@
     "preview": "Appointment Rescheduled",
     "subject": "An Appointment has been Rescheduled",
     "body": "The appointment between {{therapistName}} and {{patientName}} has been rescheduled to {{newBookingDate}} at {{newBookingTime}}."
+  },
+  "onboarding": {
+    "step1Title": "Basic Information",
+    "step2Title": "Profile Details",
+    "step3Title": "Set Availability",
+    "step1Label": "Basic Info",
+    "step2Label": "Profile",
+    "step3Label": "Availability",
+    "step3Description": "Set your weekly availability. You can adjust this later in your dashboard.",
+    "completeSetup": "Complete Setup"
   }
 }
