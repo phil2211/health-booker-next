@@ -108,7 +108,8 @@ export async function POST(request: Request) {
     }
 
     // Payment Logic: Block if balance is insufficient
-    if (therapist.balance !== undefined && therapist.balance <= 0) {
+    const balance = therapist.balance ?? 0
+    if (balance <= 0) {
       return NextResponse.json(
         { error: 'Booking is currently disabled due to insufficient balance. Please contact the therapist directly.' },
         { status: 403 }

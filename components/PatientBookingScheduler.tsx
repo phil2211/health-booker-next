@@ -21,6 +21,7 @@ interface AvailabilityResponse {
   therapistId: string
   startDate: string
   endDate: string
+  message?: string
 }
 
 export default function PatientBookingScheduler({ therapistId, blockedSlots = [], onBookingConfirmed, therapistName, therapyOfferings }: PatientBookingSchedulerProps) {
@@ -91,6 +92,13 @@ export default function PatientBookingScheduler({ therapistId, blockedSlots = []
 
         if (response.ok) {
           const data: AvailabilityResponse = await response.json()
+
+          if (data.message === 'Therapist has insufficient balance') {
+            // Disable all dates by setting a dummy date that won't match
+            setAvailableDates(new Set(['disabled']))
+            return
+          }
+
           // Extract dates that have at least one available slot
           const datesWithSlots = new Set<string>()
           data.slots.forEach((slot) => {

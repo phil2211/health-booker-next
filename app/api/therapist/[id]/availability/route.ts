@@ -77,7 +77,8 @@ export async function GET(
 
 
     // Check balance
-    if (therapist.balance !== undefined && therapist.balance <= 0) {
+    const balance = therapist.balance ?? 0
+    if (balance <= 0) {
       return NextResponse.json({
         slots: [],
         therapistId: id,

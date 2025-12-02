@@ -266,11 +266,11 @@ export async function updateTherapistWeeklyAvailability(
     { returnDocument: 'after' }
   )
 
-  if (!result || !result.value) return null
+  if (!result) return null
 
   return {
-    ...result.value,
-    _id: result.value._id.toString(),
+    ...result,
+    _id: result._id.toString(),
   } as TherapistDocument
 }
 
@@ -295,11 +295,11 @@ export async function updateTherapistBlockedSlots(
     { returnDocument: 'after' }
   )
 
-  if (!result || !result.value) return null
+  if (!result) return null
 
   return {
-    ...result.value,
-    _id: result.value._id.toString(),
+    ...result,
+    _id: result._id.toString(),
   } as TherapistDocument
 }
 
@@ -505,11 +505,11 @@ export async function deductBalance(
     { returnDocument: 'after' }
   )
 
-  if (!result || !result.value) return null
+  if (!result) return null
 
   return {
-    ...result.value,
-    _id: result.value._id.toString(),
+    ...result,
+    _id: result._id.toString(),
   } as TherapistDocument
 }
 
@@ -559,10 +559,10 @@ export async function topUpBalance(
     { returnDocument: 'after' }
   )
 
-  if (!result || !result.value) return null
+  if (!result) return null
 
   return {
-    ...result.value,
-    _id: result.value._id.toString(),
+    ...result,
+    _id: result._id.toString(),
   } as TherapistDocument
 }
