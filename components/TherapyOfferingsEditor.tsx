@@ -118,6 +118,12 @@ export default function TherapyOfferingsEditor({
                     offeringName: offering.name,
                     therapistBio,
                     therapistSpecialization,
+                    subcategory: Array.isArray(therapistSpecialization)
+                        ? therapistSpecialization.find(t => t._id === offering.specializationId)?.subcategory
+                        : undefined,
+                    specializationDescription: Array.isArray(therapistSpecialization)
+                        ? therapistSpecialization.find(t => t._id === offering.specializationId)?.description
+                        : undefined,
                     locale
                 })
             })
@@ -125,7 +131,7 @@ export default function TherapyOfferingsEditor({
             if (!response.ok) {
                 const data = await response.json()
                 console.error('Generation failed:', data)
-                throw new Error(data.error || 'Generation failed')
+                throw new Error(data.details?.message || data.error || 'Generation failed')
             }
 
             const data = await response.json()
@@ -149,7 +155,14 @@ export default function TherapyOfferingsEditor({
                 en: tag.name.en,
                 de: tag.name.de
             }
-            handleUpdate(offering._id!, 'name', newName)
+
+            onChange(
+                therapyOfferings.map((o) =>
+                    o._id === offering._id
+                        ? { ...o, name: newName, specializationId: tag._id }
+                        : o
+                )
+            )
         }
     }
 
@@ -273,7 +286,7 @@ export default function TherapyOfferingsEditor({
                                         <select
                                             onChange={(e) => handleSpecializationSelect(offering, e.target.value)}
                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-black"
-                                            defaultValue=""
+                                            value={offering.specializationId || ""}
                                         >
                                             <option value="" disabled>
                                                 {t('therapyOfferings.selectSpecializationPlaceholder') || 'Choose a specialization...'}

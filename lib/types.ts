@@ -35,6 +35,7 @@ export interface TherapyOffering {
   breakDuration: number // Break duration after session in minutes
   price: number // Price for the session
   isActive: boolean // Whether this offering is currently available for booking
+  specializationId?: string // Reference to the specialization tag
   createdAt?: Date
   updatedAt?: Date
 }

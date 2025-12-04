@@ -10,7 +10,7 @@ export async function POST(request: Request) {
         // Ensure user is authenticated
         await requireAuth()
 
-        const { offeringName, therapistBio, therapistSpecialization, locale } = await request.json()
+        const { offeringName, therapistBio, therapistSpecialization, subcategory, specializationDescription, locale } = await request.json()
 
         if (!process.env.GEMINI_API_KEY) {
             return NextResponse.json(
@@ -20,9 +20,9 @@ export async function POST(request: Request) {
         }
 
         const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
-        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
+        const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
 
-        const bio = typeof therapistBio === 'object' ? (therapistBio[locale] || therapistBio.en) : therapistBio
+        const bio = (typeof therapistBio === 'object' && therapistBio !== null) ? (therapistBio[locale] || therapistBio.en) : therapistBio
 
         let specialization = ''
         if (Array.isArray(therapistSpecialization)) {
@@ -40,7 +40,10 @@ export async function POST(request: Request) {
         } else {
             specialization = therapistSpecialization
         }
-        const name = typeof offeringName === 'object' ? (offeringName[locale] || offeringName.en) : offeringName
+        const name = (typeof offeringName === 'object' && offeringName !== null) ? (offeringName[locale] || offeringName.en) : offeringName
+
+        const subcategoryText = subcategory ? ((typeof subcategory === 'object' && subcategory !== null) ? (subcategory[locale] || subcategory.en) : subcategory) : ''
+        const specDescText = specializationDescription ? ((typeof specializationDescription === 'object' && specializationDescription !== null) ? (specializationDescription[locale] || specializationDescription.en) : specializationDescription) : ''
 
         const prompt = `
       You are a professional copywriter for a therapist's booking website.
@@ -49,6 +52,8 @@ export async function POST(request: Request) {
       Session Name: ${name}
       Therapist Bio: ${bio}
       Therapist Specialization: ${specialization}
+      ${subcategoryText ? `Subcategory: ${subcategoryText}` : ''}
+      ${specDescText ? `Specialization Description: ${specDescText}` : ''}
       
       Target Language: ${locale === 'de' ? 'German' : 'English'}
       
