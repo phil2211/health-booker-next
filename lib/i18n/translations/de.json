@@ -37,6 +37,9 @@
     "dear": "Sehr geehrte/r {{name}}",
     "regards": "Mit freundlichen Grüßen",
     "language": "Sprache",
+    "termsOfUse": "Nutzungsbedingungen",
+    "privacyPolicy": "Datenschutzerklärung",
+    "allRightsReserved": "Alle Rechte vorbehalten.",
     "checkErrors": "Bitte überprüfen Sie die hervorgehobenen Felder auf Fehler.",
     "gender": "Anrede",
     "genders": {
