@@ -5,9 +5,10 @@ import { useRouter } from 'next/navigation'
 import { useLocale } from '@/lib/i18n/LocaleProvider'
 import { useTranslation } from '@/lib/i18n/useTranslation'
 import WeeklyAvailabilityEditor from '@/components/WeeklyAvailabilityEditor'
+import BlockedSlotsEditor from '@/components/BlockedSlotsEditor'
 import TherapyOfferingsEditor from '@/components/TherapyOfferingsEditor'
 import ResponsiveHeader from '@/components/ResponsiveHeader'
-import { AvailabilityEntry, TherapyOffering, TherapyTag } from '@/lib/types'
+import { AvailabilityEntry, BlockedSlot, TherapyOffering, TherapyTag } from '@/lib/types'
 import { AsYouType } from 'libphonenumber-js'
 
 interface OnboardingWizardProps {
@@ -26,6 +27,7 @@ interface OnboardingWizardProps {
         phoneNumber: string
         weeklyAvailability: AvailabilityEntry[]
         therapyOfferings?: TherapyOffering[]
+        blockedSlots?: BlockedSlot[]
         profileImage?: {
             data: string
             contentType: string
@@ -279,6 +281,7 @@ export default function OnboardingWizard({ therapist }: OnboardingWizardProps) {
         }]
     })
     const [weeklyAvailability, setWeeklyAvailability] = useState<AvailabilityEntry[]>(therapist.weeklyAvailability || [])
+    const [blockedSlots, setBlockedSlots] = useState<BlockedSlot[]>(therapist.blockedSlots || [])
 
     const formatSwissPhoneNumber = (value: string) => {
         return new AsYouType('CH').input(value)
@@ -303,6 +306,8 @@ export default function OnboardingWizard({ therapist }: OnboardingWizardProps) {
         } else if (step === 3) {
             setStep(4)
         } else if (step === 4) {
+            setStep(5)
+        } else if (step === 5) {
             // Submit everything
             await handleSubmit()
         }
@@ -348,6 +353,7 @@ export default function OnboardingWizard({ therapist }: OnboardingWizardProps) {
                 body: JSON.stringify({
                     weeklyAvailability,
                     therapyOfferings,
+                    blockedSlots,
                 }),
             })
 
@@ -379,11 +385,12 @@ export default function OnboardingWizard({ therapist }: OnboardingWizardProps) {
                             <span className={`text-sm font-medium ${step >= 2 ? 'text-indigo-600' : 'text-gray-500'}`}>{t('onboarding.step2Label')}</span>
                             <span className={`text-sm font-medium ${step >= 3 ? 'text-indigo-600' : 'text-gray-500'}`}>{t('onboarding.step3Label')}</span>
                             <span className={`text-sm font-medium ${step >= 4 ? 'text-indigo-600' : 'text-gray-500'}`}>{t('onboarding.step4Label')}</span>
+                            <span className={`text-sm font-medium ${step >= 5 ? 'text-indigo-600' : 'text-gray-500'}`}>{t('onboarding.step5Label')}</span>
                         </div>
                         <div className="h-2 bg-gray-200 rounded-full">
                             <div
                                 className="h-2 bg-indigo-600 rounded-full transition-all duration-300"
-                                style={{ width: `${((step - 1) / 3) * 100}%` }}
+                                style={{ width: `${((step - 1) / 4) * 100}%` }}
                             ></div>
                         </div>
                     </div>
@@ -394,6 +401,7 @@ export default function OnboardingWizard({ therapist }: OnboardingWizardProps) {
                             {step === 2 && (t('onboarding.step2Title') || 'Profile Details')}
                             {step === 3 && (t('onboarding.step3Title') || 'Therapy Offerings')}
                             {step === 4 && (t('onboarding.step4Title') || 'Set Availability')}
+                            {step === 5 && (t('onboarding.step5Title'))}
                         </h2>
 
                         {error && (
@@ -744,6 +752,16 @@ export default function OnboardingWizard({ therapist }: OnboardingWizardProps) {
                             </div>
                         )}
 
+                        {/* Step 5: Blocked Slots */}
+                        {step === 5 && (
+                            <div>
+                                <BlockedSlotsEditor
+                                    blockedSlots={blockedSlots}
+                                    onChange={setBlockedSlots}
+                                />
+                            </div>
+                        )}
+
                         {/* Navigation Buttons */}
                         <div className="mt-8 flex justify-between">
                             {step > 1 ? (
@@ -769,7 +787,7 @@ export default function OnboardingWizard({ therapist }: OnboardingWizardProps) {
                                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                     </svg>
                                 )}
-                                {step === 4 ? t('onboarding.completeSetup') : t('common.next')}
+                                {step === 5 ? t('onboarding.completeSetup') : t('common.next')}
                             </button>
                         </div>
                     </div>

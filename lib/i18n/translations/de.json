@@ -521,7 +521,9 @@
     "step2Label": "Profil",
     "step3Label": "Angebote",
     "step4Label": "Verfügbarkeit",
+    "step5Label": "Blockierte Zeiten",
     "step4Description": "Legen Sie Ihre wöchentliche Verfügbarkeit fest. Sie können dies später in Ihrem Dashboard anpassen.",
+    "step5Title": "Blockierte Zeiten",
     "completeSetup": "Einrichtung abschließen",
     "title": "Einrichtung"
   }

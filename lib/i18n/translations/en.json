@@ -521,7 +521,9 @@
     "step2Label": "Profile",
     "step3Label": "Offerings",
     "step4Label": "Availability",
+    "step5Label": "Blocked Slots",
     "step4Description": "Set your weekly availability. You can adjust this later in your dashboard.",
+    "step5Title": "Blocked Slots",
     "completeSetup": "Complete Setup",
     "title": "Onboarding"
   }
