@@ -10,6 +10,7 @@ interface TherapyOfferingsEditorProps {
     onChange: (offerings: TherapyOffering[]) => void
     therapistBio?: string | { en: string; de: string }
     therapistSpecialization?: TherapyTag[] | string | { en: string; de: string }
+    errors?: Record<string, string>
 }
 
 export default function TherapyOfferingsEditor({
@@ -17,6 +18,7 @@ export default function TherapyOfferingsEditor({
     onChange,
     therapistBio,
     therapistSpecialization,
+    errors = {},
 }: TherapyOfferingsEditorProps) {
     const { t } = useTranslation()
     const locale = useLocale()
@@ -297,6 +299,9 @@ export default function TherapyOfferingsEditor({
                                                 </option>
                                             ))}
                                         </select>
+                                        {errors[`${offering._id}-specialization`] && (
+                                            <p className="mt-1 text-sm text-red-600">{errors[`${offering._id}-specialization`]}</p>
+                                        )}
                                     </div>
                                 )}
 
@@ -313,7 +318,11 @@ export default function TherapyOfferingsEditor({
                                         }
                                         placeholder={t('therapyOfferings.namePlaceholder')}
                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-black"
+                                        aria-invalid={!!errors[`${offering._id}-name`]}
                                     />
+                                    {errors[`${offering._id}-name`] && (
+                                        <p className="mt-1 text-sm text-red-600">{errors[`${offering._id}-name`]}</p>
+                                    )}
                                 </div>
 
                                 {/* Duration */}
@@ -336,11 +345,15 @@ export default function TherapyOfferingsEditor({
                                                 )
                                             }
                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-black"
+                                            aria-invalid={!!errors[`${offering._id}-duration`]}
                                         />
                                         <span className="text-sm text-gray-600 whitespace-nowrap">
                                             {t('therapyOfferings.minutes')}
                                         </span>
                                     </div>
+                                    {errors[`${offering._id}-duration`] && (
+                                        <p className="mt-1 text-sm text-red-600">{errors[`${offering._id}-duration`]}</p>
+                                    )}
                                 </div>
 
                                 {/* Break Duration */}
@@ -389,11 +402,15 @@ export default function TherapyOfferingsEditor({
                                                 )
                                             }
                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-black"
+                                            aria-invalid={!!errors[`${offering._id}-price`]}
                                         />
                                         <span className="text-sm text-gray-600 whitespace-nowrap">
                                             CHF
                                         </span>
                                     </div>
+                                    {errors[`${offering._id}-price`] && (
+                                        <p className="mt-1 text-sm text-red-600">{errors[`${offering._id}-price`]}</p>
+                                    )}
                                 </div>
 
                                 {/* Total Time (calculated) */}
@@ -440,7 +457,11 @@ export default function TherapyOfferingsEditor({
                                         placeholder={t('therapyOfferings.descriptionPlaceholder')}
                                         rows={3}
                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-black"
+                                        aria-invalid={!!errors[`${offering._id}-description`]}
                                     />
+                                    {errors[`${offering._id}-description`] && (
+                                        <p className="mt-1 text-sm text-red-600">{errors[`${offering._id}-description`]}</p>
+                                    )}
                                 </div>
                             </div>
                         </div>

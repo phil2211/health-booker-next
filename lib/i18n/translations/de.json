@@ -35,7 +35,8 @@
     "dear": "Sehr geehrte/r {{name}}",
     "regards": "Mit freundlichen Grüßen",
     "language": "Sprache",
-    "remove": "Entfernen"
+    "remove": "Entfernen",
+    "checkErrors": "Bitte überprüfen Sie die hervorgehobenen Felder auf Fehler."
   },
   "auth": {
     "signIn": "Anmelden",

@@ -38,7 +38,8 @@
     "termsOfUse": "Terms of Use",
     "privacyPolicy": "Privacy Policy",
     "allRightsReserved": "All rights reserved.",
-    "remove": "Remove"
+    "remove": "Remove",
+    "checkErrors": "Please check the highlighted fields for errors."
   },
   "auth": {
     "signIn": "Sign In",

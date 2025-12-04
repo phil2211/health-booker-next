@@ -43,7 +43,7 @@ export default function OnboardingWizard({ therapist }: OnboardingWizardProps) {
     }
 
     // Determine initial step
-    const isBasicInfoComplete = !!(therapist.name && therapist.address && therapist.zip && therapist.city && therapist.phoneNumber)
+    const isBasicInfoComplete = !!(therapist.name && therapist.address && therapist.zip && therapist.city)
     const isProfileComplete = hasContent(therapist.bio) && (Array.isArray(therapist.specialization) ? therapist.specialization.length > 0 : hasContent(therapist.specialization as any))
     const hasOfferings = therapist.therapyOfferings && therapist.therapyOfferings.length > 0
 
@@ -55,6 +55,55 @@ export default function OnboardingWizard({ therapist }: OnboardingWizardProps) {
     })
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
+    const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
+
+    const scrollToError = () => {
+        setTimeout(() => {
+            const firstError = document.querySelector('[aria-invalid="true"]')
+            if (firstError) {
+                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                if (firstError instanceof HTMLElement) firstError.focus()
+            }
+        }, 100)
+    }
+
+    const validateStep = (currentStep: number) => {
+        const errors: Record<string, string> = {}
+        let isValid = true
+
+        if (currentStep === 1) {
+            if (!name.trim()) errors.name = t('common.required') || 'Required'
+            if (!address.trim()) errors.address = t('common.required') || 'Required'
+            if (!zip.trim()) errors.zip = t('common.required') || 'Required'
+            if (!city.trim()) errors.city = t('common.required') || 'Required'
+        } else if (currentStep === 2) {
+            if (locale === 'en' && !bioEn.trim()) errors.bio = t('common.required') || 'Required'
+            if (locale === 'de' && !bioDe.trim()) errors.bio = t('common.required') || 'Required'
+            if (specialization.length === 0) errors.specialization = t('common.required') || 'Required'
+        } else if (currentStep === 3) {
+            therapyOfferings.forEach(offering => {
+                const nameVal = typeof offering.name === 'string' ? offering.name : (locale === 'en' ? offering.name.en : offering.name.de)
+                if (!nameVal || !nameVal.trim()) {
+                    errors[`${offering._id}-name`] = t('common.required') || 'Required'
+                }
+                if (!offering.duration) {
+                    errors[`${offering._id}-duration`] = t('common.required') || 'Required'
+                }
+                if (offering.price === undefined || offering.price === null) {
+                    errors[`${offering._id}-price`] = t('common.required') || 'Required'
+                }
+            })
+        }
+
+        if (Object.keys(errors).length > 0) {
+            setFieldErrors(errors)
+            isValid = false
+            scrollToError()
+        } else {
+            setFieldErrors({})
+        }
+        return isValid
+    }
 
     // Form State
     const [name, setName] = useState(therapist.name)
@@ -156,11 +205,12 @@ export default function OnboardingWizard({ therapist }: OnboardingWizardProps) {
 
     const handleNext = async () => {
         setError(null)
+        if (!validateStep(step)) {
+            setError(t('common.checkErrors') || 'Please check the errors below')
+            return
+        }
+
         if (step === 1) {
-            if (!name || !address || !zip || !city || !phoneNumber) {
-                setError(t('common.fillAllFields') || 'Please fill in all fields')
-                return
-            }
             // If profile is already complete, skip to step 3
             if (isProfileComplete) {
                 setStep(3)
@@ -168,17 +218,8 @@ export default function OnboardingWizard({ therapist }: OnboardingWizardProps) {
                 setStep(2)
             }
         } else if (step === 2) {
-            if ((locale === 'en' && !bioEn) || (locale === 'de' && !bioDe) || specialization.length === 0) {
-                setError(t('common.fillAllFields') || 'Please fill in all fields')
-                return
-            }
             setStep(3)
         } else if (step === 3) {
-            if (therapyOfferings.length === 0) {
-                // Optional: require at least one offering?
-                // setError(t('therapyOfferings.required') || 'Please add at least one therapy offering')
-                // return
-            }
             setStep(4)
         } else if (step === 4) {
             // Submit everything
@@ -287,9 +328,11 @@ export default function OnboardingWizard({ therapist }: OnboardingWizardProps) {
                                         type="text"
                                         value={name}
                                         onChange={(e) => setName(e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-black focus:ring-indigo-500 focus:border-indigo-500"
+                                        className={`w-full px-3 py-2 border rounded-md text-black focus:ring-indigo-500 focus:border-indigo-500 ${fieldErrors.name ? 'border-red-500' : 'border-gray-300'}`}
                                         required
+                                        aria-invalid={!!fieldErrors.name}
                                     />
+                                    {fieldErrors.name && <p className="mt-1 text-sm text-red-600">{fieldErrors.name}</p>}
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">{t('dashboard.address')}</label>
@@ -297,9 +340,11 @@ export default function OnboardingWizard({ therapist }: OnboardingWizardProps) {
                                         type="text"
                                         value={address}
                                         onChange={(e) => setAddress(e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-black focus:ring-indigo-500 focus:border-indigo-500"
+                                        className={`w-full px-3 py-2 border rounded-md text-black focus:ring-indigo-500 focus:border-indigo-500 ${fieldErrors.address ? 'border-red-500' : 'border-gray-300'}`}
                                         required
+                                        aria-invalid={!!fieldErrors.address}
                                     />
+                                    {fieldErrors.address && <p className="mt-1 text-sm text-red-600">{fieldErrors.address}</p>}
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
@@ -308,9 +353,11 @@ export default function OnboardingWizard({ therapist }: OnboardingWizardProps) {
                                             type="text"
                                             value={zip}
                                             onChange={(e) => setZip(e.target.value)}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-black focus:ring-indigo-500 focus:border-indigo-500"
+                                            className={`w-full px-3 py-2 border rounded-md text-black focus:ring-indigo-500 focus:border-indigo-500 ${fieldErrors.zip ? 'border-red-500' : 'border-gray-300'}`}
                                             required
+                                            aria-invalid={!!fieldErrors.zip}
                                         />
+                                        {fieldErrors.zip && <p className="mt-1 text-sm text-red-600">{fieldErrors.zip}</p>}
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">{t('dashboard.city')}</label>
@@ -318,21 +365,24 @@ export default function OnboardingWizard({ therapist }: OnboardingWizardProps) {
                                             type="text"
                                             value={city}
                                             onChange={(e) => setCity(e.target.value)}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-black focus:ring-indigo-500 focus:border-indigo-500"
+                                            className={`w-full px-3 py-2 border rounded-md text-black focus:ring-indigo-500 focus:border-indigo-500 ${fieldErrors.city ? 'border-red-500' : 'border-gray-300'}`}
                                             required
+                                            aria-invalid={!!fieldErrors.city}
                                         />
+                                        {fieldErrors.city && <p className="mt-1 text-sm text-red-600">{fieldErrors.city}</p>}
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('dashboard.phoneNumber')}</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('dashboard.phoneNumber')} ({t('common.optional') || 'Optional'})</label>
                                     <input
                                         type="tel"
                                         value={phoneNumber}
                                         onChange={(e) => setPhoneNumber(formatSwissPhoneNumber(e.target.value))}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-black focus:ring-indigo-500 focus:border-indigo-500"
+                                        className={`w-full px-3 py-2 border rounded-md text-black focus:ring-indigo-500 focus:border-indigo-500 ${fieldErrors.phoneNumber ? 'border-red-500' : 'border-gray-300'}`}
                                         placeholder="+41 XX XXX XX XX"
-                                        required
+                                        aria-invalid={!!fieldErrors.phoneNumber}
                                     />
+                                    {fieldErrors.phoneNumber && <p className="mt-1 text-sm text-red-600">{fieldErrors.phoneNumber}</p>}
                                 </div>
                             </div>
                         )}
@@ -507,6 +557,7 @@ export default function OnboardingWizard({ therapist }: OnboardingWizardProps) {
                                             </p>
                                         );
                                     })()}
+                                    {fieldErrors.specialization && <p className="mt-1 text-sm text-red-600">{fieldErrors.specialization}</p>}
                                 </div>
 
                                 <div>
@@ -515,9 +566,11 @@ export default function OnboardingWizard({ therapist }: OnboardingWizardProps) {
                                         value={locale === 'en' ? bioEn : bioDe}
                                         onChange={(e) => locale === 'en' ? setBioEn(e.target.value) : setBioDe(e.target.value)}
                                         rows={4}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-black focus:ring-indigo-500 focus:border-indigo-500"
+                                        className={`w-full px-3 py-2 border rounded-md text-black focus:ring-indigo-500 focus:border-indigo-500 ${fieldErrors.bio ? 'border-red-500' : 'border-gray-300'}`}
                                         required
+                                        aria-invalid={!!fieldErrors.bio}
                                     />
+                                    {fieldErrors.bio && <p className="mt-1 text-sm text-red-600">{fieldErrors.bio}</p>}
                                 </div>
                             </div>
                         )}
@@ -530,6 +583,7 @@ export default function OnboardingWizard({ therapist }: OnboardingWizardProps) {
                                     onChange={setTherapyOfferings}
                                     therapistBio={{ en: bioEn, de: bioDe }}
                                     therapistSpecialization={specialization}
+                                    errors={fieldErrors}
                                 />
                             </div>
                         )}
