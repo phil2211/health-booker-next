@@ -101,6 +101,7 @@ export async function PATCH(
       updateData.city = formData.get('city') as string
       updateData.phoneNumber = formData.get('phoneNumber') as string
       updateData.linkedinUrl = formData.get('linkedinUrl') as string
+      updateData.gender = formData.get('gender') as string
 
       // Extract and parse JSON fields
       const bioStr = formData.get('bio') as string

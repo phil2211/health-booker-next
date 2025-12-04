@@ -35,8 +35,12 @@
     "dear": "Sehr geehrte/r {{name}}",
     "regards": "Mit freundlichen Grüßen",
     "language": "Sprache",
-    "remove": "Entfernen",
-    "checkErrors": "Bitte überprüfen Sie die hervorgehobenen Felder auf Fehler."
+    "checkErrors": "Bitte überprüfen Sie die hervorgehobenen Felder auf Fehler.",
+    "gender": "Anrede",
+    "genders": {
+      "female": "Therapeutin",
+      "male": "Therapeut"
+    }
   },
   "auth": {
     "signIn": "Anmelden",
@@ -242,7 +246,7 @@
   "therapyOfferings": {
     "title": "Therapieangebote",
     "description": "Konfiguriere verschiedene Arten von Therapiesitzungen mit individuellen Dauern und Pausenzeiten.",
-    "addNew": "Neues Angebot hinzufügen",
+    "addNew": "Weiteres Angebot hinzufügen",
     "noOfferings": "Noch keine Therapieangebote konfiguriert.",
     "clickAddToStart": "Klicke auf 'Neues Angebot hinzufügen', um deinen ersten Sitzungstyp zu erstellen.",
     "active": "Aktiv",
@@ -277,7 +281,7 @@
     "fullName": "Vollständiger Name",
     "specialization": "Spezialisierung",
     "email": "E-Mail",
-    "bio": "Bio",
+    "bio": "Schreibe etwas über dich selbst",
     "availabilityManagement": "Verfügbarkeitsverwaltung",
     "setWeeklyRecurring": "Lege deine wöchentliche wiederkehrende Verfügbarkeit fest und blockiere bestimmte Daten.",
     "currently": "Aktuell",

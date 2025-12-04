@@ -14,6 +14,7 @@ interface OnboardingWizardProps {
     therapist: {
         _id: string
         name: string
+        gender?: string
         email: string
         specialization: any[] | string | { en: string; de: string }
         bio: string | { en: string; de: string }
@@ -72,6 +73,7 @@ export default function OnboardingWizard({ therapist }: OnboardingWizardProps) {
         let isValid = true
 
         if (currentStep === 1) {
+            if (!gender) errors.gender = t('common.required') || 'Required'
             if (!name.trim()) errors.name = t('common.required') || 'Required'
             if (!address.trim()) errors.address = t('common.required') || 'Required'
             if (!zip.trim()) errors.zip = t('common.required') || 'Required'
@@ -79,7 +81,7 @@ export default function OnboardingWizard({ therapist }: OnboardingWizardProps) {
         } else if (currentStep === 2) {
             if (locale === 'en' && !bioEn.trim()) errors.bio = t('common.required') || 'Required'
             if (locale === 'de' && !bioDe.trim()) errors.bio = t('common.required') || 'Required'
-            if (specialization.length === 0) errors.specialization = t('common.required') || 'Required'
+            if (specialization.length === 0) errors.specialization = t('dashboard.selectAtLeastOneSubCategory') || 'Please select at least one sub-category'
         } else if (currentStep === 3) {
             therapyOfferings.forEach(offering => {
                 const nameVal = typeof offering.name === 'string' ? offering.name : (locale === 'en' ? offering.name.en : offering.name.de)
@@ -106,6 +108,7 @@ export default function OnboardingWizard({ therapist }: OnboardingWizardProps) {
     }
 
     // Form State
+    const [gender, setGender] = useState(therapist.gender || '')
     const [name, setName] = useState(therapist.name)
     const [address, setAddress] = useState(therapist.address)
     const [zip, setZip] = useState(therapist.zip)
@@ -182,6 +185,40 @@ export default function OnboardingWizard({ therapist }: OnboardingWizardProps) {
 
     const [profileImage, setProfileImage] = useState<File | null>(null)
     const [isDragging, setIsDragging] = useState(false)
+    const [isGeneratingBio, setIsGeneratingBio] = useState(false)
+    const [isBioManuallyEdited, setIsBioManuallyEdited] = useState(() => {
+        return !!(getInitialValue(therapist.bio, 'en') || getInitialValue(therapist.bio, 'de'))
+    })
+
+    const generateBio = async (specs: TherapyTag[]) => {
+        // Don't overwrite if manually edited and not empty
+        if (isBioManuallyEdited && (bioEn.trim() || bioDe.trim())) return
+
+        setIsGeneratingBio(true)
+        try {
+            const response = await fetch('/api/generate-bio', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    specialization: specs,
+                    locale,
+                    gender
+                })
+            })
+
+            if (response.ok) {
+                const data = await response.json()
+                if (data.bio) {
+                    if (data.bio.en) setBioEn(data.bio.en)
+                    if (data.bio.de) setBioDe(data.bio.de)
+                }
+            }
+        } catch (error) {
+            console.error('Failed to generate bio:', error)
+        } finally {
+            setIsGeneratingBio(false)
+        }
+    }
 
     const [therapyOfferings, setTherapyOfferings] = useState<TherapyOffering[]>(() => {
         if (therapist.therapyOfferings && therapist.therapyOfferings.length > 0) {
@@ -238,6 +275,7 @@ export default function OnboardingWizard({ therapist }: OnboardingWizardProps) {
         try {
             // 1. Update Profile
             const formData = new FormData()
+            formData.append('gender', gender)
             formData.append('name', name)
             formData.append('address', address)
             formData.append('zip', zip)
@@ -322,6 +360,21 @@ export default function OnboardingWizard({ therapist }: OnboardingWizardProps) {
                         {/* Step 1: Basic Info */}
                         {step === 1 && (
                             <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('common.gender')}</label>
+                                    <select
+                                        value={gender}
+                                        onChange={(e) => setGender(e.target.value)}
+                                        className={`w-full px-3 py-2 border rounded-md text-black focus:ring-indigo-500 focus:border-indigo-500 ${fieldErrors.gender ? 'border-red-500' : 'border-gray-300'}`}
+                                        required
+                                        aria-invalid={!!fieldErrors.gender}
+                                    >
+                                        <option value="" disabled>{t('common.gender')}</option>
+                                        <option value="female">{t('common.genders.female')}</option>
+                                        <option value="male">{t('common.genders.male')}</option>
+                                    </select>
+                                    {fieldErrors.gender && <p className="mt-1 text-sm text-red-600">{fieldErrors.gender}</p>}
+                                </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">{t('common.name')}</label>
                                     <input
@@ -452,9 +505,11 @@ export default function OnboardingWizard({ therapist }: OnboardingWizardProps) {
                                                             onClick={() => {
                                                                 // Remove all tags from this category
                                                                 const tagsToRemove = catGroup.tags.map(t => t._id);
-                                                                setSpecialization(specialization.filter(s => !tagsToRemove.includes(s._id)));
+                                                                const newSpecs = specialization.filter(s => !tagsToRemove.includes(s._id));
+                                                                setSpecialization(newSpecs);
                                                                 // Remove from active list
                                                                 setActiveCategoryIds(activeCategoryIds.filter(id => id !== catId));
+                                                                generateBio(newSpecs);
                                                             }}
                                                             className="text-sm text-red-600 hover:text-red-800"
                                                         >
@@ -470,7 +525,11 @@ export default function OnboardingWizard({ therapist }: OnboardingWizardProps) {
                                                                     {locale === 'en' ? tag.name.en : tag.name.de}
                                                                     <button
                                                                         type="button"
-                                                                        onClick={() => setSpecialization(specialization.filter(s => s._id !== tag._id))}
+                                                                        onClick={() => {
+                                                                            const newSpecs = specialization.filter(s => s._id !== tag._id);
+                                                                            setSpecialization(newSpecs);
+                                                                            generateBio(newSpecs);
+                                                                        }}
                                                                         className="ml-1.5 inline-flex items-center justify-center h-4 w-4 rounded-full text-blue-400 hover:bg-blue-200 hover:text-blue-600 focus:outline-none"
                                                                     >
                                                                         <span className="sr-only">Remove large option</span>
@@ -488,7 +547,10 @@ export default function OnboardingWizard({ therapist }: OnboardingWizardProps) {
                                                                             const selectedTagId = e.target.value;
                                                                             const selectedTag = catGroup.tags.find(t => t._id === selectedTagId);
                                                                             if (selectedTag) {
-                                                                                setSpecialization([...specialization, selectedTag]);
+                                                                                const newSpecs = [...specialization, selectedTag];
+                                                                                setSpecialization(newSpecs);
+                                                                                generateBio(newSpecs);
+
                                                                                 e.target.value = ''; // Reset select
                                                                             }
                                                                         }}
@@ -561,10 +623,24 @@ export default function OnboardingWizard({ therapist }: OnboardingWizardProps) {
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('dashboard.bio')} ({locale === 'en' ? 'English' : 'Deutsch'})</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
+                                        {t('dashboard.bio')} ({locale === 'en' ? 'English' : 'Deutsch'})
+                                        {isGeneratingBio && (
+                                            <span className="text-xs text-indigo-600 flex items-center animate-pulse">
+                                                <svg className="animate-spin -ml-1 mr-1 h-3 w-3 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                </svg>
+                                                Generating...
+                                            </span>
+                                        )}
+                                    </label>
                                     <textarea
                                         value={locale === 'en' ? bioEn : bioDe}
-                                        onChange={(e) => locale === 'en' ? setBioEn(e.target.value) : setBioDe(e.target.value)}
+                                        onChange={(e) => {
+                                            locale === 'en' ? setBioEn(e.target.value) : setBioDe(e.target.value);
+                                            setIsBioManuallyEdited(true);
+                                        }}
                                         rows={4}
                                         className={`w-full px-3 py-2 border rounded-md text-black focus:ring-indigo-500 focus:border-indigo-500 ${fieldErrors.bio ? 'border-red-500' : 'border-gray-300'}`}
                                         required

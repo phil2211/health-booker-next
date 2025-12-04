@@ -38,8 +38,12 @@
     "termsOfUse": "Terms of Use",
     "privacyPolicy": "Privacy Policy",
     "allRightsReserved": "All rights reserved.",
-    "remove": "Remove",
-    "checkErrors": "Please check the highlighted fields for errors."
+    "checkErrors": "Please check the highlighted fields for errors.",
+    "gender": "Pronouns",
+    "genders": {
+      "female": "Therapist (she/her)",
+      "male": "Therapist (he/him)"
+    }
   },
   "auth": {
     "signIn": "Sign In",
