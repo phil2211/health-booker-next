@@ -61,11 +61,31 @@ export async function POST(request: Request) {
       Do not include any introductory or concluding text, just the description itself.
     `
 
-        const result = await model.generateContent(prompt)
-        const response = await result.response
-        const text = response.text()
+        const result = await model.generateContentStream(prompt)
 
-        return NextResponse.json({ description: text.trim() })
+        const stream = new ReadableStream({
+            async start(controller) {
+                const encoder = new TextEncoder()
+                try {
+                    for await (const chunk of result.stream) {
+                        const chunkText = chunk.text()
+                        if (chunkText) {
+                            controller.enqueue(encoder.encode(chunkText))
+                        }
+                    }
+                    controller.close()
+                } catch (error) {
+                    controller.error(error)
+                }
+            }
+        })
+
+        return new NextResponse(stream, {
+            headers: {
+                'Content-Type': 'text/plain; charset=utf-8',
+            },
+        })
+
     } catch (error) {
         console.error('Generate description error:', error)
         return NextResponse.json(

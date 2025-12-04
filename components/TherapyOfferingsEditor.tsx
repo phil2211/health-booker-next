@@ -1,13 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Dispatch, SetStateAction } from 'react'
 import { TherapyOffering, TherapyTag } from '@/lib/types'
 import { useTranslation } from '@/lib/i18n/useTranslation'
 import { useLocale } from '@/lib/i18n/LocaleProvider'
 
 interface TherapyOfferingsEditorProps {
     therapyOfferings: TherapyOffering[]
-    onChange: (offerings: TherapyOffering[]) => void
+    onChange: Dispatch<SetStateAction<TherapyOffering[]>>
     therapistBio?: string | { en: string; de: string }
     therapistSpecialization?: TherapyTag[] | string | { en: string; de: string }
     errors?: Record<string, string>
@@ -96,8 +96,12 @@ export default function TherapyOfferingsEditor({
 
     const [error, setError] = useState<string | null>(null)
 
-    const handleGenerateDescription = async (offering: TherapyOffering) => {
+    const generateDescriptionStream = async (offering: TherapyOffering, specId?: string) => {
         setError(null)
+        setGeneratingId(offering._id!)
+
+        // Use provided specId or fallback to offering's current specializationId
+        const specializationId = specId || offering.specializationId
 
         const hasBio = typeof therapistBio === 'string' ? !!therapistBio : (!!therapistBio?.en || !!therapistBio?.de)
         const hasSpec = Array.isArray(therapistSpecialization)
@@ -108,36 +112,89 @@ export default function TherapyOfferingsEditor({
 
         if (!hasBio || !hasSpec) {
             setError(t('therapyOfferings.missingProfileInfo') || 'Please complete your profile bio and specialization first.')
+            setGeneratingId(null)
             return
         }
 
-        setGeneratingId(offering._id!)
         try {
+            // Find the selected tag if we have an ID
+            const selectedTag = Array.isArray(therapistSpecialization)
+                ? therapistSpecialization.find(t => t._id === specializationId)
+                : undefined
+
+            // Determine the name to send: if we just selected a tag, use its name, otherwise use offering name
+            const nameToSend = selectedTag ? selectedTag.name : offering.name
+
             const response = await fetch('/api/generate-description', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    offeringName: offering.name,
+                    offeringName: nameToSend,
                     therapistBio,
                     therapistSpecialization,
-                    subcategory: Array.isArray(therapistSpecialization)
-                        ? therapistSpecialization.find(t => t._id === offering.specializationId)?.subcategory
-                        : undefined,
-                    specializationDescription: Array.isArray(therapistSpecialization)
-                        ? therapistSpecialization.find(t => t._id === offering.specializationId)?.description
-                        : undefined,
+                    subcategory: selectedTag?.subcategory,
+                    specializationDescription: selectedTag?.description,
                     locale
                 })
             })
 
             if (!response.ok) {
                 const data = await response.json()
-                console.error('Generation failed:', data)
                 throw new Error(data.details?.message || data.error || 'Generation failed')
             }
 
-            const data = await response.json()
-            updateLocalizedField(offering, 'description', data.description)
+            const reader = response.body?.getReader()
+            if (!reader) return
+
+            const decoder = new TextDecoder()
+
+            // Clear existing description for current locale using functional update to avoid stale state
+            onChange(prev => prev.map(o => {
+                if (o._id === offering._id) {
+                    const currentDesc = o.description
+                    let newDesc: string | { en: string; de: string }
+                    if (typeof currentDesc === 'string') {
+                        newDesc = { en: '', de: '' }
+                    } else {
+                        newDesc = { ...currentDesc, [locale]: '' }
+                    }
+                    return { ...o, description: newDesc }
+                }
+                return o
+            }))
+
+            let accumulatedDescription = ''
+
+            while (true) {
+                const { done, value } = await reader.read()
+                if (done) break
+
+                const chunk = decoder.decode(value, { stream: true })
+                accumulatedDescription += chunk
+
+                // Update the state with the new chunk appended
+                // We need to be careful here because updateLocalizedField triggers a state update
+                // We should probably update the local variable and then call updateLocalizedField
+                // However, updateLocalizedField relies on 'offering' which might be stale in the loop
+                // So we need to use the functional update form of onChange, but updateLocalizedField doesn't support that directly.
+                // A better approach is to update the state directly here.
+
+                onChange(prevOfferings => prevOfferings.map(o => {
+                    if (o._id === offering._id) {
+                        const currentDesc = o.description
+                        let newDesc: string | { en: string; de: string }
+
+                        if (typeof currentDesc === 'string') {
+                            newDesc = { en: accumulatedDescription, de: accumulatedDescription }
+                        } else {
+                            newDesc = { ...currentDesc, [locale]: accumulatedDescription }
+                        }
+                        return { ...o, description: newDesc }
+                    }
+                    return o
+                }))
+            }
+
         } catch (error) {
             console.error('Generation error:', error)
             setError(error instanceof Error ? error.message : 'Failed to generate description')
@@ -146,25 +203,39 @@ export default function TherapyOfferingsEditor({
         }
     }
 
+    const handleGenerateDescription = (offering: TherapyOffering) => {
+        generateDescriptionStream(offering)
+    }
+
     const handleSpecializationSelect = (offering: TherapyOffering, tagId: string) => {
         if (!Array.isArray(therapistSpecialization)) return
 
         const tag = therapistSpecialization.find(t => t._id === tagId)
         if (tag) {
             // Update name with localized tag name
-            // We need to respect the localized structure of the name field
             const newName = {
                 en: tag.name.en,
                 de: tag.name.de
             }
 
-            onChange(
-                therapyOfferings.map((o) =>
-                    o._id === offering._id
-                        ? { ...o, name: newName, specializationId: tag._id }
-                        : o
-                )
+            // Update state first
+            const updatedOfferings = therapyOfferings.map((o) =>
+                o._id === offering._id
+                    ? { ...o, name: newName, specializationId: tag._id }
+                    : o
             )
+            onChange(updatedOfferings)
+
+            // Then trigger generation with the new tag
+            // We need to pass the updated offering or at least the tagId
+            // Since state update is async, we can't rely on 'therapyOfferings' being updated immediately in the next line if we were to find it there.
+            // But we can pass the tagId to generateDescriptionStream
+
+            // We need to find the updated offering object to pass to generateDescriptionStream
+            const updatedOffering = updatedOfferings.find(o => o._id === offering._id)
+            if (updatedOffering) {
+                generateDescriptionStream(updatedOffering, tagId)
+            }
         }
     }
 
@@ -178,25 +249,7 @@ export default function TherapyOfferingsEditor({
                     <p className="text-sm text-gray-600 mt-1">
                         {t('therapyOfferings.description')}
                     </p>
-                    <button
-                        onClick={handleAdd}
-                        className="mt-3 text-sm font-medium text-indigo-600 hover:text-indigo-700 flex items-center gap-1 transition-colors"
-                    >
-                        <svg
-                            className="w-4 h-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                        >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M12 4v16m8-8H4"
-                            />
-                        </svg>
-                        {t('therapyOfferings.addNew')}
-                    </button>
+
                 </div>
             </div>
 
@@ -225,9 +278,25 @@ export default function TherapyOfferingsEditor({
                         />
                     </svg>
                     <p className="text-gray-600">{t('therapyOfferings.noOfferings')}</p>
-                    <p className="text-sm text-gray-500 mt-2">
-                        {t('therapyOfferings.clickAddToStart')}
-                    </p>
+                    <button
+                        onClick={handleAdd}
+                        className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 mx-auto"
+                    >
+                        <svg
+                            className="-ml-1 mr-2 h-5 w-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M12 4v16m8-8H4"
+                            />
+                        </svg>
+                        {t('therapyOfferings.addNew')}
+                    </button>
                 </div>
             ) : (
                 <div className="space-y-4">
@@ -466,6 +535,26 @@ export default function TherapyOfferingsEditor({
                             </div>
                         </div>
                     ))}
+                    {/* Add New Button at Bottom */}
+                    <button
+                        onClick={handleAdd}
+                        className="w-full py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-indigo-500 hover:text-indigo-600 hover:bg-indigo-50 transition-all flex items-center justify-center gap-2 font-medium"
+                    >
+                        <svg
+                            className="w-5 h-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M12 4v16m8-8H4"
+                            />
+                        </svg>
+                        {t('therapyOfferings.addNew')}
+                    </button>
                 </div>
             )}
 

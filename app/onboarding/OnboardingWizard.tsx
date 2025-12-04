@@ -194,6 +194,20 @@ export default function OnboardingWizard({ therapist }: OnboardingWizardProps) {
         return !!(getInitialValue(therapist.bio, 'en') || getInitialValue(therapist.bio, 'de'))
     })
 
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+
+    useEffect(() => {
+        if (profileImage) {
+            const url = URL.createObjectURL(profileImage)
+            setPreviewUrl(url)
+            return () => URL.revokeObjectURL(url)
+        } else if (therapist.profileImage && therapist.profileImage.data) {
+            setPreviewUrl(`data:${therapist.profileImage.contentType};base64,${therapist.profileImage.data}`)
+        } else {
+            setPreviewUrl(null)
+        }
+    }, [profileImage, therapist.profileImage])
+
     const generateBioStream = async (lang: 'en' | 'de', specs: TherapyTag[]) => {
         try {
             const response = await fetch('/api/generate-bio', {
@@ -503,13 +517,23 @@ export default function OnboardingWizard({ therapist }: OnboardingWizardProps) {
                                             }
                                         }}
                                     >
-                                        <div className="space-y-1 text-center">
-                                            <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
-                                                <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-                                            </svg>
+                                        <div className="space-y-1 text-center flex flex-col items-center">
+                                            {previewUrl ? (
+                                                <div className="relative w-32 h-32 mb-4 shrink-0">
+                                                    <img
+                                                        src={previewUrl}
+                                                        alt="Profile Preview"
+                                                        className="w-full h-full rounded-full object-cover shadow-lg border-4 border-indigo-50"
+                                                    />
+                                                </div>
+                                            ) : (
+                                                <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                                                    <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                                                </svg>
+                                            )}
                                             <div className="flex text-sm text-gray-600 justify-center">
                                                 <label htmlFor="file-upload" className="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none">
-                                                    <span>{t('dashboard.uploadFile')}</span>
+                                                    <span>{previewUrl ? (t('common.change') || 'Change photo') : t('dashboard.uploadFile')}</span>
                                                     <input id="file-upload" name="file-upload" type="file" className="sr-only" accept="image/*" onChange={(e) => {
                                                         const file = e.target.files?.[0];
                                                         if (file) setProfileImage(file);
