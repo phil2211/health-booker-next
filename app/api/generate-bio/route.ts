@@ -10,7 +10,7 @@ export async function POST(request: Request) {
         // Ensure user is authenticated
         await requireAuth()
 
-        const { specialization, locale, gender, name } = await request.json()
+        const { specialization, locale, gender, name, language } = await request.json()
 
         if (!process.env.GEMINI_API_KEY) {
             return NextResponse.json(
@@ -22,18 +22,7 @@ export async function POST(request: Request) {
         const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
         const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
 
-        let specializationText = ''
-        if (Array.isArray(specialization)) {
-            specializationText = specialization
-                .map((tag: any) => {
-                    if (tag.name && typeof tag.name === 'object') {
-                        return tag.name[locale] || tag.name.en
-                    }
-                    return tag.name || ''
-                })
-                .filter(Boolean)
-                .join(', ')
-        }
+        const languageName = language === 'en' ? 'English' : 'German'
 
         const prompt = `
       You are a professional copywriter for a therapist's booking website.
@@ -47,13 +36,7 @@ export async function POST(request: Request) {
       Therapist Specializations (German):
       ${specialization.map((t: any) => `- ${t.name?.de || t.name}: ${t.description?.de || t.description}`).join('\n')}
       
-      Please provide the biography in TWO languages: English and German.
-      
-      Output MUST be a valid JSON object with the following structure:
-      {
-        "en": "English biography text...",
-        "de": "German biography text..."
-      }
+      Please provide the biography in ${languageName} ONLY.
       
       The biography text should be formatted as a nice looking markdown document.
       Use bolding for emphasis, bullet points for lists if appropriate, and paragraphs for readability.
@@ -62,27 +45,25 @@ export async function POST(request: Request) {
       Write in the first person ("I am ${name}...").
       Make it personal and welcoming.
       Focus on how they help patients with their specific expertise.
-      Do not wrap the JSON output in markdown code blocks (like \`\`\`json), just return the raw JSON string.
+      Do NOT include any JSON or code blocks. Just the text.
     `
-        console.log(prompt);
 
-        const result = await model.generateContent(prompt)
-        const response = await result.response
-        const text = response.text().replace(/```json/g, '').replace(/```/g, '').trim()
+        const result = await model.generateContentStream(prompt)
 
-        let bios;
-        try {
-            bios = JSON.parse(text);
-        } catch (e) {
-            console.error("Failed to parse Gemini response as JSON", text);
-            // Fallback if JSON parsing fails - though with the prompt it should work
-            return NextResponse.json(
-                createErrorResponse(new Error('Failed to generate structured bio'), 'POST /api/generate-bio', 500),
-                { status: 500 }
-            )
-        }
+        const stream = new ReadableStream({
+            async start(controller) {
+                for await (const chunk of result.stream) {
+                    const chunkText = chunk.text()
+                    controller.enqueue(chunkText)
+                }
+                controller.close()
+            }
+        })
 
-        return NextResponse.json({ bio: bios })
+        return new Response(stream, {
+            headers: { 'Content-Type': 'text/plain; charset=utf-8' }
+        })
+
     } catch (error) {
         console.error('Generate bio error:', error)
         return NextResponse.json(

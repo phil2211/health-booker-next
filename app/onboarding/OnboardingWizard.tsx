@@ -194,11 +194,7 @@ export default function OnboardingWizard({ therapist }: OnboardingWizardProps) {
         return !!(getInitialValue(therapist.bio, 'en') || getInitialValue(therapist.bio, 'de'))
     })
 
-    const generateBio = async (specs: TherapyTag[]) => {
-        // Don't overwrite if manually edited and not empty
-        if (isBioManuallyEdited && (bioEn.trim() || bioDe.trim())) return
-
-        setIsGeneratingBio(true)
+    const generateBioStream = async (lang: 'en' | 'de', specs: TherapyTag[]) => {
         try {
             const response = await fetch('/api/generate-bio', {
                 method: 'POST',
@@ -207,19 +203,48 @@ export default function OnboardingWizard({ therapist }: OnboardingWizardProps) {
                     specialization: specs,
                     locale,
                     gender,
-                    name: firstName
+                    name: firstName,
+                    language: lang
                 })
             })
 
-            if (response.ok) {
-                const data = await response.json()
-                if (data.bio) {
-                    if (data.bio.en) setBioEn(data.bio.en)
-                    if (data.bio.de) setBioDe(data.bio.de)
+            if (!response.ok) throw new Error('Failed to generate bio')
+
+            const reader = response.body?.getReader()
+            if (!reader) return
+
+            const decoder = new TextDecoder()
+
+            // Clear existing bio for this language
+            if (lang === 'en') setBioEn('')
+            else setBioDe('')
+
+            while (true) {
+                const { done, value } = await reader.read()
+                if (done) break
+
+                const chunk = decoder.decode(value, { stream: true })
+                if (lang === 'en') {
+                    setBioEn(prev => prev + chunk)
+                } else {
+                    setBioDe(prev => prev + chunk)
                 }
             }
         } catch (error) {
-            console.error('Failed to generate bio:', error)
+            console.error(`Failed to generate ${lang} bio:`, error)
+        }
+    }
+
+    const generateBio = async (specs: TherapyTag[]) => {
+        // Don't overwrite if manually edited and not empty
+        if (isBioManuallyEdited && (bioEn.trim() || bioDe.trim())) return
+
+        setIsGeneratingBio(true)
+        try {
+            await Promise.all([
+                generateBioStream('en', specs),
+                generateBioStream('de', specs)
+            ])
         } finally {
             setIsGeneratingBio(false)
         }
