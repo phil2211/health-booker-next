@@ -40,10 +40,11 @@ export async function POST(request: Request) {
       Please write a professional and welcoming biography for a therapist based on their specialization.
       
       Therapist Gender: ${gender === 'female' ? 'Female' : gender === 'male' ? 'Male' : 'Not specified'}
-      Therapist Specialization (English): ${specialization.map((t: any) => t.name?.en || t.name).join(', ')}
-      Description of the specialization (English): ${specialization.map((t: any) => t.description?.en || t.description).join(', ')}
-      Therapist Specialization (German): ${specialization.map((t: any) => t.name?.de || t.name).join(', ')}
-      Description of the specialization (German): ${specialization.map((t: any) => t.description?.de || t.description).join(', ')}
+      Therapist Specializations (English):
+      ${specialization.map((t: any) => `- ${t.name?.en || t.name}: ${t.description?.en || t.description}`).join('\n')}
+      
+      Therapist Specializations (German):
+      ${specialization.map((t: any) => `- ${t.name?.de || t.name}: ${t.description?.de || t.description}`).join('\n')}
       
       Please provide the biography in TWO languages: English and German.
       
@@ -53,10 +54,13 @@ export async function POST(request: Request) {
         "de": "German biography text..."
       }
       
+      The biography text should be formatted as a nice looking markdown document.
+      Use bolding for emphasis, bullet points for lists if appropriate, and paragraphs for readability.
+      
       Keep the biography concise (approx. 4-7 sentences), warm, and professional. 
       Write in the first person ("I am...").
       Focus on how they help patients with their specific expertise.
-      Do not include any markdown formatting (like \`\`\`json), just the raw JSON string.
+      Do not wrap the JSON output in markdown code blocks (like \`\`\`json), just return the raw JSON string.
     `
         console.log(prompt);
 
