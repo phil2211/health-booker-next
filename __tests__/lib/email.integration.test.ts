@@ -73,7 +73,14 @@ if (!RUN_INTEGRATION) {
     email: testRecipientEmail,
     password: 'hashed-password',
     name: 'Dr. Jane Smith',
-    specialization: 'Physical Therapy',
+    specialization: [
+      {
+        _id: 'tag-1',
+        category: { en: 'Physical Therapy', de: 'Physiotherapie' },
+        name: { en: 'General', de: 'Allgemein' }
+      }
+    ],
+    balance: 0,
     bio: 'Experienced therapist',
     weeklyAvailability: [],
     blockedSlots: [],

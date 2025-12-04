@@ -98,7 +98,14 @@ describe('Email Sending Functions (Mocked Resend API)', () => {
     email: testRecipientEmail,
     password: 'hashed-password',
     name: 'Dr. Jane Smith',
-    specialization: 'Physical Therapy',
+    specialization: [
+      {
+        _id: 'tag-1',
+        category: { en: 'Physical Therapy', de: 'Physiotherapie' },
+        name: { en: 'General', de: 'Allgemein' }
+      }
+    ],
+    balance: 0,
     bio: 'Experienced therapist',
     weeklyAvailability: [],
     blockedSlots: [],
@@ -325,7 +332,7 @@ describe('Email Sending Functions (Mocked Resend API)', () => {
       // Temporarily unset NEXT_PUBLIC_BASE_URL to test auto-detection
       const originalBaseUrl = process.env.NEXT_PUBLIC_BASE_URL;
       delete process.env.NEXT_PUBLIC_BASE_URL;
-      process.env.NODE_ENV = 'development';
+      Object.defineProperty(process.env, 'NODE_ENV', { value: 'development', writable: true });
 
       try {
         await expect(
@@ -336,7 +343,7 @@ describe('Email Sending Functions (Mocked Resend API)', () => {
       } finally {
         // Restore original environment
         process.env.NEXT_PUBLIC_BASE_URL = originalBaseUrl;
-        process.env.NODE_ENV = processEnvBackup.NODE_ENV;
+        Object.defineProperty(process.env, 'NODE_ENV', { value: processEnvBackup.NODE_ENV, writable: true });
       }
     });
 
