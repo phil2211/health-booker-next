@@ -13,7 +13,7 @@ export default function InstallPrompt() {
     useEffect(() => {
         // Check if already in standalone mode
         const isStandaloneMode = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone
-        setIsStandalone(isStandaloneMode)
+        setTimeout(() => setIsStandalone(isStandaloneMode), 0)
 
         if (isStandaloneMode) return
 
@@ -24,7 +24,7 @@ export default function InstallPrompt() {
         // Detect iOS
         const userAgent = window.navigator.userAgent.toLowerCase()
         const isIosDevice = /iphone|ipad|ipod/.test(userAgent)
-        setIsIOS(isIosDevice)
+        setTimeout(() => setIsIOS(isIosDevice), 0)
 
         // Handle Android/Chrome beforeinstallprompt
         const handleBeforeInstallPrompt = (e: Event) => {
@@ -43,7 +43,7 @@ export default function InstallPrompt() {
         if (isIosDevice) {
             // Add a small delay or check if visited before to not be annoying? 
             // For now, let's just show it.
-            setShowPrompt(true)
+            setTimeout(() => setShowPrompt(true), 0)
         }
 
         return () => {

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useLocale } from '@/lib/i18n/LocaleProvider'
 import { useTranslation } from '@/lib/i18n/useTranslation'
@@ -528,10 +529,12 @@ export default function OnboardingWizard({ therapist }: OnboardingWizardProps) {
                                         <div className="space-y-1 text-center flex flex-col items-center">
                                             {previewUrl ? (
                                                 <div className="relative w-32 h-32 mb-4 shrink-0">
-                                                    <img
+                                                    <Image
                                                         src={previewUrl}
                                                         alt="Profile Preview"
-                                                        className="w-full h-full rounded-full object-cover shadow-lg border-4 border-indigo-50"
+                                                        fill
+                                                        className="rounded-full object-cover shadow-lg border-4 border-indigo-50"
+                                                        unoptimized
                                                     />
                                                 </div>
                                             ) : (

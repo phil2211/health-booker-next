@@ -2,6 +2,7 @@
 
 import { TherapistDocument, SerializedTherapistDocument } from '@/models/Therapist'
 import Link from 'next/link'
+import Image from 'next/image'
 import dynamic from 'next/dynamic'
 import { useTranslation } from '@/lib/i18n/useTranslation'
 import { useLocale } from '@/lib/i18n/LocaleProvider'
@@ -74,10 +75,12 @@ export default function ProvidersList({ therapists, showLoginRegisterLinks = fal
                                 >
                                     <div className="flex items-start space-x-4 mb-2">
                                         {therapist.profileImage && (
-                                            <img
+                                            <Image
                                                 src={`data:${therapist.profileImage.contentType};base64,${therapist.profileImage.data}`}
-                                                alt={therapist.name}
-                                                className="w-16 h-16 rounded-full object-cover border border-gray-200 flex-shrink-0"
+                                                alt={therapist.name || 'Therapist'}
+                                                width={64}
+                                                height={64}
+                                                className="rounded-full object-cover border border-gray-200 flex-shrink-0"
                                             />
                                         )}
                                         <div>

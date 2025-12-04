@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { APIProvider, Map, AdvancedMarker, Pin, InfoWindow, useMap } from '@vis.gl/react-google-maps'
 import { TherapistDocument, SerializedTherapistDocument } from '@/models/Therapist'
 import Link from 'next/link'
+import Image from 'next/image'
 
 interface ProviderMapProps {
     therapists: SerializedTherapistDocument[]
@@ -122,7 +123,7 @@ export default function ProviderMap({ therapists, onVisibleTherapistsChange, hov
         if (therapists.length > 0) {
             geocodeTherapists()
         } else {
-            setGeocodedTherapists([])
+            setTimeout(() => setGeocodedTherapists([]), 0)
         }
 
         return () => {
@@ -197,10 +198,12 @@ export default function ProviderMap({ therapists, onVisibleTherapistsChange, hov
                             <div className="min-w-[200px] p-2">
                                 {selectedTherapist.profileImage && (
                                     <div className="flex justify-center mb-3">
-                                        <img
+                                        <Image
                                             src={`data:${selectedTherapist.profileImage.contentType};base64,${selectedTherapist.profileImage.data}`}
-                                            alt={selectedTherapist.name}
-                                            className="w-16 h-16 rounded-full object-cover border-2 border-white shadow-md"
+                                            alt={selectedTherapist.name || 'Therapist'}
+                                            width={64}
+                                            height={64}
+                                            className="rounded-full object-cover border-2 border-white shadow-md"
                                         />
                                     </div>
                                 )}

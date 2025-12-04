@@ -10,7 +10,7 @@ export default function CookieBanner() {
         // Check if user has already acknowledged cookies
         const hasAcknowledged = localStorage.getItem('cookie_consent')
         if (!hasAcknowledged) {
-            setIsVisible(true)
+            setTimeout(() => setIsVisible(true), 0)
         }
     }, [])
 

@@ -22,15 +22,6 @@ export function PushNotificationManager() {
     const [subscription, setSubscription] = useState<PushSubscription | null>(null)
     const [permission, setPermission] = useState<NotificationPermission>('default')
 
-    useEffect(() => {
-        if ('serviceWorker' in navigator && 'PushManager' in window) {
-            setIsSupported(true)
-            registerServiceWorker()
-            checkSubscription()
-            setPermission(Notification.permission)
-        }
-    }, [])
-
     async function registerServiceWorker() {
         try {
             const registration = await navigator.serviceWorker.register('/sw.js', {
@@ -47,6 +38,27 @@ export function PushNotificationManager() {
         const registration = await navigator.serviceWorker.ready
         const sub = await registration.pushManager.getSubscription()
         setSubscription(sub)
+    }
+
+    useEffect(() => {
+        if ('serviceWorker' in navigator && 'PushManager' in window) {
+            setTimeout(() => {
+                setIsSupported(true)
+                setPermission(Notification.permission)
+                registerServiceWorker()
+                checkSubscription()
+            }, 0)
+        }
+    }, [])
+
+    async function saveSubscription(sub: PushSubscription) {
+        await fetch('/api/push/subscribe', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(sub),
+        })
     }
 
     async function subscribeToPush() {
@@ -73,16 +85,6 @@ export function PushNotificationManager() {
         } catch (error) {
             console.error('Failed to subscribe to push notifications:', error)
         }
-    }
-
-    async function saveSubscription(sub: PushSubscription) {
-        await fetch('/api/push/subscribe', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(sub),
-        })
     }
 
     if (!isSupported || !session) {
