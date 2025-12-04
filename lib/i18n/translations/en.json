@@ -19,6 +19,8 @@
     "date": "Date",
     "time": "Time",
     "name": "Name",
+    "firstName": "First Name",
+    "lastName": "Last Name",
     "email": "Email",
     "phone": "Phone",
     "required": "Required",

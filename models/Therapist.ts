@@ -57,7 +57,7 @@ export function validateTherapistInput(therapist: Partial<Therapist>): { valid: 
     errors.push('Password must be at least 8 characters long')
   }
 
-  // Name, specialization, and bio are now optional during initial registration
+  // Name (First/Last), specialization, and bio are now optional during initial registration
   // They will be collected during onboarding
 
   return {
@@ -164,7 +164,8 @@ export async function findTherapistById(id: string): Promise<TherapistDocument |
 export async function createTherapist(
   email: string,
   hashedPassword: string,
-  name?: string,
+  firstName?: string,
+  lastName?: string,
   specialization?: TherapyTag[],
   bio?: string,
   photoUrl?: string
@@ -175,7 +176,8 @@ export async function createTherapist(
   const therapist: Omit<TherapistDocument, '_id'> = {
     email,
     password: hashedPassword,
-    name,
+    firstName,
+    lastName,
     specialization,
     bio,
     photoUrl,
@@ -397,7 +399,8 @@ export async function updateTherapistAvailability(
 export async function updateTherapistProfile(
   therapistId: string,
   profileData: {
-    name?: string
+    firstName?: string
+    lastName?: string
     specialization?: TherapyTag[]
     bio?: string | { en: string; de: string }
     address?: string
@@ -425,7 +428,8 @@ export async function updateTherapistProfile(
       updatedAt: now,
     }
 
-    if (profileData.name !== undefined) updateFields.name = profileData.name
+    if (profileData.firstName !== undefined) updateFields.firstName = profileData.firstName
+    if (profileData.lastName !== undefined) updateFields.lastName = profileData.lastName
     if (profileData.specialization !== undefined) updateFields.specialization = profileData.specialization
     if (profileData.bio !== undefined) updateFields.bio = profileData.bio
     if (profileData.address !== undefined) updateFields.address = profileData.address
@@ -441,7 +445,7 @@ export async function updateTherapistProfile(
     const currentTherapist = await db.collection('therapists').findOne({ _id: new ObjectId(therapistId) })
 
     if (currentTherapist) {
-      const hasName = updateFields.name || currentTherapist.name
+      const hasName = (updateFields.firstName || currentTherapist.firstName) && (updateFields.lastName || currentTherapist.lastName)
       const hasSpecialization = updateFields.specialization || currentTherapist.specialization
       const hasBio = updateFields.bio || currentTherapist.bio
       const hasAddress = updateFields.address || currentTherapist.address

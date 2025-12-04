@@ -10,7 +10,7 @@ export async function POST(request: Request) {
         // Ensure user is authenticated
         await requireAuth()
 
-        const { specialization, locale, gender } = await request.json()
+        const { specialization, locale, gender, name } = await request.json()
 
         if (!process.env.GEMINI_API_KEY) {
             return NextResponse.json(
@@ -37,8 +37,9 @@ export async function POST(request: Request) {
 
         const prompt = `
       You are a professional copywriter for a therapist's booking website.
-      Please write a professional and welcoming biography for a therapist based on their specialization.
+      Please write a professional, warm, and personal biography for a therapist based on their specialization.
       
+      Therapist Name: ${name}
       Therapist Gender: ${gender === 'female' ? 'Female' : gender === 'male' ? 'Male' : 'Not specified'}
       Therapist Specializations (English):
       ${specialization.map((t: any) => `- ${t.name?.en || t.name}: ${t.description?.en || t.description}`).join('\n')}
@@ -58,7 +59,8 @@ export async function POST(request: Request) {
       Use bolding for emphasis, bullet points for lists if appropriate, and paragraphs for readability.
       
       Keep the biography concise (approx. 4-7 sentences), warm, and professional. 
-      Write in the first person ("I am...").
+      Write in the first person ("I am ${name}...").
+      Make it personal and welcoming.
       Focus on how they help patients with their specific expertise.
       Do not wrap the JSON output in markdown code blocks (like \`\`\`json), just return the raw JSON string.
     `

@@ -27,6 +27,8 @@ export default async function OnboardingPage() {
             therapist={{
                 _id: therapist._id,
                 name: therapist.name || '',
+                firstName: therapist.firstName || (therapist.name ? therapist.name.split(' ')[0] : ''),
+                lastName: therapist.lastName || (therapist.name ? therapist.name.split(' ').slice(1).join(' ') : ''),
                 email: therapist.email,
                 specialization: therapist.specialization || [],
                 bio: therapist.bio || '',

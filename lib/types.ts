@@ -5,6 +5,8 @@
 export interface HealthProvider {
   _id?: string
   name: string
+  firstName?: string
+  lastName?: string
   specialization: string
   email: string
   phone: string
@@ -57,6 +59,8 @@ export interface Therapist {
   email: string
   password: string // hashed
   name?: string
+  firstName?: string
+  lastName?: string
   specialization?: TherapyTag[]
   bio?: string | { en: string; de: string }
   address?: string

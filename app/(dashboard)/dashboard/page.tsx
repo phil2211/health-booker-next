@@ -94,6 +94,8 @@ export default async function DashboardPage() {
       therapist={{
         _id: therapist._id,
         name: therapist.name || '',
+        firstName: therapist.firstName || (therapist.name ? therapist.name.split(' ')[0] : ''),
+        lastName: therapist.lastName || (therapist.name ? therapist.name.split(' ').slice(1).join(' ') : ''),
         specialization: displaySpecialization,
         specializationTags: specializationTags,
         bio: therapist.bio || '',

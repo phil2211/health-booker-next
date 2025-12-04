@@ -14,7 +14,9 @@ import TopUpModal from '@/components/TopUpModal'
 interface DashboardClientProps {
   therapist: {
     _id: string
-    name: string
+    name?: string
+    firstName?: string
+    lastName?: string
     specialization: string | { en: string; de: string }
     specializationTags?: TherapyTag[]
     bio: string | { en: string; de: string }
@@ -120,7 +122,7 @@ export default function DashboardClient({ therapist, bookingUrl, baseUrl, upcomi
         {/* Welcome Section */}
         <div className="mb-8">
           <h2 className="text-4xl font-bold text-gray-900 mb-2">
-            {t('dashboard.welcomeBack')}, {therapist.name}! 👋
+            {t('dashboard.welcomeBack')}, {therapist.firstName || therapist.name}! 👋
           </h2>
           <p className="text-lg text-gray-600">
             {t('dashboard.manageAppointments')}
@@ -257,7 +259,7 @@ export default function DashboardClient({ therapist, bookingUrl, baseUrl, upcomi
             <div className="space-y-4">
               <div className="pb-4 border-b">
                 <p className="text-sm text-gray-500 mb-1">{t('dashboard.fullName')}</p>
-                <p className="text-gray-900 font-medium">{therapist.name}</p>
+                <p className="text-gray-900 font-medium">{therapist.firstName} {therapist.lastName}</p>
               </div>
               <div className="pb-4 border-b">
                 <p className="text-sm text-gray-500 mb-1">{t('dashboard.specialization')}</p>

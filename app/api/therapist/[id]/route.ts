@@ -95,7 +95,8 @@ export async function PATCH(
       const formData = await request.formData()
 
       // Extract basic fields
-      updateData.name = formData.get('name') as string
+      updateData.firstName = formData.get('firstName') as string
+      updateData.lastName = formData.get('lastName') as string
       updateData.address = formData.get('address') as string
       updateData.zip = formData.get('zip') as string
       updateData.city = formData.get('city') as string

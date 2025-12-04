@@ -13,7 +13,9 @@ import { AsYouType } from 'libphonenumber-js'
 interface OnboardingWizardProps {
     therapist: {
         _id: string
-        name: string
+        name?: string
+        firstName: string
+        lastName: string
         gender?: string
         email: string
         specialization: any[] | string | { en: string; de: string }
@@ -44,7 +46,7 @@ export default function OnboardingWizard({ therapist }: OnboardingWizardProps) {
     }
 
     // Determine initial step
-    const isBasicInfoComplete = !!(therapist.name && therapist.address && therapist.zip && therapist.city)
+    const isBasicInfoComplete = !!(therapist.firstName && therapist.lastName && therapist.address && therapist.zip && therapist.city)
     const isProfileComplete = hasContent(therapist.bio) && (Array.isArray(therapist.specialization) ? therapist.specialization.length > 0 : hasContent(therapist.specialization as any))
     const hasOfferings = therapist.therapyOfferings && therapist.therapyOfferings.length > 0
 
@@ -74,7 +76,8 @@ export default function OnboardingWizard({ therapist }: OnboardingWizardProps) {
 
         if (currentStep === 1) {
             if (!gender) errors.gender = t('common.required') || 'Required'
-            if (!name.trim()) errors.name = t('common.required') || 'Required'
+            if (!firstName.trim()) errors.firstName = t('common.required') || 'Required'
+            if (!lastName.trim()) errors.lastName = t('common.required') || 'Required'
             if (!address.trim()) errors.address = t('common.required') || 'Required'
             if (!zip.trim()) errors.zip = t('common.required') || 'Required'
             if (!city.trim()) errors.city = t('common.required') || 'Required'
@@ -109,7 +112,8 @@ export default function OnboardingWizard({ therapist }: OnboardingWizardProps) {
 
     // Form State
     const [gender, setGender] = useState(therapist.gender || '')
-    const [name, setName] = useState(therapist.name)
+    const [firstName, setFirstName] = useState(therapist.firstName)
+    const [lastName, setLastName] = useState(therapist.lastName)
     const [address, setAddress] = useState(therapist.address)
     const [zip, setZip] = useState(therapist.zip)
     const [city, setCity] = useState(therapist.city)
@@ -202,7 +206,8 @@ export default function OnboardingWizard({ therapist }: OnboardingWizardProps) {
                 body: JSON.stringify({
                     specialization: specs,
                     locale,
-                    gender
+                    gender,
+                    name: firstName
                 })
             })
 
@@ -276,7 +281,8 @@ export default function OnboardingWizard({ therapist }: OnboardingWizardProps) {
             // 1. Update Profile
             const formData = new FormData()
             formData.append('gender', gender)
-            formData.append('name', name)
+            formData.append('firstName', firstName)
+            formData.append('lastName', lastName)
             formData.append('address', address)
             formData.append('zip', zip)
             formData.append('city', city)
@@ -375,17 +381,31 @@ export default function OnboardingWizard({ therapist }: OnboardingWizardProps) {
                                     </select>
                                     {fieldErrors.gender && <p className="mt-1 text-sm text-red-600">{fieldErrors.gender}</p>}
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('common.name')}</label>
-                                    <input
-                                        type="text"
-                                        value={name}
-                                        onChange={(e) => setName(e.target.value)}
-                                        className={`w-full px-3 py-2 border rounded-md text-black focus:ring-indigo-500 focus:border-indigo-500 ${fieldErrors.name ? 'border-red-500' : 'border-gray-300'}`}
-                                        required
-                                        aria-invalid={!!fieldErrors.name}
-                                    />
-                                    {fieldErrors.name && <p className="mt-1 text-sm text-red-600">{fieldErrors.name}</p>}
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">{t('common.firstName')}</label>
+                                        <input
+                                            type="text"
+                                            value={firstName}
+                                            onChange={(e) => setFirstName(e.target.value)}
+                                            className={`w-full px-3 py-2 border rounded-md text-black focus:ring-indigo-500 focus:border-indigo-500 ${fieldErrors.firstName ? 'border-red-500' : 'border-gray-300'}`}
+                                            required
+                                            aria-invalid={!!fieldErrors.firstName}
+                                        />
+                                        {fieldErrors.firstName && <p className="mt-1 text-sm text-red-600">{fieldErrors.firstName}</p>}
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">{t('common.lastName')}</label>
+                                        <input
+                                            type="text"
+                                            value={lastName}
+                                            onChange={(e) => setLastName(e.target.value)}
+                                            className={`w-full px-3 py-2 border rounded-md text-black focus:ring-indigo-500 focus:border-indigo-500 ${fieldErrors.lastName ? 'border-red-500' : 'border-gray-300'}`}
+                                            required
+                                            aria-invalid={!!fieldErrors.lastName}
+                                        />
+                                        {fieldErrors.lastName && <p className="mt-1 text-sm text-red-600">{fieldErrors.lastName}</p>}
+                                    </div>
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">{t('dashboard.address')}</label>
