@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useTranslation } from '@/lib/i18n/useTranslation'
 import { useLocale } from '@/lib/i18n/LocaleProvider'
 import LogoutButton from '@/components/LogoutButton'
@@ -12,13 +13,15 @@ interface ResponsiveHeaderProps {
   showBackToDashboard?: boolean
   showHomeLink?: boolean
   showLogoutButton?: boolean
+  showLoginRegisterLinks?: boolean
 }
 
 export default function ResponsiveHeader({
   pageTitle,
   showBackToDashboard = true,
   showHomeLink = false,
-  showLogoutButton = true
+  showLogoutButton = true,
+  showLoginRegisterLinks = false
 }: ResponsiveHeaderProps) {
   const { t } = useTranslation()
   const locale = useLocale()
@@ -26,6 +29,8 @@ export default function ResponsiveHeader({
 
   const dashboardPath = locale === 'en' ? '/dashboard' : `/${locale}/dashboard`
   const homePath = locale === 'en' ? '/' : `/${locale}`
+  const loginPath = locale === 'en' ? '/login' : `/${locale}/login`
+  const registerPath = locale === 'en' ? '/register' : `/${locale}/register`
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen)
 
@@ -35,9 +40,18 @@ export default function ResponsiveHeader({
         <div className="flex justify-between items-center h-16">
           {/* Left side - Logo and title */}
           <div className="flex items-center space-x-4 min-w-0 flex-1">
-            <span className="text-xl font-bold text-indigo-600 flex-shrink-0">
-              {t('booking.healthBooker')}
-            </span>
+            <Link href={homePath} className="flex-shrink-0 hover:opacity-80 transition-opacity flex items-center gap-2">
+              <Image
+                src="/favicon.svg"
+                alt="HealthBooker Logo"
+                width={32}
+                height={32}
+                className="w-8 h-8"
+              />
+              <span className="text-xl font-bold text-indigo-600">
+                {t('booking.healthBooker')}
+              </span>
+            </Link>
             <span className="text-gray-400 hidden sm:block">|</span>
             <span className="text-sm text-gray-600 truncate hidden sm:block">{pageTitle}</span>
           </div>
@@ -59,6 +73,22 @@ export default function ResponsiveHeader({
               >
                 {t('booking.home')}
               </Link>
+            )}
+            {showLoginRegisterLinks && (
+              <>
+                <Link
+                  href={loginPath}
+                  className="text-sm text-indigo-600 hover:text-indigo-700 font-medium whitespace-nowrap"
+                >
+                  {t('home.therapistLogin')}
+                </Link>
+                <Link
+                  href={registerPath}
+                  className="text-sm text-indigo-600 hover:text-indigo-700 font-medium whitespace-nowrap"
+                >
+                  {t('home.therapistRegister')}
+                </Link>
+              </>
             )}
             <LanguageSwitcher />
             {showLogoutButton && <LogoutButton />}
@@ -124,6 +154,24 @@ export default function ResponsiveHeader({
               >
                 {t('booking.home')}
               </Link>
+            )}
+            {showLoginRegisterLinks && (
+              <>
+                <Link
+                  href={loginPath}
+                  className="block px-3 py-2 text-base font-medium text-indigo-600 hover:text-indigo-700 hover:bg-gray-50 rounded-md transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  {t('home.therapistLogin')}
+                </Link>
+                <Link
+                  href={registerPath}
+                  className="block px-3 py-2 text-base font-medium text-indigo-600 hover:text-indigo-700 hover:bg-gray-50 rounded-md transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  {t('home.therapistRegister')}
+                </Link>
+              </>
             )}
 
             {/* Language switcher in mobile menu */}

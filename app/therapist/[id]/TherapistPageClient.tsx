@@ -1,28 +1,75 @@
 'use client'
 
 import Link from 'next/link'
-import Image from 'next/image'
+import { useState, useEffect } from 'react'
+import { marked } from 'marked'
+import DOMPurify from 'dompurify'
 import { useTranslation } from '@/lib/i18n/useTranslation'
 import { useLocale } from '@/lib/i18n/LocaleProvider'
 import ResponsiveHeader from '@/components/ResponsiveHeader'
+import { TherapyTag } from '@/lib/types'
 
 interface TherapistPageClientProps {
   therapist: {
     _id: string
     name: string
-    specialization: string
-    bio: string
+    specialization: any[]
+    bio: string | { en: string; de: string }
     photoUrl?: string
+    profileImageSrc?: string | null
     email: string
+    linkedinUrl?: string
   }
 }
 
 export default function TherapistPageClient({ therapist }: TherapistPageClientProps) {
   const { t } = useTranslation()
   const locale = useLocale()
-  
+
   const homePath = locale === 'en' ? '/' : `/${locale}`
   const bookPath = locale === 'en' ? `/book/${therapist._id}` : `/${locale}/book/${therapist._id}`
+
+  // Helper to get localized content
+  const getLocalizedContent = (content: string | { en: string; de: string }, lang: string) => {
+    if (typeof content === 'string') return content
+    return content[lang as 'en' | 'de'] || content['en'] || content['de'] || ''
+  }
+
+  const displayBio = getLocalizedContent(therapist.bio, locale)
+
+  // Group specialization tags
+  const groupedTags = (Array.isArray(therapist.specialization) ? therapist.specialization : []).reduce((acc: Record<string, any[]>, tag: any) => {
+    const category = tag.category?.[locale] || tag.category?.en || 'Other'
+    if (!acc[category]) acc[category] = []
+
+    // Check if tag is object or string (just in case)
+    if (typeof tag === 'object') {
+      acc[category].push(tag)
+    }
+
+    return acc
+  }, {})
+
+  const [bioHtml, setBioHtml] = useState<string>('')
+
+  useEffect(() => {
+    const processBio = async () => {
+      if (!displayBio) {
+        setBioHtml('')
+        return
+      }
+      try {
+        const parsed = await marked.parse(displayBio)
+        setBioHtml(DOMPurify.sanitize(parsed))
+      } catch (error) {
+        console.error('Error parsing markdown:', error)
+        setBioHtml(displayBio) // Fallback to plain text
+      }
+    }
+    processBio()
+  }, [displayBio])
+
+  const imageSrc = therapist.profileImageSrc || therapist.photoUrl
 
   return (
     <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100">
@@ -39,29 +86,67 @@ export default function TherapistPageClient({ therapist }: TherapistPageClientPr
         {/* Profile Card */}
         <div className="bg-white rounded-xl shadow-xl border p-8">
           {/* Header */}
-          <div className="text-center mb-8 pb-8 border-b">
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">{therapist.name}</h1>
-            <p className="text-xl text-indigo-600 font-medium">{therapist.specialization}</p>
-          </div>
+          <div className="flex flex-col md:flex-row items-center gap-8 mb-8 pb-8 border-b">
+            {imageSrc ? (
+              <div className="relative w-32 h-32 shrink-0">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={imageSrc}
+                  alt={therapist.name}
+                  className="w-full h-full rounded-full object-cover shadow-lg border-4 border-indigo-50"
+                />
+              </div>
+            ) : (
+              <div className="w-32 h-32 rounded-full bg-indigo-100 flex items-center justify-center shrink-0 border-4 border-indigo-50 shadow-lg">
+                <span className="text-4xl font-bold text-indigo-600">
+                  {therapist.name.charAt(0).toUpperCase()}
+                </span>
+              </div>
+            )}
 
-          {/* Profile Photo (if available) */}
-          {therapist.photoUrl && (
-            <div className="flex justify-center mb-8">
-              <Image
-                src={therapist.photoUrl}
-                alt={therapist.name}
-                width={192}
-                height={192}
-                className="w-48 h-48 rounded-full object-cover border-4 border-indigo-200 shadow-lg"
-              />
+            <div className="text-center md:text-left w-full">
+              <h1 className="text-4xl font-bold text-gray-900 mb-2">{therapist.name}</h1>
+
+              {groupedTags && Object.keys(groupedTags).length > 0 ? (
+                <div className="space-y-2 mb-3">
+                  {Object.entries(groupedTags).map(([category, tags]) => (
+                    <div key={category} className="flex flex-wrap gap-2 justify-center md:justify-start">
+                      {tags.map(tag => (
+                        <span key={tag._id} className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800">
+                          {locale === 'en' ? tag.name.en : tag.name.de}
+                        </span>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xl text-indigo-600 font-medium mb-3">{t('therapist.generalTherapist')}</p>
+              )}
+
+              {therapist.linkedinUrl && (
+                <a
+                  href={therapist.linkedinUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center text-gray-600 hover:text-[#0077b5] transition-colors font-medium"
+                >
+                  <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 21.227.792 22 1.771 22h20.451C23.2 22 24 21.227 24 20.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+                  </svg>
+                  {t('therapist.viewLinkedinProfile')}
+                </a>
+              )}
             </div>
-          )}
+          </div>
 
           {/* Bio Section */}
           <div className="space-y-6">
             <div>
               <h2 className="text-lg font-semibold text-gray-900 mb-3">{t('therapist.about')} {therapist.name}</h2>
-              <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{therapist.bio}</p>
+              <div
+                className="text-gray-700 leading-relaxed space-y-4 [&>h1]:text-2xl [&>h1]:font-bold [&>h1]:text-gray-900 [&>h2]:text-xl [&>h2]:font-semibold [&>h2]:text-gray-900 [&>h3]:text-lg [&>h3]:font-medium [&>h3]:text-gray-900 [&>ul]:list-disc [&>ul]:pl-5 [&>ol]:list-decimal [&>ol]:pl-5 [&>a]:text-indigo-600 [&>a]:underline [&>blockquote]:border-l-4 [&>blockquote]:border-gray-300 [&>blockquote]:pl-4 [&>blockquote]:italic"
+                dangerouslySetInnerHTML={{ __html: bioHtml }}
+              />
             </div>
 
             {/* Contact Information */}
@@ -94,5 +179,3 @@ export default function TherapistPageClient({ therapist }: TherapistPageClientPr
     </div>
   )
 }
-
-

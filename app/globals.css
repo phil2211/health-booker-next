@@ -48,6 +48,12 @@ body {
   margin: 0;
 }
 
+@media (max-width: 640px) {
+  .rdp {
+    --rdp-cell-size: 32px;
+  }
+}
+
 .rdp-months {
   display: flex;
   gap: 2rem;

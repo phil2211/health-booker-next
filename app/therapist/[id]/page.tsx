@@ -20,14 +20,43 @@ async function getTherapistProfile(id: string) {
     return null
   }
 
+  // Convert profile image to base64 if available
+  let profileImageSrc = null
+  if (therapist.profileImage && therapist.profileImage.data) {
+    try {
+      const base64 = therapist.profileImage.data.toString('base64')
+      profileImageSrc = `data:${therapist.profileImage.contentType};base64,${base64}`
+    } catch (e) {
+      console.error('Error converting profile image', e)
+    }
+  }
+  // Resolve specialization tags
+  let tags: any[] = []
+  if (Array.isArray(therapist.specialization) && therapist.specialization.length > 0) {
+    if (typeof therapist.specialization[0] === 'string') {
+      const { getDatabase } = await import('@/lib/mongodb')
+      const db = await getDatabase()
+
+      // Fetch all selected tags
+      tags = await db.collection('therapy_tags').find({
+        _id: { $in: (therapist.specialization as unknown as string[]).map(id => new ObjectId(id)) }
+      }).toArray()
+    } else {
+      // Already objects
+      tags = therapist.specialization
+    }
+  }
+
   // Return in API format for consistency
   return {
     therapist: {
       _id: therapist._id,
-      name: therapist.name,
-      specialization: therapist.specialization,
-      bio: therapist.bio,
+      name: therapist.name || '',
+      specialization: tags,
+      bio: therapist.bio || '',
       photoUrl: therapist.photoUrl,
+      profileImageSrc,
+      linkedinUrl: therapist.linkedinUrl,
       email: therapist.email,
       weeklyAvailability: therapist.weeklyAvailability,
       blockedSlots: therapist.blockedSlots,

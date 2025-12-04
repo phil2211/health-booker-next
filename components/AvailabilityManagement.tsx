@@ -2,9 +2,10 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { AvailabilityEntry, BlockedSlot } from '@/lib/types'
+import { AvailabilityEntry, BlockedSlot, TherapyOffering, TherapyTag } from '@/lib/types'
 import WeeklyAvailabilityEditor from './WeeklyAvailabilityEditor'
 import BlockedSlotsEditor from './BlockedSlotsEditor'
+import TherapyOfferingsEditor from './TherapyOfferingsEditor'
 import { useTranslation } from '@/lib/i18n/useTranslation'
 import { useLocale } from '@/lib/i18n/LocaleProvider'
 
@@ -15,6 +16,7 @@ export default function AvailabilityManagement() {
   const successTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const [weeklyAvailability, setWeeklyAvailability] = useState<AvailabilityEntry[]>([])
   const [blockedSlots, setBlockedSlots] = useState<BlockedSlot[]>([])
+  const [therapyOfferings, setTherapyOfferings] = useState<TherapyOffering[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -23,21 +25,26 @@ export default function AvailabilityManagement() {
   const [initialState, setInitialState] = useState<{
     weeklyAvailability: AvailabilityEntry[]
     blockedSlots: BlockedSlot[]
+    therapyOfferings: TherapyOffering[]
+  } | null>(null)
+  const [therapistInfo, setTherapistInfo] = useState<{
+    bio: string | { en: string; de: string }
+    specialization: TherapyTag[] | string | { en: string; de: string }
   } | null>(null)
 
   // Load current availability on mount
   useEffect(() => {
     let isMounted = true
-    
+
     async function loadAvailability() {
       try {
         setLoading(true)
         setError(null)
-        
+
         const response = await fetch('/api/therapist/availability')
-        
+
         if (!isMounted) return
-        
+
         if (!response.ok) {
           if (response.status === 401) {
             const loginPath = locale === 'en' ? '/login' : `/${locale}/login`
@@ -50,12 +57,22 @@ export default function AvailabilityManagement() {
         const data = await response.json()
         const weeklyAvail = data.weeklyAvailability || []
         const blocked = data.blockedSlots || []
-        
+        const offerings = data.therapyOfferings || []
+        const bio = data.bio || ''
+        const specialization = data.specialization || ''
+
         if (!isMounted) return
-        
+
         setWeeklyAvailability(weeklyAvail)
         setBlockedSlots(blocked)
-        setInitialState({ weeklyAvailability: weeklyAvail, blockedSlots: blocked })
+        setTherapyOfferings(offerings)
+        setInitialState({
+          weeklyAvailability: weeklyAvail,
+          blockedSlots: blocked,
+          therapyOfferings: offerings
+        })
+        setTherapyOfferings(offerings)
+        setTherapistInfo({ bio, specialization })
       } catch (err) {
         if (!isMounted) return
         console.error('Error loading availability:', err)
@@ -68,7 +85,7 @@ export default function AvailabilityManagement() {
     }
 
     loadAvailability()
-    
+
     return () => {
       isMounted = false
     }
@@ -96,16 +113,16 @@ export default function AvailabilityManagement() {
         if (a.dayOfWeek !== b.dayOfWeek) return a.dayOfWeek - b.dayOfWeek
         return a.startTime.localeCompare(b.startTime)
       })
-      
+
       const hasWeeklyChanges = JSON.stringify(sortedWeekly) !== JSON.stringify(sortedInitialWeekly)
-      
+
       // Sort blocked slots for comparison to handle order differences
       const sortedBlocked = [...blockedSlots].sort((a, b) => {
         const aFromDate = a.fromDate || a.date || ''
         const bFromDate = b.fromDate || b.date || ''
         const aToDate = a.toDate || a.date || ''
         const bToDate = b.toDate || b.date || ''
-        
+
         if (aFromDate !== bFromDate) return aFromDate.localeCompare(bFromDate)
         if (aToDate !== bToDate) return aToDate.localeCompare(bToDate)
         if (a.startTime !== b.startTime) return a.startTime.localeCompare(b.startTime)
@@ -116,18 +133,32 @@ export default function AvailabilityManagement() {
         const bFromDate = b.fromDate || b.date || ''
         const aToDate = a.toDate || a.date || ''
         const bToDate = b.toDate || b.date || ''
-        
+
         if (aFromDate !== bFromDate) return aFromDate.localeCompare(bFromDate)
         if (aToDate !== bToDate) return aToDate.localeCompare(bToDate)
         if (a.startTime !== b.startTime) return a.startTime.localeCompare(b.startTime)
         return a.endTime.localeCompare(b.endTime)
       })
-      
+
       const hasBlockedChanges = JSON.stringify(sortedBlocked) !== JSON.stringify(sortedInitialBlocked)
-      
-      setHasChanges(hasWeeklyChanges || hasBlockedChanges)
+
+      // Sort therapy offerings for comparison
+      const sortedOfferings = [...therapyOfferings].sort((a, b) => {
+        const aId = a._id || ''
+        const bId = b._id || ''
+        return aId.localeCompare(bId)
+      })
+      const sortedInitialOfferings = [...initialState.therapyOfferings].sort((a, b) => {
+        const aId = a._id || ''
+        const bId = b._id || ''
+        return aId.localeCompare(bId)
+      })
+
+      const hasOfferingsChanges = JSON.stringify(sortedOfferings) !== JSON.stringify(sortedInitialOfferings)
+
+      setHasChanges(hasWeeklyChanges || hasBlockedChanges || hasOfferingsChanges)
     }
-  }, [weeklyAvailability, blockedSlots, initialState])
+  }, [weeklyAvailability, blockedSlots, therapyOfferings, initialState])
 
   const handleSave = async () => {
     try {
@@ -151,6 +182,7 @@ export default function AvailabilityManagement() {
         body: JSON.stringify({
           weeklyAvailability,
           blockedSlots,
+          therapyOfferings,
         }),
       })
 
@@ -169,9 +201,11 @@ export default function AvailabilityManagement() {
       const data = await response.json()
       setWeeklyAvailability(data.weeklyAvailability || [])
       setBlockedSlots(data.blockedSlots || [])
+      setTherapyOfferings(data.therapyOfferings || [])
       setInitialState({
         weeklyAvailability: data.weeklyAvailability || [],
         blockedSlots: data.blockedSlots || [],
+        therapyOfferings: data.therapyOfferings || [],
       })
       setSuccess(t('availability.availabilityUpdated'))
       setHasChanges(false)
@@ -180,7 +214,7 @@ export default function AvailabilityManagement() {
       if (successTimeoutRef.current) {
         clearTimeout(successTimeoutRef.current)
       }
-      
+
       // Clear success message after 3 seconds
       successTimeoutRef.current = setTimeout(() => {
         setSuccess(null)
@@ -207,7 +241,7 @@ export default function AvailabilityManagement() {
         if (!entry || typeof entry !== 'object') {
           return 'Invalid weekly availability entry.'
         }
-        
+
         if (typeof entry.dayOfWeek !== 'number' || entry.dayOfWeek < 0 || entry.dayOfWeek > 6) {
           return `Invalid day of week: ${entry.dayOfWeek}. Must be between 0-6.`
         }
@@ -235,15 +269,15 @@ export default function AvailabilityManagement() {
         if (!slot || typeof slot !== 'object') {
           return 'Invalid blocked slot entry.'
         }
-        
+
         // Support both new format (fromDate/toDate) and legacy format (date)
         const fromDate = slot.fromDate || slot.date
         const toDate = slot.toDate || slot.date
-        
+
         if (!fromDate || !toDate || typeof fromDate !== 'string' || typeof toDate !== 'string') {
           return 'Blocked slot dates are required and must be strings.'
         }
-        
+
         const dateRegex = /^\d{4}-\d{2}-\d{2}$/
         if (!dateRegex.test(fromDate) || !dateRegex.test(toDate)) {
           return `Invalid date format: ${fromDate} - ${toDate}. Use YYYY-MM-DD format.`
@@ -274,6 +308,27 @@ export default function AvailabilityManagement() {
           } else {
             return `Start date and time must be before end date and time for blocked slot ${fromDate} - ${toDate}.`
           }
+        }
+      }
+    }
+
+    // Validate therapy offerings
+    if (Array.isArray(therapyOfferings)) {
+      for (const offering of therapyOfferings) {
+        if (!offering || typeof offering !== 'object') {
+          return 'Invalid therapy offering entry.'
+        }
+
+        if (typeof offering.duration !== 'number' || offering.duration < 15 || offering.duration > 240) {
+          return 'Duration must be between 15 and 240 minutes.'
+        }
+
+        if (typeof offering.breakDuration !== 'number' || offering.breakDuration < 0 || offering.breakDuration > 60) {
+          return 'Break duration must be between 0 and 60 minutes.'
+        }
+
+        if (offering.price !== undefined && (typeof offering.price !== 'number' || offering.price < 0)) {
+          return 'Price must be a valid positive number.'
         }
       }
     }
@@ -377,6 +432,16 @@ export default function AvailabilityManagement() {
         />
       </div>
 
+      {/* Therapy Offerings Editor */}
+      <div className="bg-white rounded-xl shadow-md border p-6">
+        <TherapyOfferingsEditor
+          therapyOfferings={therapyOfferings}
+          onChange={setTherapyOfferings}
+          therapistBio={therapistInfo?.bio}
+          therapistSpecialization={therapistInfo?.specialization}
+        />
+      </div>
+
       {/* Blocked Slots Editor */}
       <div className="bg-white rounded-xl shadow-md border p-6">
         <BlockedSlotsEditor
@@ -389,7 +454,7 @@ export default function AvailabilityManagement() {
       <div className="flex items-center justify-between pt-4 border-t">
         <button
           onClick={handleCancel}
-          className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+          className="px-4 py-2 text-sm border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
         >
           {hasChanges ? t('common.cancel') : t('common.return')}
         </button>
@@ -400,7 +465,7 @@ export default function AvailabilityManagement() {
           <button
             onClick={handleSave}
             disabled={saving || !hasChanges}
-            className="px-6 py-3 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2"
+            className="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2"
           >
             {saving && (
               <svg

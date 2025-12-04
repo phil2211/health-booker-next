@@ -5,6 +5,8 @@
 export interface HealthProvider {
   _id?: string
   name: string
+  firstName?: string
+  lastName?: string
   specialization: string
   email: string
   phone: string
@@ -24,19 +26,59 @@ export interface ProviderAvailability {
 }
 
 /**
+ * Therapy offering configuration
+ * Defines different types of therapy sessions with configurable durations
+ */
+export interface TherapyOffering {
+  _id?: string // Optional ID for tracking
+  name: string | { en: string; de: string } // Name/title of the therapy offering
+  description: string | { en: string; de: string } // Description of the therapy type
+  duration: number // Session duration in minutes
+  breakDuration: number // Break duration after session in minutes
+  price: number // Price for the session
+  isActive: boolean // Whether this offering is currently available for booking
+  specializationId?: string // Reference to the specialization tag
+  createdAt?: Date
+  updatedAt?: Date
+}
+
+/**
  * Therapist model as per Requirements.md
  * Healthcare professionals who manage appointments
  */
+export interface TherapyTag {
+  _id: string
+  category: { en: string; de: string }
+  name: { en: string; de: string }
+  description?: { en: string; de: string }
+  subcategory?: { en: string; de: string }
+}
+
 export interface Therapist {
   _id?: string
   email: string
   password: string // hashed
-  name: string
-  specialization: string
-  bio: string
+  name?: string
+  firstName?: string
+  lastName?: string
+  specialization?: TherapyTag[]
+  bio?: string | { en: string; de: string }
+  address?: string
+  zip?: string
+  city?: string
+  phoneNumber?: string // Swiss phone number format by default
   photoUrl?: string
+  linkedinUrl?: string
   weeklyAvailability: AvailabilityEntry[]
   blockedSlots: BlockedSlot[]
+  pushSubscription?: PushSubscriptionJSON
+  onboardingCompleted?: boolean
+
+
+  // Subscription & Quota - REMOVED
+
+
+  therapyOfferings?: TherapyOffering[] // Configurable therapy session types
   bookings?: Array<{
     _id: string
     patientName: string
@@ -47,8 +89,23 @@ export interface Therapist {
     status: BookingStatus
     createdAt: Date
   }> // Array of future bookings (more than 3 days old are removed)
+
+  // Payment Model
+  balance: number // Current account balance in CHF
+  negativeBalanceSince?: Date // Date when balance first went negative
+  transactions?: Transaction[] // History of charges and payments
+
   createdAt?: Date
   updatedAt?: Date
+}
+
+export interface Transaction {
+  id: string
+  type: 'CHARGE' | 'PAYMENT' | 'ADJUSTMENT'
+  amount: number
+  date: Date
+  description: string
+  bookingId?: string
 }
 
 /**
@@ -76,6 +133,7 @@ export interface BlockedSlot {
 export interface Booking {
   _id?: string
   therapistId: string // Changed from providerId per requirements
+  therapyOfferingId?: string // Reference to the therapy offering used for this booking
   patientName: string
   patientEmail: string
   patientPhone?: string // Optional phone number
@@ -112,6 +170,7 @@ export interface Patient {
     relationship: string
     phone: string
   }
+  pushSubscription?: PushSubscriptionJSON
   createdAt?: Date
   updatedAt?: Date
 }

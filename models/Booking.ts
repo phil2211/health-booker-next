@@ -1,6 +1,7 @@
 import { Booking, BookingStatus } from '@/lib/types'
 import { getDatabase, getClient } from '@/lib/mongodb'
 import { ObjectId } from 'mongodb'
+import { findTherapistById } from '@/models/Therapist'
 
 
 /**
@@ -9,11 +10,11 @@ import { ObjectId } from 'mongodb'
 function createTherapistIdQuery(therapistId: string): any {
   return ObjectId.isValid(therapistId)
     ? {
-        $or: [
-          { therapistId: new ObjectId(therapistId) },
-          { therapistId: therapistId }
-        ]
-      }
+      $or: [
+        { therapistId: new ObjectId(therapistId) },
+        { therapistId: therapistId }
+      ]
+    }
     : { therapistId: therapistId }
 }
 
@@ -59,16 +60,16 @@ export async function getBookingsByTherapistAndDateRange(
   includeCancelled: boolean = false
 ): Promise<BookingDocument[]> {
   const db = await getDatabase()
-  
+
   const startDateObj = new Date(startDate + 'T00:00:00.000Z')
   const endDateObj = new Date(endDate + 'T23:59:59.999Z')
-  
+
   // Handle therapistId as either ObjectId or string
   // MongoDB may store therapistId as ObjectId or string depending on implementation
   const therapistIdCondition: any = ObjectId.isValid(therapistId)
     ? { $or: [{ therapistId: new ObjectId(therapistId) }, { therapistId: therapistId }] }
     : { therapistId: therapistId }
-  
+
   // Query for bookings - handle appointmentDate as both Date object and string (YYYY-MM-DD format)
   // Use $or to match either Date object or string format for appointmentDate
   const query: any = {
@@ -96,19 +97,19 @@ export async function getBookingsByTherapistAndDateRange(
       ...(includeCancelled ? [] : [{ status: { $ne: BookingStatus.CANCELLED } }]),
     ],
   }
-  
+
   const bookings = await db.collection('bookings')
     .find(query)
     .toArray()
-  
+
   return bookings.map((booking) => ({
     ...booking,
     _id: booking._id.toString(),
-    therapistId: booking.therapistId instanceof ObjectId 
+    therapistId: booking.therapistId instanceof ObjectId
       ? booking.therapistId.toString()
       : String(booking.therapistId),
-    appointmentDate: booking.appointmentDate instanceof Date 
-      ? booking.appointmentDate.toISOString().split('T')[0] 
+    appointmentDate: booking.appointmentDate instanceof Date
+      ? booking.appointmentDate.toISOString().split('T')[0]
       : booking.appointmentDate,
   })) as BookingDocument[]
 }
@@ -191,13 +192,20 @@ export async function checkBookingConflict(
  * Create a new booking
  * Stores booking only in the bookings collection
  */
-export async function createBooking(booking: Omit<Booking, '_id' | 'createdAt' | 'updatedAt'>): Promise<BookingDocument> {
+import { ClientSession } from 'mongodb'
+
+export async function createBooking(
+  booking: Omit<Booking, '_id' | 'createdAt' | 'updatedAt'>,
+  session?: ClientSession
+): Promise<BookingDocument> {
   const db = await getDatabase()
 
   // Validate booking data
   if (!validateBooking(booking)) {
     throw new Error('Invalid booking data')
   }
+
+
 
   // Check for conflicts
   const appointmentDateStr = booking.appointmentDate instanceof Date
@@ -220,11 +228,12 @@ export async function createBooking(booking: Omit<Booking, '_id' | 'createdAt' |
   const therapistIdObj = ObjectId.isValid(booking.therapistId)
     ? new ObjectId(booking.therapistId)
     : (() => {
-        throw new Error('Invalid therapist ID format')
-      })()
+      throw new Error('Invalid therapist ID format')
+    })()
 
   const bookingDoc: any = {
     therapistId: therapistIdObj,
+    therapyOfferingId: booking.therapyOfferingId || null, // Track which therapy offering was used
     patientName: booking.patientName,
     patientEmail: booking.patientEmail,
     patientPhone: booking.patientPhone || null,
@@ -242,11 +251,16 @@ export async function createBooking(booking: Omit<Booking, '_id' | 'createdAt' |
   }
 
   // Insert booking into bookings collection
-  const insertResult = await db.collection('bookings').insertOne(bookingDoc)
+  const insertResult = await db.collection('bookings').insertOne(bookingDoc, { session })
   const bookingId = insertResult.insertedId
 
+
+
   // Return the created booking document
-  const createdBooking = await db.collection('bookings').findOne({ _id: bookingId })
+  const createdBooking = await db.collection('bookings').findOne(
+    { _id: bookingId },
+    { session }
+  )
 
   if (!createdBooking) {
     throw new Error('Failed to retrieve created booking')
@@ -256,6 +270,7 @@ export async function createBooking(booking: Omit<Booking, '_id' | 'createdAt' |
     ...booking,
     _id: createdBooking._id.toString(),
     therapistId: booking.therapistId,
+    therapyOfferingId: booking.therapyOfferingId,
     appointmentDate: appointmentDateStr,
     locale: createdBooking.locale,
     reminderSent: createdBooking.reminderSent,

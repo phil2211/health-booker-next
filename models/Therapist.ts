@@ -1,4 +1,4 @@
-import { Therapist, AvailabilityEntry, BlockedSlot } from '@/lib/types'
+import { Therapist, AvailabilityEntry, BlockedSlot, TherapyOffering, TherapyTag } from '@/lib/types'
 import bcrypt from 'bcryptjs'
 import { getDatabase } from '@/lib/mongodb'
 import { ObjectId } from 'mongodb'
@@ -7,6 +7,21 @@ export type TherapistDocument = Therapist & {
   _id: string
   createdAt: Date
   updatedAt: Date
+  // Payment Model
+  balance: number
+  negativeBalanceSince?: Date
+  transactions?: any[] // Using any[] to avoid circular dependency issues for now, or import Transaction
+  profileImage?: {
+    data: Buffer
+    contentType: string
+  }
+}
+
+export type SerializedTherapistDocument = Omit<TherapistDocument, 'profileImage'> & {
+  profileImage?: {
+    data: string
+    contentType: string
+  }
 }
 
 /**
@@ -27,7 +42,7 @@ export async function comparePassword(plainPassword: string, hashedPassword: str
 /**
  * Validate therapist data for registration
  */
-export function validateTherapistInput( therapist: Partial<Therapist> ): { valid: boolean; errors: string[] } {
+export function validateTherapistInput(therapist: Partial<Therapist>): { valid: boolean; errors: string[] } {
   const errors: string[] = []
 
   if (!therapist.email || typeof therapist.email !== 'string') {
@@ -42,17 +57,8 @@ export function validateTherapistInput( therapist: Partial<Therapist> ): { valid
     errors.push('Password must be at least 8 characters long')
   }
 
-  if (!therapist.name || typeof therapist.name !== 'string') {
-    errors.push('Name is required')
-  }
-
-  if (!therapist.specialization || typeof therapist.specialization !== 'string') {
-    errors.push('Specialization is required')
-  }
-
-  if (!therapist.bio || typeof therapist.bio !== 'string') {
-    errors.push('Bio is required')
-  }
+  // Name (First/Last), specialization, and bio are now optional during initial registration
+  // They will be collected during onboarding
 
   return {
     valid: errors.length === 0,
@@ -118,7 +124,7 @@ export function validateBlockedSlot(slot: BlockedSlot): boolean {
   // Check that start datetime is before end datetime (considering both date and time)
   const startDateTime = new Date(fromDate + 'T' + slot.startTime + ':00')
   const endDateTime = new Date(toDate + 'T' + slot.endTime + ':00')
-  
+
   return startDateTime < endDateTime
 }
 
@@ -128,9 +134,9 @@ export function validateBlockedSlot(slot: BlockedSlot): boolean {
 export async function findTherapistByEmail(email: string): Promise<TherapistDocument | null> {
   const db = await getDatabase()
   const therapist = await db.collection('therapists').findOne({ email })
-  
+
   if (!therapist) return null
-  
+
   return {
     ...therapist,
     _id: therapist._id.toString(),
@@ -143,9 +149,9 @@ export async function findTherapistByEmail(email: string): Promise<TherapistDocu
 export async function findTherapistById(id: string): Promise<TherapistDocument | null> {
   const db = await getDatabase()
   const therapist = await db.collection('therapists').findOne({ _id: new ObjectId(id) })
-  
+
   if (!therapist) return null
-  
+
   return {
     ...therapist,
     _id: therapist._id.toString(),
@@ -158,29 +164,35 @@ export async function findTherapistById(id: string): Promise<TherapistDocument |
 export async function createTherapist(
   email: string,
   hashedPassword: string,
-  name: string,
-  specialization: string,
-  bio: string,
+  firstName?: string,
+  lastName?: string,
+  specialization?: TherapyTag[],
+  bio?: string,
   photoUrl?: string
 ): Promise<TherapistDocument> {
   const db = await getDatabase()
-  
+
   const now = new Date()
   const therapist: Omit<TherapistDocument, '_id'> = {
     email,
     password: hashedPassword,
-    name,
+    firstName,
+    lastName,
     specialization,
     bio,
     photoUrl,
     weeklyAvailability: [],
     blockedSlots: [],
+    // Initialize Payment Model
+    balance: 0,
+    transactions: [],
+    onboardingCompleted: false,
     createdAt: now,
     updatedAt: now,
   }
 
   const result = await db.collection('therapists').insertOne(therapist)
-  
+
   return {
     ...therapist,
     _id: result.insertedId.toString(),
@@ -190,18 +202,59 @@ export async function createTherapist(
 /**
  * Get all therapists (for public listing)
  */
-export async function getAllTherapists(): Promise<TherapistDocument[]> {
+export async function getAllTherapists(): Promise<SerializedTherapistDocument[]> {
   const db = await getDatabase()
   const therapists = await db
     .collection('therapists')
-    .find({})
-    .project({ password: 0 }) // Exclude password
+    .aggregate([
+      {
+        $project: { password: 0 }
+      },
+      {
+        $addFields: {
+          specialization: {
+            $map: {
+              input: {
+                $setUnion: [
+                  {
+                    $map: {
+                      input: "$specialization",
+                      as: "spec",
+                      in: "$$spec.category.en"
+                    }
+                  }
+                ]
+              },
+              as: "category",
+              in: {
+                category: "$$category"
+              }
+            }
+          }
+        }
+      }
+    ])
     .toArray()
-  
-  return therapists.map((therapist) => ({
-    ...therapist,
-    _id: therapist._id.toString(),
-  })) as TherapistDocument[]
+
+  return therapists.map((therapist) => {
+    const doc = {
+      ...therapist,
+      _id: therapist._id.toString(),
+    } as any
+
+    if (doc.profileImage && doc.profileImage.data) {
+      // Convert Buffer to base64 string for client-side consumption
+      return {
+        ...doc,
+        profileImage: {
+          ...doc.profileImage,
+          data: doc.profileImage.data.toString('base64'),
+        },
+      }
+    }
+
+    return doc
+  }) as SerializedTherapistDocument[]
 }
 
 /**
@@ -220,7 +273,7 @@ export async function updateTherapistWeeklyAvailability(
   weeklyAvailability: AvailabilityEntry[]
 ): Promise<TherapistDocument | null> {
   const db = await getDatabase()
-  
+
   const now = new Date()
   const result = await db.collection('therapists').findOneAndUpdate(
     { _id: new ObjectId(therapistId) },
@@ -232,12 +285,12 @@ export async function updateTherapistWeeklyAvailability(
     },
     { returnDocument: 'after' }
   )
-  
-  if (!result || !result.value) return null
-  
+
+  if (!result) return null
+
   return {
-    ...result.value,
-    _id: result.value._id.toString(),
+    ...result,
+    _id: result._id.toString(),
   } as TherapistDocument
 }
 
@@ -249,7 +302,7 @@ export async function updateTherapistBlockedSlots(
   blockedSlots: BlockedSlot[]
 ): Promise<TherapistDocument | null> {
   const db = await getDatabase()
-  
+
   const now = new Date()
   const result = await db.collection('therapists').findOneAndUpdate(
     { _id: new ObjectId(therapistId) },
@@ -261,12 +314,12 @@ export async function updateTherapistBlockedSlots(
     },
     { returnDocument: 'after' }
   )
-  
-  if (!result || !result.value) return null
-  
+
+  if (!result) return null
+
   return {
-    ...result.value,
-    _id: result.value._id.toString(),
+    ...result,
+    _id: result._id.toString(),
   } as TherapistDocument
 }
 
@@ -276,30 +329,35 @@ export async function updateTherapistBlockedSlots(
 export async function updateTherapistAvailability(
   therapistId: string,
   weeklyAvailability?: AvailabilityEntry[],
-  blockedSlots?: BlockedSlot[]
+  blockedSlots?: BlockedSlot[],
+  therapyOfferings?: TherapyOffering[]
 ): Promise<TherapistDocument | null> {
   try {
     const db = await getDatabase()
-    
+
     // Validate ObjectId format
     if (!ObjectId.isValid(therapistId)) {
       console.error('Invalid therapist ID format:', therapistId)
       return null
     }
-    
+
     const now = new Date()
     const updateFields: any = {
       updatedAt: now,
     }
-    
+
     if (weeklyAvailability !== undefined) {
       updateFields.weeklyAvailability = weeklyAvailability
     }
-    
+
     if (blockedSlots !== undefined) {
       updateFields.blockedSlots = blockedSlots
     }
-    
+
+    if (therapyOfferings !== undefined) {
+      updateFields.therapyOfferings = therapyOfferings
+    }
+
     // Use updateOne instead of findOneAndUpdate for more reliable results
     const updateResult = await db.collection('therapists').updateOne(
       { _id: new ObjectId(therapistId) },
@@ -307,23 +365,23 @@ export async function updateTherapistAvailability(
         $set: updateFields,
       }
     )
-    
+
     // Check if update was successful
     if (updateResult.matchedCount === 0) {
       console.error('Therapist not found for update:', therapistId)
       return null
     }
-    
+
     // Fetch the updated document
     const updatedTherapist = await db.collection('therapists').findOne(
       { _id: new ObjectId(therapistId) }
     )
-    
+
     if (!updatedTherapist) {
       console.error('Therapist not found after update:', therapistId)
       return null
     }
-    
+
     return {
       ...updatedTherapist,
       _id: updatedTherapist._id.toString(),
@@ -334,3 +392,210 @@ export async function updateTherapistAvailability(
   }
 }
 
+
+/**
+ * Update therapist profile (name, specialization, bio)
+ */
+export async function updateTherapistProfile(
+  therapistId: string,
+  profileData: {
+    firstName?: string
+    lastName?: string
+    specialization?: TherapyTag[]
+    bio?: string | { en: string; de: string }
+    address?: string
+    zip?: string
+    city?: string
+    phoneNumber?: string
+    linkedinUrl?: string
+    profileImage?: {
+      data: Buffer
+      contentType: string
+    }
+  }
+): Promise<TherapistDocument | null> {
+  try {
+    const db = await getDatabase()
+
+    // Validate ObjectId format
+    if (!ObjectId.isValid(therapistId)) {
+      console.error('Invalid therapist ID format:', therapistId)
+      return null
+    }
+
+    const now = new Date()
+    const updateFields: any = {
+      updatedAt: now,
+    }
+
+    if (profileData.firstName !== undefined) updateFields.firstName = profileData.firstName
+    if (profileData.lastName !== undefined) updateFields.lastName = profileData.lastName
+    if (profileData.specialization !== undefined) updateFields.specialization = profileData.specialization
+    if (profileData.bio !== undefined) updateFields.bio = profileData.bio
+    if (profileData.address !== undefined) updateFields.address = profileData.address
+    if (profileData.zip !== undefined) updateFields.zip = profileData.zip
+    if (profileData.city !== undefined) updateFields.city = profileData.city
+    if (profileData.phoneNumber !== undefined) updateFields.phoneNumber = profileData.phoneNumber
+    if (profileData.linkedinUrl !== undefined) updateFields.linkedinUrl = profileData.linkedinUrl
+    if (profileData.profileImage !== undefined) updateFields.profileImage = profileData.profileImage
+
+    let shouldAddStartingCredit = false
+
+    // Check if onboarding is completed
+    const currentTherapist = await db.collection('therapists').findOne({ _id: new ObjectId(therapistId) })
+
+    if (currentTherapist) {
+      const hasName = (updateFields.firstName || currentTherapist.firstName) && (updateFields.lastName || currentTherapist.lastName)
+      const hasSpecialization = updateFields.specialization || currentTherapist.specialization
+      const hasBio = updateFields.bio || currentTherapist.bio
+      const hasAddress = updateFields.address || currentTherapist.address
+
+      if (hasName && hasSpecialization && hasBio && hasAddress) {
+        updateFields.onboardingCompleted = true
+        if (!currentTherapist.onboardingCompleted) {
+          shouldAddStartingCredit = true
+        }
+      }
+    }
+
+    // Use updateOne instead of findOneAndUpdate for more reliable results
+    const updateResult = await db.collection('therapists').updateOne(
+      { _id: new ObjectId(therapistId) },
+      {
+        $set: updateFields,
+      }
+    )
+
+    if (shouldAddStartingCredit) {
+      await topUpBalance(therapistId, 180, 'Starting Credit')
+    }
+
+    // Check if update was successful
+    if (updateResult.matchedCount === 0) {
+      console.error('Therapist not found for update:', therapistId)
+      return null
+    }
+
+    // Fetch the updated document
+    const updatedTherapist = await db.collection('therapists').findOne(
+      { _id: new ObjectId(therapistId) }
+    )
+
+    if (!updatedTherapist) {
+      console.error('Therapist not found after update:', therapistId)
+      return null
+    }
+
+    return {
+      ...updatedTherapist,
+      _id: updatedTherapist._id.toString(),
+    } as TherapistDocument
+  } catch (error) {
+    console.error('Error updating therapist profile:', error)
+    throw error // Re-throw to be caught by API route
+  }
+}
+
+
+
+/**
+ * Update therapist balance and log transaction in a new collection
+ * Supports ACID transactions via MongoDB session
+ */
+import { ClientSession } from 'mongodb'
+
+export async function updateTherapistBalance(
+  therapistId: string,
+  amount: number,
+  description: string,
+  bookingId?: string,
+  session?: ClientSession
+): Promise<TherapistDocument | null> {
+  const db = await getDatabase()
+  const now = new Date()
+
+  // 1. Get current therapist to check balance
+  const therapist = await db.collection('therapists').findOne(
+    { _id: new ObjectId(therapistId) },
+    { session }
+  )
+
+  if (!therapist) {
+    throw new Error('Therapist not found')
+  }
+
+  const currentBalance = therapist.balance || 0
+  const newBalance = currentBalance + amount
+
+  // 2. Prepare updates
+  const updates: any = {
+    balance: newBalance,
+    updatedAt: now
+  }
+
+  // Handle negative balance tracking
+  if (newBalance < 0 && currentBalance >= 0) {
+    updates.negativeBalanceSince = now
+  } else if (newBalance >= 0 && therapist.negativeBalanceSince) {
+    updates.negativeBalanceSince = null
+  }
+
+  // 3. Update therapist balance
+  const updateResult = await db.collection('therapists').findOneAndUpdate(
+    { _id: new ObjectId(therapistId) },
+    { $set: updates },
+    {
+      session,
+      returnDocument: 'after'
+    }
+  )
+
+  if (!updateResult) {
+    throw new Error('Failed to update therapist balance')
+  }
+
+  // 4. Create transaction record in new collection
+  const transaction = {
+    therapistId: new ObjectId(therapistId),
+    type: amount >= 0 ? 'CREDIT' : 'CHARGE',
+    amount: Math.abs(amount),
+    date: now,
+    description,
+    bookingId: bookingId ? new ObjectId(bookingId) : undefined,
+    createdAt: now
+  }
+
+  await db.collection('transactions').insertOne(transaction, { session })
+
+  return {
+    ...updateResult,
+    _id: updateResult._id.toString(),
+  } as TherapistDocument
+}
+
+/**
+ * Deduct amount from therapist balance and log transaction
+ * Wrapper around updateTherapistBalance for backward compatibility
+ */
+export async function deductBalance(
+  therapistId: string,
+  amount: number,
+  description: string,
+  bookingId?: string,
+  session?: ClientSession
+): Promise<TherapistDocument | null> {
+  return updateTherapistBalance(therapistId, -amount, description, bookingId, session)
+}
+
+/**
+ * Top up therapist balance and log transaction
+ * Wrapper around updateTherapistBalance for backward compatibility
+ */
+export async function topUpBalance(
+  therapistId: string,
+  amount: number,
+  description: string = 'Account Top Up',
+  session?: ClientSession
+): Promise<TherapistDocument | null> {
+  return updateTherapistBalance(therapistId, amount, description, undefined, session)
+}

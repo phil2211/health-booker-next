@@ -14,6 +14,7 @@ export const runtime = 'nodejs'
 
 interface CreateBookingRequest {
   therapistId: string
+  therapyOfferingId?: string
   patientName: string
   patientEmail: string
   patientPhone?: string
@@ -106,64 +107,119 @@ export async function POST(request: Request) {
       )
     }
 
-    // Generate cancellation token
-    const cancellationToken = generateSecureToken()
-
-    // Create booking
-    const booking = await createBooking({
-      therapistId: body.therapistId,
-      patientName: body.patientName,
-      patientEmail: body.patientEmail,
-      patientPhone: body.patientPhone,
-      appointmentDate: body.appointmentDate,
-      startTime: body.startTime,
-      endTime: body.endTime,
-      status: BookingStatus.CONFIRMED,
-      cancellationToken,
-      notes: body.patientComment,
-      locale: body.locale,
-    })
-
-    // Send confirmation emails - if this fails, rollback the booking
-    const patient: Patient = {
-        name: body.patientName,
-        email: body.patientEmail,
-        phone: body.patientPhone || '',
+    // Payment Logic: Block if balance is insufficient
+    const balance = therapist.balance ?? 0
+    if (balance <= 0) {
+      return NextResponse.json(
+        { error: 'Booking is currently disabled due to insufficient balance. Please contact the therapist directly.' },
+        { status: 403 }
+      )
     }
-    
+
+
+    // Start MongoDB session for ACID transaction
+    const { getClient } = await import('@/lib/mongodb')
+    const client = await getClient()
+    const session = client.startSession()
+
+    let bookingResult: any = null
+
     try {
-    await sendBookingConfirmationEmails(booking, therapist, patient)
-    } catch (emailError) {
-      // Email sending failed - delete the booking to rollback
-      console.error('Email sending failed, rolling back booking:', emailError)
-      
-      try {
-        const db = await getDatabase()
-        await db.collection('bookings').deleteOne({ _id: new ObjectId(booking._id) })
-        console.log('Booking rolled back successfully')
-      } catch (rollbackError) {
-        console.error('Failed to rollback booking after email error:', rollbackError)
-        // Continue to throw the original email error
-      }
-      
-      // Return a user-friendly error message
-      const errorMessage = emailError instanceof Error 
-        ? emailError.message 
-        : 'Failed to send confirmation email'
-      
-      // Check if it's a Resend API error
-      if (errorMessage.includes('Resend API error') || errorMessage.includes('Failed to send')) {
-        return NextResponse.json(
-          { 
-            error: 'Unable to send confirmation email. Please check your email address and try again. If the problem persists, please contact support.',
-            details: process.env.NODE_ENV === 'development' ? errorMessage : undefined
-          },
-          { status: 503 } // Service Unavailable
+      await session.withTransaction(async () => {
+        // Generate cancellation token
+        const cancellationToken = generateSecureToken()
+
+        // Create booking with session
+        const booking = await createBooking({
+          therapistId: body.therapistId,
+          therapyOfferingId: body.therapyOfferingId,
+          patientName: body.patientName,
+          patientEmail: body.patientEmail,
+          patientPhone: body.patientPhone,
+          appointmentDate: body.appointmentDate,
+          startTime: body.startTime,
+          endTime: body.endTime,
+          status: BookingStatus.CONFIRMED,
+          cancellationToken,
+          notes: body.patientComment,
+          locale: body.locale,
+        }, session)
+
+        // Payment Logic: Deduct 1 CHF with session
+        const { deductBalance } = await import('@/models/Therapist')
+        await deductBalance(
+          body.therapistId,
+          1,
+          `Booking fee for ${body.patientName}`,
+          booking._id.toString(),
+          session
         )
+
+        bookingResult = booking
+      })
+    } catch (transactionError) {
+      console.error('Transaction failed:', transactionError)
+      await session.endSession()
+
+      // Handle specific transaction errors
+      if (transactionError instanceof Error) {
+        if (transactionError.message.includes('Booking conflict')) {
+          return NextResponse.json(
+            { error: 'Time slot is already booked' },
+            { status: 409 }
+          )
+        }
       }
-      
-      // Generic email error
-      throw emailError
+
+      return NextResponse.json(
+        { error: 'Failed to process booking transaction. Please try again.' },
+        { status: 500 }
+      )
+    } finally {
+      await session.endSession()
+    }
+
+    if (!bookingResult) {
+      return NextResponse.json(
+        { error: 'Booking failed unexpectedly.' },
+        { status: 500 }
+      )
+    }
+
+    const booking = bookingResult
+
+    // Send confirmation emails - if this fails, we can't rollback the committed transaction easily
+    // but the booking is valid and paid for. We should log the error and maybe alert admin.
+    // Ideally, email sending should be decoupled (e.g., via a queue), but for now we try our best.
+    const patient: Patient = {
+      name: body.patientName,
+      email: body.patientEmail,
+      phone: body.patientPhone || '',
+    }
+
+    try {
+      await sendBookingConfirmationEmails(booking, therapist, patient)
+    } catch (emailError) {
+      console.error('Email sending failed for confirmed booking:', emailError)
+
+      // We do NOT rollback here because the transaction is already committed (money deducted).
+      // We inform the user that the booking is successful but email failed.
+
+      return NextResponse.json({
+        booking: {
+          _id: booking._id,
+          therapistId: booking.therapistId,
+          patientName: booking.patientName,
+          patientEmail: booking.patientEmail,
+          appointmentDate: booking.appointmentDate,
+          startTime: booking.startTime,
+          endTime: booking.endTime,
+          status: booking.status,
+          cancellationToken: booking.cancellationToken,
+        },
+        message: 'Booking created successfully, but confirmation email could not be sent. Please contact the therapist.',
+        warning: 'Email delivery failed'
+      }, { status: 201 })
     }
 
 
@@ -183,19 +239,20 @@ export async function POST(request: Request) {
     }, { status: 201 })
   } catch (error) {
     console.error('Create booking error:', error)
-    
+
+    // ... existing error handling ...
     if (error instanceof Error) {
       // Email sending errors (already handled above, but catch any that slip through)
       if (error.message.includes('Resend API error') || error.message.includes('Failed to send')) {
         return NextResponse.json(
-          { 
+          {
             error: 'Unable to send confirmation email. Please check your email address and try again. If the problem persists, please contact support.',
             details: process.env.NODE_ENV === 'development' ? error.message : undefined
           },
           { status: 503 }
         )
       }
-      
+
       // Booking conflict errors
       if (error.message.includes('conflict') || error.message.includes('already booked')) {
         return NextResponse.json(
@@ -203,7 +260,7 @@ export async function POST(request: Request) {
           { status: 409 }
         )
       }
-      
+
       // Validation errors
       if (error.message.includes('Invalid booking data')) {
         return NextResponse.json(
@@ -215,9 +272,9 @@ export async function POST(request: Request) {
 
     // Generic error - return user-friendly message
     return NextResponse.json(
-      { 
+      {
         error: 'Failed to create booking. Please try again or contact support if the problem persists.',
-        details: process.env.NODE_ENV === 'development' 
+        details: process.env.NODE_ENV === 'development'
           ? (error instanceof Error ? error.message : String(error))
           : undefined
       },

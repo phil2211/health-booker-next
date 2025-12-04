@@ -29,10 +29,11 @@ export default function DatePickerPopover({
   onChange,
   'data-testid': testId,
   popoverId,
-}: DatePickerPopoverProps) {
+  inline = false,
+}: DatePickerPopoverProps & { inline?: boolean }) {
   const { t, locale } = useTranslation()
   const dateFnsLocale = locale === 'de' ? de : enUS
-  
+
   // Initialize displayText based on selectedDate prop
   const getInitialDisplayText = () => {
     if (selectedDate) {
@@ -144,6 +145,8 @@ export default function DatePickerPopover({
 
   // Handle click outside to close calendar
   useEffect(() => {
+    if (inline) return
+
     const handleClickOutside = (event: MouseEvent) => {
       if (
         containerRef.current &&
@@ -161,11 +164,11 @@ export default function DatePickerPopover({
     return () => {
       document.removeEventListener('mousedown', handleClickOutside)
     }
-  }, [isOpen])
+  }, [isOpen, inline])
 
   // Handle keyboard: Esc closes calendar
   useEffect(() => {
-    if (!isOpen) return
+    if (inline || !isOpen) return
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -178,7 +181,7 @@ export default function DatePickerPopover({
     return () => {
       document.removeEventListener('keydown', handleKeyDown)
     }
-  }, [isOpen])
+  }, [isOpen, inline])
 
   // Format display text
   const getDisplayText = () => {
@@ -192,21 +195,49 @@ export default function DatePickerPopover({
     if (date) {
       const dateString = format(date, 'yyyy-MM-dd')
       onChange(dateString)
-      setIsOpen(false)
-      triggerRef.current?.focus()
+      if (!inline) {
+        setIsOpen(false)
+        triggerRef.current?.focus()
+      }
     }
   }
 
   const handleClear = () => {
     onChange('')
-    setIsOpen(false)
-    triggerRef.current?.focus()
+    if (!inline) {
+      setIsOpen(false)
+      triggerRef.current?.focus()
+    }
   }
 
   const handleCancel = () => {
     // Close without making changes - selected will remain as derived from props
     setIsOpen(false)
     triggerRef.current?.focus()
+  }
+
+  if (inline) {
+    return (
+      <div className="inline-block border border-gray-200 rounded-lg bg-white p-2 sm:p-4">
+        <DayPicker
+          mode="single"
+          numberOfMonths={1}
+          selected={selected}
+          onSelect={handleDateSelect}
+          disabled={disabledDays}
+          className="rdp"
+          showOutsideDays
+          fixedWeeks
+          locale={dateFnsLocale}
+          modifiers={{
+            blocked: (date) => isBlockedDate(date) || isUnavailableDate(date),
+          }}
+          modifiersClassNames={{
+            blocked: 'rdp-day_blocked',
+          }}
+        />
+      </div>
+    )
   }
 
   return (

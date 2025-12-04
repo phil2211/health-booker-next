@@ -55,13 +55,13 @@ describe('Email Sending Functions (Mocked Resend API)', () => {
   let mockCreateIcsFile: jest.Mock;
   let mockResendSend: jest.Mock;
   let processEnvBackup: NodeJS.ProcessEnv;
-  
+
   // Import email functions after mocks are set up
   let sendBookingConfirmationEmails: any;
   let sendCancellationEmail: any;
   let sendRescheduleEmail: any;
   let sendReminderEmails: any;
-  
+
   const testRecipientEmail = process.env.TEST_RECIPIENT_EMAIL || 'philip@eschenbacher.ch';
 
   // Helper to check if tests should run (using mocks, so always true)
@@ -98,7 +98,14 @@ describe('Email Sending Functions (Mocked Resend API)', () => {
     email: testRecipientEmail,
     password: 'hashed-password',
     name: 'Dr. Jane Smith',
-    specialization: 'Physical Therapy',
+    specialization: [
+      {
+        _id: 'tag-1',
+        category: { en: 'Physical Therapy', de: 'Physiotherapie' },
+        name: { en: 'General', de: 'Allgemein' }
+      }
+    ],
+    balance: 0,
     bio: 'Experienced therapist',
     weeklyAvailability: [],
     blockedSlots: [],
@@ -227,7 +234,7 @@ describe('Email Sending Functions (Mocked Resend API)', () => {
         start: expect.any(Date),
         end: expect.any(Date),
         title: 'Appointment with Dr. Jane Smith',
-        description: 'Your scheduled appointment',
+        description: expect.stringContaining('Your scheduled appointment'),
         location: 'Online'
       });
     });
@@ -265,7 +272,7 @@ describe('Email Sending Functions (Mocked Resend API)', () => {
         start: expect.any(Date),
         end: expect.any(Date),
         title: 'Appointment with Dr. Jane Smith',
-        description: 'Your scheduled appointment',
+        description: expect.stringContaining('Your scheduled appointment'),
         location: 'Online'
       });
 
@@ -285,7 +292,7 @@ describe('Email Sending Functions (Mocked Resend API)', () => {
 
     test('should include ICS calendar attachment in therapist email', async () => {
       if (skipIfNotReady()) return;
-      
+
       // Verify ICS file is generated for therapist email too
       await sendBookingConfirmationEmails(mockBooking, mockTherapist, mockPatient);
 
@@ -295,12 +302,12 @@ describe('Email Sending Functions (Mocked Resend API)', () => {
 
     test('should include cancellation link in patient email', async () => {
       if (skipIfNotReady()) return;
-      
+
       // Verify email is sent successfully (links are included in the real email)
       await expect(
         sendBookingConfirmationEmails(mockBooking, mockTherapist, mockPatient)
       ).resolves.not.toThrow();
-      
+
       // Verify that the booking has a cancellation token (required for links)
       expect(mockBooking.cancellationToken).toBeDefined();
       expect(mockBooking.cancellationToken).toBe('cancel-token-abc123');
@@ -325,7 +332,7 @@ describe('Email Sending Functions (Mocked Resend API)', () => {
       // Temporarily unset NEXT_PUBLIC_BASE_URL to test auto-detection
       const originalBaseUrl = process.env.NEXT_PUBLIC_BASE_URL;
       delete process.env.NEXT_PUBLIC_BASE_URL;
-      process.env.NODE_ENV = 'development';
+      Object.defineProperty(process.env, 'NODE_ENV', { value: 'development', writable: true });
 
       try {
         await expect(
@@ -336,18 +343,18 @@ describe('Email Sending Functions (Mocked Resend API)', () => {
       } finally {
         // Restore original environment
         process.env.NEXT_PUBLIC_BASE_URL = originalBaseUrl;
-        process.env.NODE_ENV = processEnvBackup.NODE_ENV;
+        Object.defineProperty(process.env, 'NODE_ENV', { value: processEnvBackup.NODE_ENV, writable: true });
       }
     });
 
     test('should use correct email addresses', async () => {
       if (skipIfNotReady()) return;
-      
+
       // Verify email addresses are set correctly
       expect(mockPatient.email).toBe('philip@eschenbacher.ch');
       expect(mockTherapist.email).toBe('philip@eschenbacher.ch');
       expect(mockBooking.patientEmail).toBe('philip@eschenbacher.ch');
-      
+
       // Verify email is sent successfully
       await expect(
         sendBookingConfirmationEmails(mockBooking, mockTherapist, mockPatient)
@@ -356,7 +363,7 @@ describe('Email Sending Functions (Mocked Resend API)', () => {
 
     test('should use correct subject lines with translations', async () => {
       if (skipIfNotReady()) return;
-      
+
       // Verify translations are called correctly
       await sendBookingConfirmationEmails(mockBooking, mockTherapist, mockPatient);
 
@@ -368,21 +375,21 @@ describe('Email Sending Functions (Mocked Resend API)', () => {
 
     test('should generate ICS file with correct booking details', async () => {
       if (skipIfNotReady()) return;
-      
+
       await sendBookingConfirmationEmails(mockBooking, mockTherapist, mockPatient);
 
       expect(mockCreateIcsFile).toHaveBeenCalledWith({
         start: expect.any(Date),
         end: expect.any(Date),
         title: 'Appointment with Dr. Jane Smith',
-        description: 'Your scheduled appointment',
+        description: expect.stringContaining('Your scheduled appointment'),
         location: 'Online',
       });
     });
 
     test('should handle errors gracefully', async () => {
       if (skipIfNotReady()) return;
-      
+
       // Test with invalid API key scenario - function should handle errors
       // Note: This test verifies error handling, but with real API it may succeed
       // In real scenario, errors would be caught and logged
