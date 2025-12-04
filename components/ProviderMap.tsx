@@ -70,39 +70,63 @@ export default function ProviderMap({ therapists, onVisibleTherapistsChange, hov
 
     // Geocoding logic (keeping existing Nominatim for now to ensure data availability without extra API setup)
     useEffect(() => {
+        let isMounted = true
+
         const geocodeTherapists = async () => {
-            const updatedTherapists = await Promise.all(
-                therapists.map(async (therapist) => {
-                    if (!therapist.address || !therapist.city) return therapist
+            const results: GeocodedTherapist[] = []
 
-                    const query = `${therapist.address}, ${therapist.zip || ''} ${therapist.city}`.trim()
+            for (const therapist of therapists) {
+                if (!isMounted) break
 
-                    try {
-                        // Add a small delay to respect rate limits
-                        await new Promise(resolve => setTimeout(resolve, Math.random() * 1000))
+                if (!therapist.address || !therapist.city) {
+                    results.push(therapist)
+                    continue
+                }
 
-                        const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`)
-                        if (!response.ok) return therapist
+                const query = `${therapist.address}, ${therapist.zip || ''} ${therapist.city}`.trim()
 
-                        const data = await response.json()
-                        if (data && data.length > 0) {
-                            return {
-                                ...therapist,
-                                lat: parseFloat(data[0].lat),
-                                lng: parseFloat(data[0].lon)
-                            }
-                        }
-                    } catch (error) {
-                        console.error('Geocoding error for', query, error)
+                try {
+                    // Add a delay to respect Nominatim rate limits (1 request per second)
+                    await new Promise((resolve) => setTimeout(resolve, 1000))
+
+                    if (!isMounted) break
+
+                    const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`)
+
+                    if (!response.ok) {
+                        results.push(therapist)
+                        continue
                     }
-                    return therapist
-                })
-            )
-            setGeocodedTherapists(updatedTherapists)
+
+                    const data = await response.json()
+                    if (data && data.length > 0) {
+                        results.push({
+                            ...therapist,
+                            lat: parseFloat(data[0].lat),
+                            lng: parseFloat(data[0].lon),
+                        })
+                    } else {
+                        results.push(therapist)
+                    }
+                } catch (error) {
+                    console.error('Geocoding error for', query, error)
+                    results.push(therapist)
+                }
+            }
+
+            if (isMounted) {
+                setGeocodedTherapists(results)
+            }
         }
 
         if (therapists.length > 0) {
             geocodeTherapists()
+        } else {
+            setGeocodedTherapists([])
+        }
+
+        return () => {
+            isMounted = false
         }
     }, [therapists])
 
